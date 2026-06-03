@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3478f6"/>
+      <stop offset="100%" stop-color="#1a45b4"/>
+    </linearGradient>
+  </defs>
+  <!-- Icon -->
+  <rect x="0" y="2" width="36" height="36" rx="9" fill="url(#bg)"/>
+  <text x="18" y="27" font-size="20" font-family="system-ui,sans-serif"
+        text-anchor="middle" fill="white">⚡</text>
+  <!-- Wordmark -->
+  <text x="46" y="27" font-size="20" font-weight="800" font-family="system-ui,sans-serif" fill="#0f172a">Data</text>
+  <text x="94" y="27" font-size="20" font-weight="800" font-family="system-ui,sans-serif" fill="#3478f6">Forge</text>
+</svg>

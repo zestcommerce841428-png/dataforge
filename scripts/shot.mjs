@@ -1,0 +1,10 @@
+import { chromium } from "playwright";
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
+await page.goto("http://localhost:3137/tools/password", { waitUntil: "networkidle" });
+await page.getByLabel(/how many/i).fill("5");
+await page.getByRole("button", { name: /^generate$/i }).click();
+await page.waitForTimeout(600);
+await page.screenshot({ path: "scripts/preview.png", fullPage: true });
+await browser.close();
+console.log("saved scripts/preview.png");
