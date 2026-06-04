@@ -48,6 +48,8 @@ export function ImageToolsClient() {
   const onWidth = (w: number) => { setWidth(w); if (lockAspect) setHeight(Math.round(w / aspect.current)); };
   const onHeight = (h: number) => { setHeight(h); if (lockAspect) setWidth(Math.round(h * aspect.current)); };
 
+  const applyPreset = (w: number, h: number) => { setLockAspect(false); setWidth(w); setHeight(h); };
+
   const draw = useCallback((w: number, h: number): HTMLCanvasElement | null => {
     if (!img) return null;
     const swap = rotation === 90 || rotation === 270;
@@ -115,6 +117,35 @@ export function ImageToolsClient() {
           {/* Controls */}
           <div className="space-y-4">
             <div className="surface rounded-2xl border p-4">
+              <p className="mb-2 text-sm font-bold">Quick presets</p>
+              <p className="mb-1 text-xs text-muted">Document & ID photos</p>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {[
+                  ["PAN photo 213×213", 213, 213],
+                  ["Passport 35×45mm", 413, 531],
+                  ["Signature 140×60", 140, 60],
+                  ["Visa 600×600", 600, 600],
+                  ["Avatar 512×512", 512, 512],
+                ].map(([label, w, h]) => (
+                  <button key={label as string} onClick={() => applyPreset(w as number, h as number)} className="rounded-lg border surface px-2.5 py-1 text-xs hover:border-brand-400">{label}</button>
+                ))}
+              </div>
+              <p className="mb-1 text-xs text-muted">Social media</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  ["Instagram post 1080²", 1080, 1080],
+                  ["IG story 1080×1920", 1080, 1920],
+                  ["FB cover 820×312", 820, 312],
+                  ["Twitter/X 1600×900", 1600, 900],
+                  ["YouTube thumb 1280×720", 1280, 720],
+                  ["LinkedIn 1200×627", 1200, 627],
+                ].map(([label, w, h]) => (
+                  <button key={label as string} onClick={() => applyPreset(w as number, h as number)} className="rounded-lg border surface px-2.5 py-1 text-xs hover:border-brand-400">{label}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="surface rounded-2xl border p-4">
               <p className="mb-2 text-sm font-bold">Resize</p>
               <div className="flex items-end gap-2">
                 <label className="text-sm flex-1">Width<input type="number" className="input-field mt-1 w-full" value={width} onChange={(e) => onWidth(+e.target.value)} /></label>
@@ -154,6 +185,11 @@ export function ImageToolsClient() {
             <div className="surface rounded-2xl border p-4">
               <p className="mb-2 text-sm font-bold">Compress to target size</p>
               <p className="mb-2 text-xs text-muted">Great for upload limits (passport / PAN / form photos). JPEG or WebP only.</p>
+              <div className="mb-2 flex flex-wrap gap-2">
+                {[20, 50, 100, 200, 500].map((kb) => (
+                  <button key={kb} onClick={() => setTargetKB(kb)} className={`rounded-lg border px-2.5 py-1 text-xs ${targetKB === kb ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{kb} KB</button>
+                ))}
+              </div>
               <div className="flex items-end gap-2">
                 <label className="text-sm flex-1">Target size (KB)<input type="number" className="input-field mt-1 w-full" value={targetKB} onChange={(e) => setTargetKB(+e.target.value)} /></label>
                 <button onClick={compressToTarget} className="rounded-lg border border-brand-500 bg-brand-500/10 px-4 py-2 text-sm font-semibold text-brand-600">Compress</button>
