@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeControls } from "./theme-controls";
+import { RegionSwitcher } from "./region-switcher";
 
 export function SiteHeader() {
   return (
@@ -51,6 +52,7 @@ export function SiteHeader() {
           <Link href="/about" className="hidden text-sm font-medium text-muted hover:text-[var(--text)] lg:inline">
             About
           </Link>
+          <RegionSwitcher />
           <ThemeControls />
         </nav>
       </div>

@@ -19,15 +19,6 @@ const DEFAULTS: Prefs = {
 
 const KEY = "df-a11y";
 
-const LANGS: [string, string][] = [
-  ["", "English (original)"], ["es", "Español"], ["fr", "Français"], ["de", "Deutsch"],
-  ["hi", "हिन्दी"], ["ar", "العربية"], ["zh-CN", "中文 (简体)"], ["pt", "Português"],
-  ["ru", "Русский"], ["ja", "日本語"], ["it", "Italiano"], ["ko", "한국어"],
-  ["bn", "বাংলা"], ["ur", "اردو"], ["tr", "Türkçe"], ["id", "Indonesia"],
-  ["vi", "Tiếng Việt"], ["nl", "Nederlands"], ["pl", "Polski"], ["th", "ไทย"],
-  ["ta", "தமிழ்"], ["te", "తెలుగు"], ["mr", "मराठी"], ["gu", "ગુજરાતી"],
-];
-
 function applyPrefs(p: Prefs) {
   const el = document.documentElement;
   el.style.setProperty("--a11y-font-scale", String(p.fontScale));
@@ -41,14 +32,9 @@ function applyPrefs(p: Prefs) {
   set("data-a11y-cursor", p.cursor);
 }
 
-function getCookie(name: string) {
-  return document.cookie.split("; ").find((c) => c.startsWith(name + "="))?.split("=")[1];
-}
-
 export function AccessibilityPanel() {
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
-  const [lang, setLang] = useState("");
   const guideRef = useRef<HTMLDivElement | null>(null);
 
   // Restore prefs on mount
@@ -61,12 +47,6 @@ export function AccessibilityPanel() {
         applyPrefs(p);
       }
     } catch {}
-    // Restore translate language from googtrans cookie
-    const gt = getCookie("googtrans");
-    if (gt) {
-      const m = decodeURIComponent(gt).match(/\/[a-z-]*\/([a-zA-Z-]+)$/);
-      if (m && m[1] !== "en") setLang(m[1]);
-    }
   }, []);
 
   const update = useCallback((patch: Partial<Prefs>) => {
@@ -93,43 +73,6 @@ export function AccessibilityPanel() {
     window.addEventListener("mousemove", move);
     return () => { window.removeEventListener("mousemove", move); bar.remove(); };
   }, [prefs.guide]);
-
-  // Load Google Translate element once, on demand
-  const ensureTranslate = useCallback(() => {
-    if (document.getElementById("google-translate-script")) return;
-    const host = document.createElement("div");
-    host.id = "google_translate_element";
-    host.style.display = "none";
-    document.body.appendChild(host);
-    (window as unknown as { googleTranslateElementInit: () => void }).googleTranslateElementInit = () => {
-      const g = (window as unknown as { google?: { translate?: { TranslateElement: new (o: object, id: string) => void } } }).google;
-      if (g?.translate) new g.translate.TranslateElement({ pageLanguage: "en", autoDisplay: false }, "google_translate_element");
-    };
-    const s = document.createElement("script");
-    s.id = "google-translate-script";
-    s.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-    document.body.appendChild(s);
-  }, []);
-
-  const changeLang = useCallback((code: string) => {
-    setLang(code);
-    // Google Translate reads the `googtrans` cookie: /en/<target>
-    const domainCookie = (val: string) => {
-      document.cookie = `googtrans=${val}; path=/`;
-      const host = location.hostname.replace(/^www\./, "");
-      document.cookie = `googtrans=${val}; path=/; domain=.${host}`;
-    };
-    if (!code) {
-      domainCookie(`/en/en`);
-      // clear by expiring
-      document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      location.reload();
-      return;
-    }
-    ensureTranslate();
-    domainCookie(`/en/${code}`);
-    location.reload();
-  }, [ensureTranslate]);
 
   const reset = () => {
     setPrefs(DEFAULTS);
@@ -197,19 +140,9 @@ export function AccessibilityPanel() {
               <Toggle k="guide" label="Reading guide" icon="📏" />
             </div>
 
-            {/* Language */}
-            <div className="mt-4 border-t border-[var(--border)] pt-3">
-              <label className="mb-1 block text-sm font-medium">🌐 Translate this page</label>
-              <select
-                value={lang}
-                onChange={(e) => changeLang(e.target.value)}
-                className="input-field w-full"
-                aria-label="Translate page language"
-              >
-                {LANGS.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
-              </select>
-              <p className="mt-1 text-[11px] text-muted">Powered by Google Translate. The page reloads to apply.</p>
-            </div>
+            <p className="mt-4 border-t border-[var(--border)] pt-3 text-[11px] text-muted">
+              🌐 To translate the site, use the country/flag switcher in the header.
+            </p>
           </div>
         </>
       )}
