@@ -29,6 +29,12 @@ export function ImageToolsClient() {
   const [busy, setBusy] = useState("");
   const aspect = useRef(1);
 
+  // Crop state (fractions 0..1 of the displayed image)
+  const [cropping, setCropping] = useState(false);
+  const [sel, setSel] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number } | null>(null);
+  const previewImgRef = useRef<HTMLImageElement | null>(null);
+
   const loadFile = useCallback((file: File) => {
     setFileName(file.name.replace(/\.[^.]+$/, "") || "image");
     setOrigSize(file.size);
@@ -49,6 +55,50 @@ export function ImageToolsClient() {
   const onHeight = (h: number) => { setHeight(h); if (lockAspect) setWidth(Math.round(h * aspect.current)); };
 
   const applyPreset = (w: number, h: number) => { setLockAspect(false); setWidth(w); setHeight(h); };
+
+  // ── Crop ──
+  const fracFromEvent = (e: React.PointerEvent) => {
+    const el = previewImgRef.current;
+    if (!el) return { x: 0, y: 0 };
+    const r = el.getBoundingClientRect();
+    return {
+      x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)),
+      y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)),
+    };
+  };
+  const cropDown = (e: React.PointerEvent) => {
+    if (!cropping) return;
+    const p = fracFromEvent(e);
+    dragRef.current = { startX: p.x, startY: p.y };
+    setSel({ x: p.x, y: p.y, w: 0, h: 0 });
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const cropMove = (e: React.PointerEvent) => {
+    if (!cropping || !dragRef.current) return;
+    const p = fracFromEvent(e);
+    const s = dragRef.current;
+    setSel({ x: Math.min(s.startX, p.x), y: Math.min(s.startY, p.y), w: Math.abs(p.x - s.startX), h: Math.abs(p.y - s.startY) });
+  };
+  const cropUp = () => { dragRef.current = null; };
+
+  const applyCrop = () => {
+    if (!img || !sel || sel.w < 0.02 || sel.h < 0.02) { setCropping(false); return; }
+    const sx = sel.x * img.width, sy = sel.y * img.height;
+    const sw = sel.w * img.width, sh = sel.h * img.height;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(sw); canvas.height = Math.round(sh);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    const cropped = new Image();
+    cropped.onload = () => {
+      aspect.current = cropped.width / cropped.height;
+      setImg(cropped);
+      setWidth(cropped.width); setHeight(cropped.height);
+      setResult(null); setSel(null); setCropping(false);
+    };
+    cropped.src = canvas.toDataURL("image/png");
+  };
 
   const draw = useCallback((w: number, h: number): HTMLCanvasElement | null => {
     if (!img) return null;
@@ -178,8 +228,16 @@ export function ImageToolsClient() {
                 <button onClick={() => setRotation((r) => (r + 90) % 360)} className="rounded-lg border surface px-3 py-1.5 text-sm">↻ Rotate 90°</button>
                 <button onClick={() => setFlipH((v) => !v)} className={`rounded-lg border px-3 py-1.5 text-sm ${flipH ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>⇄ Flip H</button>
                 <button onClick={() => setFlipV((v) => !v)} className={`rounded-lg border px-3 py-1.5 text-sm ${flipV ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>⇅ Flip V</button>
+                <button onClick={() => { setCropping((c) => !c); setSel(null); setResult(null); }} className={`rounded-lg border px-3 py-1.5 text-sm ${cropping ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>✂ Crop</button>
                 <span className="self-center text-xs text-muted">Rotation: {rotation}°</span>
               </div>
+              {cropping && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-muted">Drag on the image →</span>
+                  <button onClick={applyCrop} className="rounded-lg border border-brand-500 bg-brand-500/10 px-3 py-1 text-xs font-semibold text-brand-600">Apply crop</button>
+                  <button onClick={() => { setCropping(false); setSel(null); }} className="rounded-lg border surface px-3 py-1 text-xs">Cancel</button>
+                </div>
+              )}
             </div>
 
             <div className="surface rounded-2xl border p-4">
@@ -203,9 +261,26 @@ export function ImageToolsClient() {
           {/* Preview / result */}
           <div className="space-y-3">
             <div className="surface rounded-2xl border p-4">
-              <p className="mb-2 text-sm font-bold">{result ? "Result" : "Original"}</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result?.url ?? img.src} alt="preview" className="mx-auto max-h-[360px] rounded-lg border border-[var(--border)]" />
+              <p className="mb-2 text-sm font-bold">{cropping ? "Drag to select crop area" : result ? "Result" : "Original"}</p>
+              <div className="relative mx-auto w-fit" style={{ touchAction: cropping ? "none" : undefined }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  ref={previewImgRef}
+                  src={cropping ? img.src : (result?.url ?? img.src)}
+                  alt="preview"
+                  draggable={false}
+                  onPointerDown={cropDown}
+                  onPointerMove={cropMove}
+                  onPointerUp={cropUp}
+                  className={`max-h-[360px] rounded-lg border border-[var(--border)] ${cropping ? "cursor-crosshair select-none" : ""}`}
+                />
+                {cropping && sel && sel.w > 0 && (
+                  <div
+                    className="pointer-events-none absolute border-2 border-brand-500 bg-brand-500/20"
+                    style={{ left: `${sel.x * 100}%`, top: `${sel.y * 100}%`, width: `${sel.w * 100}%`, height: `${sel.h * 100}%` }}
+                  />
+                )}
+              </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-center text-sm">
                 <div className="surface-2 rounded-lg p-2"><div className="font-bold">{result ? `${result.w}×${result.h}` : `${img.width}×${img.height}`}</div><div className="text-xs text-muted">dimensions</div></div>
                 <div className="surface-2 rounded-lg p-2"><div className="font-bold">{prettyBytes(result?.size ?? origSize)}</div><div className="text-xs text-muted">{result ? "new size" : "original"}</div></div>

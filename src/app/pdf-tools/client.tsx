@@ -1,14 +1,17 @@
 "use client";
 import { useState } from "react";
 
-type Tool = "merge" | "images" | "split" | "rotate" | "delete";
+type Tool = "merge" | "images" | "split" | "rotate" | "delete" | "topng" | "numbers" | "watermark";
 
 const TOOLS: { id: Tool; name: string; icon: string; desc: string }[] = [
   { id: "merge", name: "Merge PDFs", icon: "🔗", desc: "Combine several PDFs into one" },
   { id: "images", name: "Images → PDF", icon: "🖼️", desc: "Turn JPG/PNG images into a PDF" },
+  { id: "topng", name: "PDF → JPG", icon: "📸", desc: "Export each page as an image" },
   { id: "split", name: "Extract pages", icon: "✂️", desc: "Keep a page range as a new PDF" },
-  { id: "rotate", name: "Rotate", icon: "↻", desc: "Rotate every page" },
   { id: "delete", name: "Delete pages", icon: "🗑️", desc: "Remove specific pages" },
+  { id: "rotate", name: "Rotate", icon: "↻", desc: "Rotate every page" },
+  { id: "numbers", name: "Page numbers", icon: "#️⃣", desc: "Stamp page numbers" },
+  { id: "watermark", name: "Watermark", icon: "💧", desc: "Add a text watermark" },
 ];
 
 function download(bytes: Uint8Array, name: string) {
@@ -34,6 +37,7 @@ export function PdfToolsClient() {
   const [files, setFiles] = useState<File[]>([]);
   const [pageSpec, setPageSpec] = useState("1-3");
   const [angle, setAngle] = useState(90);
+  const [watermarkText, setWatermarkText] = useState("CONFIDENTIAL");
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -42,7 +46,7 @@ export function PdfToolsClient() {
   const run = async () => {
     setMsg(""); setBusy("Working…");
     try {
-      const { PDFDocument, degrees } = await import("pdf-lib");
+      const { PDFDocument, degrees, rgb } = await import("pdf-lib");
 
       if (tool === "merge") {
         if (files.length < 2) throw new Error("Select at least 2 PDF files.");
@@ -69,12 +73,74 @@ export function PdfToolsClient() {
         setMsg(`Created a PDF from ${files.length} image(s).`);
       }
 
+      else if (tool === "topng") {
+        if (files.length !== 1) throw new Error("Select exactly one PDF.");
+        setBusy("Rendering pages…");
+        const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
+        GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+        const buf = new Uint8Array(await files[0].arrayBuffer());
+        const pdf = await getDocument({ data: buf }).promise;
+        const { default: JSZip } = await import("jszip");
+        const zip = new JSZip();
+        let single: Blob | null = null;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          setBusy(`Rendering page ${i} of ${pdf.numPages}…`);
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 2 });
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width; canvas.height = viewport.height;
+          const ctx = canvas.getContext("2d")!;
+          await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+          const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.92));
+          if (blob) { single = blob; zip.file(`page-${String(i).padStart(3, "0")}.jpg`, blob); }
+        }
+        if (pdf.numPages === 1 && single) {
+          const url = URL.createObjectURL(single);
+          const a = document.createElement("a"); a.href = url; a.download = "page-1-dataforge.jpg"; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } else {
+          const zblob = await zip.generateAsync({ type: "blob" });
+          const url = URL.createObjectURL(zblob);
+          const a = document.createElement("a"); a.href = url; a.download = "pdf-images-dataforge.zip"; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+        setMsg(`Exported ${pdf.numPages} page(s) as JPG.`);
+      }
+
       else {
         if (files.length !== 1) throw new Error("Select exactly one PDF.");
         const src = await PDFDocument.load(await files[0].arrayBuffer());
         const count = src.getPageCount();
 
-        if (tool === "rotate") {
+        if (tool === "numbers") {
+          const font = await src.embedFont("Helvetica");
+          src.getPages().forEach((p, i) => {
+            const { width } = p.getSize();
+            const label = `${i + 1} / ${count}`;
+            const w = font.widthOfTextAtSize(label, 10);
+            p.drawText(label, { x: width / 2 - w / 2, y: 18, size: 10, font });
+          });
+          download(await src.save(), "numbered-dataforge.pdf");
+          setMsg(`Added page numbers to ${count} pages.`);
+        }
+
+        else if (tool === "watermark") {
+          const text = watermarkText.trim() || "WATERMARK";
+          const font = await src.embedFont("Helvetica");
+          src.getPages().forEach((p) => {
+            const { width, height } = p.getSize();
+            const size = Math.min(width, height) / 8;
+            const w = font.widthOfTextAtSize(text, size);
+            p.drawText(text, {
+              x: width / 2 - w / 2, y: height / 2, size, font,
+              color: rgb(0.6, 0.6, 0.6), opacity: 0.25, rotate: degrees(45),
+            });
+          });
+          download(await src.save(), "watermarked-dataforge.pdf");
+          setMsg(`Watermarked ${count} pages with “${text}”.`);
+        }
+
+        else if (tool === "rotate") {
           src.getPages().forEach((p) => p.setRotation(degrees((p.getRotation().angle + angle) % 360)));
           download(await src.save(), "rotated-dataforge.pdf");
           setMsg(`Rotated all ${count} pages by ${angle}°.`);
@@ -159,6 +225,11 @@ export function PdfToolsClient() {
               <button key={a} onClick={() => setAngle(a)} className={`rounded-lg border px-3 py-1.5 text-sm ${angle === a ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{a}°</button>
             ))}
           </div>
+        )}
+        {tool === "watermark" && (
+          <label className="mt-4 block text-sm">Watermark text
+            <input className="input-field mt-1 w-full" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} />
+          </label>
         )}
 
         <button onClick={run} disabled={!!busy || !files.length} className="mt-5 w-full rounded-xl bg-brand-600 px-4 py-3 font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
