@@ -14,3 +14,5 @@ next-env.d.ts.bak
 *.log
 tsconfig.tsbuildinfo
 smoke-out.txt
+
+.vercel
