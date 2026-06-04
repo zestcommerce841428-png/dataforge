@@ -36,6 +36,12 @@ export function SiteHeader() {
           <Link href="/formula-manager" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
             <span aria-hidden>ƒ</span> Formulas
           </Link>
+          <Link href="/typing" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
+            <span aria-hidden>⌨</span> Typing
+          </Link>
+          <Link href="/shortcuts" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
+            <span aria-hidden>⚡</span> Shortcuts
+          </Link>
           <Link href="/about" className="hidden text-sm font-medium text-muted hover:text-[var(--text)] lg:inline">
             About
           </Link>
