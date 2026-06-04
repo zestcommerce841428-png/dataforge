@@ -52,22 +52,32 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Site links */}
+          {/* Site & legal links */}
           <div>
-            <h2 className="text-sm font-semibold">Site</h2>
+            <h2 className="text-sm font-semibold">Company</h2>
             <ul className="mt-3 space-y-2 text-sm text-muted">
-              <li><Link href="/#tools" className="hover:text-[var(--text)]">All {TOTAL_GENERATORS} tools</Link></li>
-              <li><Link href="/crypto" className="hover:text-[var(--text)]">₿ Crypto Tracker</Link></li>
               <li><Link href="/about" className="hover:text-[var(--text)]">About</Link></li>
-              <li><Link href="/privacy" className="hover:text-[var(--text)]">Privacy policy</Link></li>
+              <li><Link href="/contact" className="hover:text-[var(--text)]">Contact</Link></li>
+              <li><Link href="/privacy" className="hover:text-[var(--text)]">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-[var(--text)]">Terms of Service</Link></li>
+              <li><Link href="/cookies" className="hover:text-[var(--text)]">Cookie Policy</Link></li>
+              <li><Link href="/disclaimer" className="hover:text-[var(--text)]">Disclaimer</Link></li>
             </ul>
           </div>
+        </div>
+
+        {/* Contact row */}
+        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-app pt-6 text-sm text-muted">
+          <a href="mailto:contact@zestcommerce.in" className="hover:text-[var(--text)]">✉ contact@zestcommerce.in</a>
+          <a href="https://wa.me/917492068998" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text)]">💬 WhatsApp: +91 74920 68998</a>
+          <span>🌐 India</span>
         </div>
       </div>
 
       <div className="border-t border-app py-5 text-center text-xs text-muted">
-        © {new Date().getFullYear()} DataForge · Generated data is fictional and for testing only ·{" "}
-        <Link href="/privacy" className="hover:text-[var(--text)]">Privacy</Link>
+        © {new Date().getFullYear()} DataForge · Built by <span className="font-medium text-[var(--text)]">Naushad Alam</span> with Claude · India ·{" "}
+        <Link href="/privacy" className="hover:text-[var(--text)]">Privacy</Link> ·{" "}
+        <Link href="/terms" className="hover:text-[var(--text)]">Terms</Link>
       </div>
     </footer>
   );

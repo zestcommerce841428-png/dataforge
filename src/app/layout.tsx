@@ -6,6 +6,7 @@ import { GoogleAnalytics } from "@/components/analytics";
 import { AccessibilityPanel } from "@/components/accessibility-panel";
 import { CookieConsent } from "@/components/cookie-consent";
 import { Recaptcha } from "@/components/recaptcha";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 const SITE_DESC =
@@ -146,6 +147,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <SiteFooter />
         <AccessibilityPanel />
+        <WhatsAppButton />
         <CookieConsent />
         <Recaptcha />
         <GoogleAnalytics />

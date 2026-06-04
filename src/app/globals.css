@@ -142,6 +142,26 @@ html[data-a11y-cursor="1"], html[data-a11y-cursor="1"] * { cursor: url("data:ima
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
+/* ---- Suppress Google Translate's injected banner/tooltip (keeps our UI intact) ---- */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+.skiptranslate > iframe,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover { display: none !important; visibility: hidden !important; }
+
+body { top: 0 !important; position: static !important; }
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+/* Hide the Google Translate gadget container itself (we drive it from the header) */
+#google_translate_element { display: none !important; }
+
 body::before {
   content: "";
   position: fixed;
