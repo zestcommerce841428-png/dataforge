@@ -32,6 +32,12 @@ jobs:
 
       - name: Build project artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          # Public NEXT_PUBLIC_* values passed explicitly so next build inlines
+          # them into the client bundle (vercel build doesn't always pick up
+          # pulled NEXT_PUBLIC vars for client-side inlining).
+          NEXT_PUBLIC_GA_ID: ${{ vars.NEXT_PUBLIC_GA_ID }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
 
       - name: Deploy to production
         # --archive=tgz uploads a single tarball instead of thousands of files,
