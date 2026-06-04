@@ -9,18 +9,25 @@ export async function GET(req: NextRequest) {
 
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
 
-  const types = type.split(",").filter(Boolean);
+  const types = type.split(",").filter(Boolean).slice(0, 10);
   const results: Record<string, unknown> = {};
 
-  await Promise.all(
-    types.map(async (t) => {
-      const r = await fetch(`${CF_DOH}?name=${encodeURIComponent(name)}&type=${t}`, {
-        headers: { Accept: "application/dns-json" },
-        next: { revalidate: 60 },
-      });
-      if (r.ok) results[t] = await r.json();
-    })
-  );
+  try {
+    await Promise.all(
+      types.map(async (t) => {
+        const r = await fetch(`${CF_DOH}?name=${encodeURIComponent(name)}&type=${t}`, {
+          headers: { Accept: "application/dns-json" },
+          next: { revalidate: 60 },
+        });
+        if (r.ok) results[t] = await r.json();
+      })
+    );
+  } catch (err) {
+    return NextResponse.json(
+      { error: "network_error", message: (err as Error).message },
+      { status: 503 }
+    );
+  }
 
   return NextResponse.json(results, {
     headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },

@@ -37,6 +37,26 @@ npm run build
 npm start
 ```
 
+## Deployment
+
+The app is a standard Next.js project with serverless API routes and **no required
+environment variables** — it deploys as-is.
+
+### Vercel (recommended)
+1. Import the repo at [vercel.com/new](https://vercel.com/new).
+2. Framework auto-detects as Next.js → **Deploy**. No env vars needed.
+
+### Cloudflare Pages / Netlify / Node host
+- Build command: `next build` · Output: `.next` · Start: `next start`.
+
+### Optional: error monitoring
+Copy `.env.example` → `.env.local` and set `NEXT_PUBLIC_SENTRY_DSN` to enable
+[Sentry](https://sentry.io). Leave it blank to keep Sentry disabled (default).
+Set `SENTRY_ORG`, `SENTRY_PROJECT` and `SENTRY_AUTH_TOKEN` to upload source maps in CI.
+
+### CI
+`.github/workflows/ci.yml` runs type-check, lint and build on every push and PR to `main`.
+
 ## Tech stack
 
 - Next.js 15+ (App Router, React 19, TypeScript)

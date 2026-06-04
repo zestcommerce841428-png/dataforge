@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.56.0",
     "@types/jszip": "^3.4.0",
     "@types/marked": "^5.0.2",
     "jsbarcode": "^3.12.3",
