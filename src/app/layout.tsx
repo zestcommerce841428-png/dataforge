@@ -2,25 +2,23 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 
-const SITE_URL = "https://dataforge.example";
-const SITE_NAME = "DataForge";
 const SITE_DESC =
-  "DataForge is a free suite of 170+ fast, privacy-first online generators — passwords, UUIDs, addresses, hashes, QR codes, barcodes, fake data, and a live crypto tracker. Everything runs locally in your browser.";
+  "DataForge is a free suite of privacy-first online tools — 200+ developer utilities, 170+ data generators, an Excel-style spreadsheet with 360+ formulas, a live crypto tracker, file converter and OCR. Everything runs locally in your browser.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "DataForge — 170+ Free Online Data Generators",
+    default: "DataForge — 200+ Free Online Developer Tools & Generators",
     template: "%s · DataForge",
   },
   description: SITE_DESC,
   keywords: [
-    "data generator", "random number generator", "password generator",
-    "uuid generator", "hash generator", "ip address generator", "secret key generator",
-    "qr code generator", "barcode generator", "fake data", "test data",
-    "iban generator", "credit card generator", "json mock", "crypto tracker",
-    "free online tools", "developer tools",
+    "developer tools", "online tools", "data generator", "password generator",
+    "uuid generator", "hash generator", "json formatter", "csv to json",
+    "qr code generator", "barcode generator", "regex tester", "excel online",
+    "spreadsheet", "excel formulas", "crypto tracker", "free online tools",
   ],
   authors: [{ name: "DataForge" }],
   creator: "DataForge",
@@ -35,26 +33,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    title: `${SITE_NAME} — 170+ Free Online Data Generators`,
+    title: `${SITE_NAME} — 200+ Free Online Developer Tools & Generators`,
     description: SITE_DESC,
     siteName: SITE_NAME,
     locale: "en_US",
-    images: [
-      {
-        url: `${SITE_URL}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: "DataForge — Free Online Data Generators",
-      },
-    ],
+    // og:image is provided by the file-based opengraph-image route (real PNG).
   },
   twitter: {
     card: "summary_large_image",
     site: "@dataforge",
     creator: "@dataforge",
-    title: `${SITE_NAME} — 170+ Free Online Data Generators`,
+    title: `${SITE_NAME} — 200+ Free Online Developer Tools & Generators`,
     description: SITE_DESC,
-    images: [`${SITE_URL}/og-image.png`],
   },
   robots: {
     index: true,
@@ -117,11 +107,12 @@ const webAppJsonLd = {
   browserRequirements: "Requires JavaScript",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   featureList: [
-    "Password Generator", "UUID Generator", "Hash Generator",
-    "QR Code Generator", "Barcode Generator", "IBAN Generator",
-    "Credit Card Test Generator", "JSON Mock Generator", "Live Crypto Tracker",
+    "200+ Developer Tools", "Data Generators", "JSON / CSV / XML Converters",
+    "Regex Tester", "Hash & Password Generators", "CSS Generators",
+    "Excel-style Spreadsheet with 360+ Formulas", "Formula Manager",
+    "Live Crypto Tracker", "File Converter", "OCR",
   ],
-  screenshot: `${SITE_URL}/og-image.png`,
+  screenshot: `${SITE_URL}/opengraph-image`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
