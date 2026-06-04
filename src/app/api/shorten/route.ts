@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyRecaptcha } from "@/lib/recaptcha-verify";
 
 export async function POST(req: NextRequest) {
-  const { url, service = "tinyurl" } = await req.json();
+  const { url, service = "tinyurl", recaptchaToken } = await req.json();
 
   if (!url || typeof url !== "string") {
     return NextResponse.json({ error: "url required" }, { status: 400 });
+  }
+
+  // Bot/abuse protection (no-op unless RECAPTCHA_SECRET is configured)
+  const check = await verifyRecaptcha(recaptchaToken, "shorten");
+  if (!check.ok) {
+    return NextResponse.json({ error: "recaptcha_failed", reason: check.reason }, { status: 403 });
   }
 
   try {

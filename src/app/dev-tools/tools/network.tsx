@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { CopyBtn, ToolWrap } from "../ui";
+import { executeRecaptcha } from "@/components/recaptcha";
 
 /* ── URL Shortener ── */
 export function UrlShortener() {
@@ -12,10 +13,11 @@ export function UrlShortener() {
   const SERVICES = [["tinyurl","TinyURL"],["isgd","is.gd"],["vgd","v.gd"],["all","All services"]];
   const shorten = async () => {
     setLoading(true); setError(""); setResults([]);
+    const recaptchaToken = await executeRecaptcha("shorten");
     const toTry = service==="all"?["tinyurl","isgd","vgd"]:[service];
     const out: typeof results = [];
     await Promise.allSettled(toTry.map(async s => {
-      const r = await fetch("/api/shorten", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({url, service:s}) });
+      const r = await fetch("/api/shorten", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({url, service:s, recaptchaToken}) });
       const d = await r.json();
       if (d.short) out.push(d);
     }));
