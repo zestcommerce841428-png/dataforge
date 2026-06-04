@@ -30,6 +30,12 @@ export function SiteHeader() {
           <Link href="/file-converter" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
             <span aria-hidden>🔄</span> Convert
           </Link>
+          <Link href="/image-tools" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] md:inline-flex">
+            <span aria-hidden>🖼️</span> Image
+          </Link>
+          <Link href="/pdf-tools" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] md:inline-flex">
+            <span aria-hidden>📄</span> PDF
+          </Link>
           <Link href="/workbook" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
             <span aria-hidden>⊞</span> Workbook
           </Link>
