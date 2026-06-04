@@ -23,6 +23,11 @@ export function ImageToolsClient() {
   const [rotation, setRotation] = useState(0);
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
+  const [grayscale, setGrayscale] = useState(false);
+  const [dpi, setDpi] = useState(300);
+  const [physUnit, setPhysUnit] = useState<"cm" | "in">("cm");
+  const [physW, setPhysW] = useState(10);
+  const [physH, setPhysH] = useState(15);
 
   const [targetKB, setTargetKB] = useState(100);
   const [result, setResult] = useState<{ url: string; size: number; w: number; h: number } | null>(null);
@@ -109,13 +114,22 @@ export function ImageToolsClient() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
     ctx.save();
+    ctx.filter = grayscale ? "grayscale(1)" : "none";
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
     ctx.drawImage(img, -w / 2, -h / 2, w, h);
     ctx.restore();
     return canvas;
-  }, [img, rotation, flipH, flipV]);
+  }, [img, rotation, flipH, flipV, grayscale]);
+
+  // Print-size (physical units + DPI) → pixel dimensions
+  const applyPrintSize = () => {
+    const toIn = (v: number) => (physUnit === "cm" ? v / 2.54 : v);
+    setLockAspect(false);
+    setWidth(Math.round(toIn(physW) * dpi));
+    setHeight(Math.round(toIn(physH) * dpi));
+  };
 
   const toBlob = (canvas: HTMLCanvasElement, q: number): Promise<Blob | null> =>
     new Promise((res) => canvas.toBlob(res, fmt, q));
@@ -229,6 +243,7 @@ export function ImageToolsClient() {
                 <button onClick={() => setFlipH((v) => !v)} className={`rounded-lg border px-3 py-1.5 text-sm ${flipH ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>⇄ Flip H</button>
                 <button onClick={() => setFlipV((v) => !v)} className={`rounded-lg border px-3 py-1.5 text-sm ${flipV ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>⇅ Flip V</button>
                 <button onClick={() => { setCropping((c) => !c); setSel(null); setResult(null); }} className={`rounded-lg border px-3 py-1.5 text-sm ${cropping ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>✂ Crop</button>
+                <button onClick={() => setGrayscale((v) => !v)} className={`rounded-lg border px-3 py-1.5 text-sm ${grayscale ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>◐ Grayscale</button>
                 <span className="self-center text-xs text-muted">Rotation: {rotation}°</span>
               </div>
               {cropping && (
@@ -238,6 +253,23 @@ export function ImageToolsClient() {
                   <button onClick={() => { setCropping(false); setSel(null); }} className="rounded-lg border surface px-3 py-1 text-xs">Cancel</button>
                 </div>
               )}
+            </div>
+
+            <div className="surface rounded-2xl border p-4">
+              <p className="mb-2 text-sm font-bold">Print size (DPI)</p>
+              <p className="mb-2 text-xs text-muted">Set a physical size for printing — we compute the pixels.</p>
+              <div className="flex flex-wrap items-end gap-2">
+                <label className="text-sm">W<input type="number" className="input-field mt-1 w-20" value={physW} onChange={(e) => setPhysW(+e.target.value)} /></label>
+                <label className="text-sm">H<input type="number" className="input-field mt-1 w-20" value={physH} onChange={(e) => setPhysH(+e.target.value)} /></label>
+                <select className="input-field" value={physUnit} onChange={(e) => setPhysUnit(e.target.value as "cm" | "in")}><option value="cm">cm</option><option value="in">inch</option></select>
+                <label className="text-sm">DPI<input type="number" className="input-field mt-1 w-20" value={dpi} onChange={(e) => setDpi(+e.target.value)} /></label>
+                <button onClick={applyPrintSize} className="rounded-lg border border-brand-500 bg-brand-500/10 px-3 py-2 text-sm font-semibold text-brand-600">Set</button>
+              </div>
+              <div className="mt-2 flex gap-1">
+                {[72, 150, 300, 600].map((d) => (
+                  <button key={d} onClick={() => setDpi(d)} className={`rounded-lg border px-2 py-1 text-xs ${dpi === d ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{d} DPI</button>
+                ))}
+              </div>
             </div>
 
             <div className="surface rounded-2xl border p-4">
