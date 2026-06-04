@@ -88,6 +88,60 @@ body {
   min-height: 100dvh;
 }
 
+/* ---- Accessibility preferences (toggled by the a11y panel) ---- */
+html { font-size: calc(100% * var(--a11y-font-scale, 1)); }
+
+html[data-a11y-spacing="1"] body { line-height: 1.9; letter-spacing: 0.03em; word-spacing: 0.1em; }
+
+html[data-a11y-contrast="1"] {
+  --text: #000000;
+  --text-muted: #1f2937;
+  --border: #000000;
+  --surface: #ffffff;
+}
+html.dark[data-a11y-contrast="1"] {
+  --text: #ffffff;
+  --text-muted: #e5e7eb;
+  --border: #ffffff;
+  --surface: #000000;
+  --bg-base: #000000;
+}
+
+html[data-a11y-links="1"] a { text-decoration: underline; text-underline-offset: 2px; }
+
+html[data-a11y-dyslexia="1"] body,
+html[data-a11y-dyslexia="1"] body * {
+  font-family: "Comic Sans MS", "Trebuchet MS", Verdana, sans-serif !important;
+}
+
+html[data-a11y-motion="1"] *,
+html[data-a11y-motion="1"] *::before,
+html[data-a11y-motion="1"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-cursor="1"], html[data-a11y-cursor="1"] * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M6 2l28 16-12 3-5 13z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 4 2, auto; }
+
+/* Reading guide ruler follows the pointer */
+.a11y-reading-guide {
+  position: fixed;
+  left: 0; right: 0;
+  height: 2.4rem;
+  background: color-mix(in srgb, #facc15 35%, transparent);
+  border-top: 2px solid #eab308;
+  border-bottom: 2px solid #eab308;
+  pointer-events: none;
+  z-index: 60;
+  transform: translateY(-50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
 body::before {
   content: "";
   position: fixed;
