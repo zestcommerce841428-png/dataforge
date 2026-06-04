@@ -5,8 +5,8 @@ const isDev = process.env.NODE_ENV !== "production";
 // Next.js's dev runtime (HMR / React Refresh) evaluates code via eval(),
 // so 'unsafe-eval' is required in development. Production stays strict.
 const scriptSrc = isDev
-  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self' 'unsafe-inline'";
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com"
+  : "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com";
 
 // Tesseract.js WASM workers run as blob: URLs and require wasm-eval in dev
 const workerSrc = isDev
@@ -17,9 +17,9 @@ const csp = [
   "default-src 'self'",
   scriptSrc,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://coin-images.coingecko.com https://assets.coingecko.com",
+  "img-src 'self' data: blob: https://coin-images.coingecko.com https://assets.coingecko.com https://www.google-analytics.com https://*.google-analytics.com",
   "font-src 'self'",
-  "connect-src 'self' https://api.coingecko.com https://api.binance.com https://fapi.binance.com wss://stream.binance.com:9443 https://api.alternative.me https://tessdata.projectnaptha.com https://cloudflare-dns.com http://ip-api.com https://tinyurl.com https://is.gd https://v.gd https://clck.ru https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io" + (isDev ? " ws: http://localhost:*" : ""),
+  "connect-src 'self' https://api.coingecko.com https://api.binance.com https://fapi.binance.com wss://stream.binance.com:9443 https://api.alternative.me https://tessdata.projectnaptha.com https://cloudflare-dns.com http://ip-api.com https://tinyurl.com https://is.gd https://v.gd https://clck.ru https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com" + (isDev ? " ws: http://localhost:*" : ""),
   workerSrc,
   "child-src 'self' blob:",
   "base-uri 'self'",

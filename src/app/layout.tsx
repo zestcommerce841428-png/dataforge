@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { GoogleAnalytics } from "@/components/analytics";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 const SITE_DESC =
@@ -141,6 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <SiteFooter />
+        <GoogleAnalytics />
       </body>
     </html>
   );
