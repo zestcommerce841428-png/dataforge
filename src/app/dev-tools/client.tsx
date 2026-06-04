@@ -33,6 +33,22 @@ import { SqlReference, CssReference, JsMethodsReference, DockerReference, NodeRe
 import { NeumorphismGenerator, CssButtonGenerator, CssVariablesGenerator, CssClipPath, TypographyScale } from "./tools/more-css";
 // More math tools
 import { PrimeFactorization, FibonacciSequence, MatrixCalculator, TipCalculator, BusinessDaysCalc, DiscountCalculator } from "./tools/more-math";
+// Batch 2 — extra text tools
+import { ReverseText, NatoPhonetic, UpsideDownText, FancyUnicodeText, ZalgoText, AcronymExtractor, AdvancedTextSorter, ColumnExtractor, TextCleaner } from "./tools/more2-text";
+// Batch 2 — data/dev tools
+import { CsvToJson, JsonToCsv, JsonToXml, SqlInsertGenerator, CurlConverter, MockDataGenerator, JsonFlatten, AsciiTreeGenerator, JwtBuilder } from "./tools/more2-data";
+// Batch 2 — CSS tools
+import { FlexboxPlayground, CssGridGenerator, TextShadowGenerator, CubicBezier, AspectRatioCalc, CssUnitConverter, ColorShadeScale, CssScrollbarGenerator, CssLoaderGenerator } from "./tools/more2-css";
+// Batch 2 — math tools
+import { QuadraticSolver, RightTriangleSolver, PermutationCombination, RatioSimplifier, ScientificNotation, PaceCalculator, SalaryConverter, FuelCostCalc, BitwiseCalculator } from "./tools/more2-math";
+// Batch 2 — date/time tools
+import { DurationCalculator, WeekNumber, DateFormatTokens, TimeUntil, LeapYearChecker, DayOfWeekFinder, CronNextRuns, EpochBatchConverter, WorkHoursCalculator } from "./tools/more2-datetime";
+// Batch 2 — security tools
+import { PasswordGenerator, PassphraseGenerator, RandomStringGenerator, CreditCardValidator, IbanValidator, Base58Tool, Rot47Tool, HashIdentifier, PinGenerator } from "./tools/more2-security";
+// Batch 2 — network tools
+import { UserAgentParser, HttpHeaderAnalyzer, PortReference, CookieParser, MacAddressTool, IpRangeExpander, HostnameValidator, AcceptLanguageParser, ConnectionStringParser } from "./tools/more2-network";
+// Batch 2 — converter tools
+import { NumberBaseMulti, TextBinaryConverter, FeelsLikeCalc, BmiCalculator, GeometryCalc, FractionConverter, RomanConverterLive, AngleConverter, ByteSizeHumanizer } from "./tools/more2-convert";
 
 type ToolEntry = {
   id: string;
@@ -217,6 +233,94 @@ const TOOLS: ToolEntry[] = [
   { id:"tip-calculator", name:"Tip Calculator", icon:"💰", category:"math", short:"Calculate tip amount, total and per-person split for restaurant bills", component:TipCalculator },
   { id:"business-days", name:"Business Days Calculator", icon:"📅", category:"datetime", short:"Add business days to a date or count working days between two dates", component:BusinessDaysCalc },
   { id:"discount-calc", name:"Discount & Markup Calculator", icon:"%", category:"math", short:"Calculate final price, savings and markup for any discount or markup percentage", component:DiscountCalculator },
+
+  // ── Batch 2: Text ──────────────────────────────────────────────
+  { id:"reverse-text", name:"Reverse Text", icon:"↩", category:"text", short:"Reverse text by characters, words or lines", component:ReverseText },
+  { id:"nato-phonetic", name:"NATO Phonetic Alphabet", icon:"📻", category:"text", short:"Spell out text using the NATO phonetic alphabet", component:NatoPhonetic },
+  { id:"upside-down", name:"Upside Down Text", icon:"🙃", category:"text", short:"Flip text upside down with Unicode characters", component:UpsideDownText },
+  { id:"fancy-text", name:"Fancy Unicode Text", icon:"𝓕", category:"text", short:"Bold, italic, script and 8 other Unicode text styles for social bios", component:FancyUnicodeText },
+  { id:"zalgo-text", name:"Zalgo Glitch Text", icon:"🗯", category:"text", short:"Add chaotic combining marks to create glitch text", component:ZalgoText },
+  { id:"acronym-extractor", name:"Acronym Extractor", icon:"🔠", category:"text", short:"Build an acronym from the first letter of each word", component:AcronymExtractor },
+  { id:"advanced-text-sorter", name:"Advanced Text Sorter", icon:"↕", category:"text", short:"Sort lines alphabetically, numerically, by length, naturally or shuffle", component:AdvancedTextSorter },
+  { id:"column-extractor", name:"Column Extractor", icon:"▤", category:"text", short:"Extract a single column from delimited text", component:ColumnExtractor },
+  { id:"text-cleaner", name:"Text Cleaner", icon:"🧹", category:"text", short:"Trim, collapse spaces, remove blank lines and clean up messy text", component:TextCleaner },
+
+  // ── Batch 2: Developer / Data ──────────────────────────────────
+  { id:"csv-to-json", name:"CSV → JSON", icon:"⇄", category:"developer", short:"Convert CSV (quote-aware) to a JSON array of objects", component:CsvToJson },
+  { id:"json-to-csv", name:"JSON → CSV", icon:"⇄", category:"developer", short:"Flatten a JSON array of objects into CSV", component:JsonToCsv },
+  { id:"json-to-xml", name:"JSON → XML", icon:"</>", category:"developer", short:"Convert any JSON object or array into pretty XML", component:JsonToXml },
+  { id:"sql-insert-gen", name:"SQL INSERT Generator", icon:"SQL", category:"developer", short:"Turn a JSON array into INSERT statements for any table", component:SqlInsertGenerator },
+  { id:"curl-to-fetch", name:"cURL → fetch()", icon:"→", category:"developer", short:"Convert a curl command into a JavaScript fetch() call", component:CurlConverter },
+  { id:"mock-data", name:"Mock Data Generator", icon:"🎲", category:"developer", short:"Generate realistic fake user records as JSON", component:MockDataGenerator },
+  { id:"json-flatten", name:"JSON Flatten", icon:"⊟", category:"developer", short:"Flatten nested JSON into dot/bracket notation keys", component:JsonFlatten },
+  { id:"ascii-tree", name:"ASCII Tree Generator", icon:"🌳", category:"developer", short:"Turn an indented list into an ASCII folder tree", component:AsciiTreeGenerator },
+  { id:"jwt-builder", name:"JWT Builder (HS256)", icon:"🎫", category:"security", short:"Build and sign a JWT with HMAC-SHA256 in the browser", component:JwtBuilder },
+
+  // ── Batch 2: CSS & Design ──────────────────────────────────────
+  { id:"flexbox-playground", name:"Flexbox Playground", icon:"⬓", category:"css", short:"Interactive flexbox builder with live preview and CSS output", component:FlexboxPlayground },
+  { id:"css-grid-gen", name:"CSS Grid Generator", icon:"⊞", category:"css", short:"Visual CSS grid builder with columns, rows and gap", component:CssGridGenerator },
+  { id:"text-shadow-gen", name:"Text Shadow Generator", icon:"🅣", category:"css", short:"Visual text-shadow builder with live preview", component:TextShadowGenerator },
+  { id:"cubic-bezier", name:"Cubic Bezier Editor", icon:"∿", category:"css", short:"Visual easing curve editor with presets", component:CubicBezier },
+  { id:"aspect-ratio", name:"Aspect Ratio Calculator", icon:"▭", category:"css", short:"Find aspect ratios and scale dimensions proportionally", component:AspectRatioCalc },
+  { id:"css-unit-converter", name:"CSS Unit Converter", icon:"px", category:"css", short:"Convert between px, rem, em, pt, % and vw", component:CssUnitConverter },
+  { id:"color-shades", name:"Color Shade Scale", icon:"🎚", category:"css", short:"Generate a 50–950 tint/shade scale from one color", component:ColorShadeScale },
+  { id:"scrollbar-gen", name:"CSS Scrollbar Generator", icon:"▮", category:"css", short:"Style custom scrollbars for WebKit and Firefox", component:CssScrollbarGenerator },
+  { id:"css-loader", name:"CSS Loader Generator", icon:"◌", category:"css", short:"Generate animated CSS spinners with live preview", component:CssLoaderGenerator },
+
+  // ── Batch 2: Math & Numbers ────────────────────────────────────
+  { id:"quadratic-solver", name:"Quadratic Equation Solver", icon:"x²", category:"math", short:"Solve ax²+bx+c=0 with real and complex roots", component:QuadraticSolver },
+  { id:"right-triangle", name:"Right Triangle Solver", icon:"📐", category:"math", short:"Find hypotenuse, area, perimeter and angles from two legs", component:RightTriangleSolver },
+  { id:"permutation-combination", name:"Permutations & Combinations", icon:"nCr", category:"math", short:"Calculate nPr, nCr and factorials", component:PermutationCombination },
+  { id:"ratio-simplifier", name:"Ratio Simplifier", icon:":", category:"math", short:"Simplify a ratio to lowest terms with GCD", component:RatioSimplifier },
+  { id:"scientific-notation", name:"Scientific Notation Converter", icon:"×10", category:"math", short:"Convert between standard, scientific and engineering notation", component:ScientificNotation },
+  { id:"pace-calculator", name:"Running Pace Calculator", icon:"🏃", category:"math", short:"Calculate pace and speed from distance and time", component:PaceCalculator },
+  { id:"salary-converter", name:"Salary Converter", icon:"💵", category:"math", short:"Convert annual salary to hourly, daily, weekly and monthly", component:SalaryConverter },
+  { id:"fuel-cost", name:"Fuel Cost Calculator", icon:"⛽", category:"math", short:"Estimate fuel needed and trip cost from distance and consumption", component:FuelCostCalc },
+  { id:"bitwise-calc", name:"Bitwise Calculator", icon:"&", category:"math", short:"AND, OR, XOR, NOT and bit shifts with binary view", component:BitwiseCalculator },
+
+  // ── Batch 2: Date & Time ───────────────────────────────────────
+  { id:"duration-calc", name:"Duration Calculator", icon:"⏲", category:"datetime", short:"Convert days/hours/minutes/seconds into every total unit", component:DurationCalculator },
+  { id:"week-number", name:"Week Number Calculator", icon:"📆", category:"datetime", short:"Find the ISO week number and day of year for any date", component:WeekNumber },
+  { id:"date-format-tokens", name:"Date Format Converter", icon:"📅", category:"datetime", short:"Show a date in ISO, RFC, Unix, long and other formats", component:DateFormatTokens },
+  { id:"time-until", name:"Time Until / Countdown", icon:"⌛", category:"datetime", short:"Live countdown to any future date and time", component:TimeUntil },
+  { id:"leap-year", name:"Leap Year Checker", icon:"🗓", category:"datetime", short:"Check if a year is a leap year and find the next one", component:LeapYearChecker },
+  { id:"day-of-week", name:"Day of Week Finder", icon:"📌", category:"datetime", short:"Find which weekday any date falls on", component:DayOfWeekFinder },
+  { id:"cron-next-runs", name:"Cron Next Runs", icon:"⏰", category:"datetime", short:"Compute the next 8 run times for a cron expression", component:CronNextRuns },
+  { id:"epoch-batch", name:"Epoch Batch Converter", icon:"⏱", category:"datetime", short:"Convert many Unix timestamps to ISO dates at once", component:EpochBatchConverter },
+  { id:"work-hours", name:"Work Hours Calculator", icon:"🕗", category:"datetime", short:"Calculate hours worked from clock-in, clock-out and break", component:WorkHoursCalculator },
+
+  // ── Batch 2: Security ──────────────────────────────────────────
+  { id:"password-generator", name:"Password Generator", icon:"🔑", category:"security", short:"Generate strong random passwords with crypto randomness", component:PasswordGenerator },
+  { id:"passphrase-generator", name:"Passphrase Generator", icon:"🎲", category:"security", short:"Generate memorable diceware-style word passphrases", component:PassphraseGenerator },
+  { id:"random-string", name:"Random String Generator", icon:"#", category:"security", short:"Generate random hex, alphanumeric or base64 strings", component:RandomStringGenerator },
+  { id:"credit-card-validator", name:"Credit Card Validator", icon:"💳", category:"security", short:"Validate card numbers with the Luhn algorithm and detect type", component:CreditCardValidator },
+  { id:"iban-validator", name:"IBAN Validator", icon:"🏦", category:"security", short:"Validate international bank account numbers (mod-97)", component:IbanValidator },
+  { id:"base58", name:"Base58 Encode / Decode", icon:"58", category:"security", short:"Bitcoin-style Base58 encoding and decoding", component:Base58Tool },
+  { id:"rot47", name:"ROT47 Cipher", icon:"🔁", category:"security", short:"Apply the ROT47 substitution cipher", component:Rot47Tool },
+  { id:"hash-identifier", name:"Hash Identifier", icon:"🔎", category:"security", short:"Identify likely hash type from length and format", component:HashIdentifier },
+  { id:"pin-generator", name:"PIN Code Generator", icon:"🔢", category:"security", short:"Generate random numeric PIN codes securely", component:PinGenerator },
+
+  // ── Batch 2: Network ───────────────────────────────────────────
+  { id:"user-agent-parser", name:"User Agent Parser", icon:"🧭", category:"network", short:"Parse browser, OS, device and engine from a User-Agent string", component:UserAgentParser },
+  { id:"header-analyzer", name:"HTTP Header Analyzer", icon:"📋", category:"network", short:"Explain each HTTP header from a raw response", component:HttpHeaderAnalyzer },
+  { id:"port-reference", name:"Common Ports Reference", icon:"🔌", category:"network", short:"Searchable reference of common TCP/UDP ports", component:PortReference },
+  { id:"cookie-parser", name:"Cookie Parser", icon:"🍪", category:"network", short:"Break a Set-Cookie value into name, value and attributes", component:CookieParser },
+  { id:"mac-address", name:"MAC Address Formatter", icon:"🖧", category:"network", short:"Reformat MAC addresses and inspect the vendor prefix", component:MacAddressTool },
+  { id:"ip-range-expander", name:"CIDR IP Range Expander", icon:"🌐", category:"network", short:"Expand a CIDR block into network, broadcast and host list", component:IpRangeExpander },
+  { id:"hostname-validator", name:"Hostname Validator", icon:"✓", category:"network", short:"Check a hostname against RFC label and length rules", component:HostnameValidator },
+  { id:"accept-language", name:"Accept-Language Parser", icon:"🌍", category:"network", short:"Parse and rank an Accept-Language header by q-weight", component:AcceptLanguageParser },
+  { id:"connection-string", name:"Connection String Parser", icon:"🔗", category:"network", short:"Break a database URI into its component parts", component:ConnectionStringParser },
+
+  // ── Batch 2: Converters ────────────────────────────────────────
+  { id:"number-base-multi", name:"Number Base Multi-Converter", icon:"02", category:"math", short:"Convert a number to binary, octal, decimal, hex and base36 at once", component:NumberBaseMulti },
+  { id:"text-binary", name:"Text ↔ Binary", icon:"01", category:"encode", short:"Convert text to binary and back", component:TextBinaryConverter },
+  { id:"feels-like", name:"Feels-Like Temperature", icon:"🌡", category:"math", short:"Heat index and wind chill from temp, humidity and wind", component:FeelsLikeCalc },
+  { id:"bmi-calc", name:"BMI Calculator", icon:"⚖", category:"math", short:"Calculate Body Mass Index and category", component:BmiCalculator },
+  { id:"geometry-calc", name:"Geometry Calculator", icon:"△", category:"math", short:"Area, volume and perimeter for circles, triangles, spheres and more", component:GeometryCalc },
+  { id:"fraction-converter", name:"Fraction ↔ Decimal", icon:"½", category:"math", short:"Convert decimals to simplified fractions and back", component:FractionConverter },
+  { id:"roman-live", name:"Roman Numeral Converter", icon:"Ⅻ", category:"math", short:"Convert between numbers and Roman numerals either way", component:RomanConverterLive },
+  { id:"angle-converter", name:"Angle Converter", icon:"∠", category:"math", short:"Convert between degrees, radians, gradians and turns", component:AngleConverter },
+  { id:"byte-humanizer", name:"Byte Size Humanizer", icon:"💾", category:"math", short:"Convert raw bytes to human-readable KB/MB/GB (binary and decimal)", component:ByteSizeHumanizer },
 ];
 
 const CATEGORIES = [
