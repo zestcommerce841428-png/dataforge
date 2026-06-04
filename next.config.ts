@@ -4,7 +4,7 @@ const isDev = process.env.NODE_ENV !== "production";
 
 // Next.js's dev runtime (HMR / React Refresh) evaluates code via eval(),
 // so 'unsafe-eval' is required in development. Production stays strict.
-const translateScripts = "https://translate.google.com https://translate.googleapis.com https://www.gstatic.com";
+const translateScripts = "https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net";
 const scriptSrc = isDev
   ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com ${translateScripts}`
   : `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com ${translateScripts}`;
@@ -20,9 +20,9 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://coin-images.coingecko.com https://assets.coingecko.com https://www.google-analytics.com https://*.google-analytics.com https://www.gstatic.com https://translate.googleapis.com https://www.google.com https://fonts.gstatic.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://api.coingecko.com https://api.binance.com https://fapi.binance.com wss://stream.binance.com:9443 https://api.alternative.me https://tessdata.projectnaptha.com https://cloudflare-dns.com http://ip-api.com https://tinyurl.com https://is.gd https://v.gd https://clck.ru https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://translate.googleapis.com https://translate.google.com" + (isDev ? " ws: http://localhost:*" : ""),
+  "connect-src 'self' https://api.coingecko.com https://api.binance.com https://fapi.binance.com wss://stream.binance.com:9443 https://api.alternative.me https://tessdata.projectnaptha.com https://cloudflare-dns.com http://ip-api.com https://tinyurl.com https://is.gd https://v.gd https://clck.ru https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://translate.googleapis.com https://translate.google.com https://www.google.com https://www.recaptcha.net" + (isDev ? " ws: http://localhost:*" : ""),
   workerSrc,
-  "child-src 'self' blob: https://translate.google.com https://translate.googleapis.com",
+  "child-src 'self' blob: https://translate.google.com https://translate.googleapis.com https://www.google.com https://www.recaptcha.net",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",

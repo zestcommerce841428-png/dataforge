@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { GoogleAnalytics } from "@/components/analytics";
 import { AccessibilityPanel } from "@/components/accessibility-panel";
 import { CookieConsent } from "@/components/cookie-consent";
+import { Recaptcha } from "@/components/recaptcha";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 const SITE_DESC =
@@ -146,6 +147,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteFooter />
         <AccessibilityPanel />
         <CookieConsent />
+        <Recaptcha />
         <GoogleAnalytics />
       </body>
     </html>
