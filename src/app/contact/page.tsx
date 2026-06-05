@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -25,6 +26,10 @@ export default function ContactPage() {
           <div className="mt-2 font-bold">WhatsApp</div>
           <div className="text-sm text-muted">+91 74920 68998</div>
         </a>
+      </div>
+
+      <div className="mt-6">
+        <ContactForm />
       </div>
 
       <div className="surface mt-6 rounded-2xl border p-5">

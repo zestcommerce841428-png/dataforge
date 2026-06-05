@@ -7,6 +7,7 @@ import { AccessibilityPanel } from "@/components/accessibility-panel";
 import { CookieConsent } from "@/components/cookie-consent";
 import { Recaptcha } from "@/components/recaptcha";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { WelcomeBanner } from "@/components/welcome-banner";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 const SITE_DESC =
@@ -141,6 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
+        <WelcomeBanner />
         <SiteHeader />
         <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6">
           {children}
