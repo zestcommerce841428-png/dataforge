@@ -27,9 +27,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message_too_long" }, { status: 400 });
   }
 
-  // Spam protection
+  // Spam protection — only block on a confirmed low bot score. Missing/invalid
+  // tokens (e.g. reCAPTCHA still propagating a new domain) do NOT block contact,
+  // so legitimate users can always reach us.
   const check = await verifyRecaptcha(body.recaptchaToken, "contact");
-  if (!check.ok) {
+  if (!check.ok && check.reason === "low-score") {
     return NextResponse.json({ error: "recaptcha_failed", reason: check.reason }, { status: 403 });
   }
 
