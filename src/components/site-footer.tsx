@@ -57,6 +57,7 @@ export function SiteFooter() {
             <h2 className="text-sm font-semibold">Company</h2>
             <ul className="mt-3 space-y-2 text-sm text-muted">
               <li><Link href="/about" className="hover:text-[var(--text)]">About</Link></li>
+              <li><Link href="/blog" className="hover:text-[var(--text)]">Blog &amp; Guides</Link></li>
               <li><Link href="/contact" className="hover:text-[var(--text)]">Contact</Link></li>
               <li><Link href="/privacy" className="hover:text-[var(--text)]">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-[var(--text)]">Terms of Service</Link></li>
