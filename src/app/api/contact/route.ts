@@ -27,13 +27,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message_too_long" }, { status: 400 });
   }
 
-  // Spam protection — only block on a confirmed low bot score. Missing/invalid
-  // tokens (e.g. reCAPTCHA still propagating a new domain) do NOT block contact,
-  // so legitimate users can always reach us.
-  const check = await verifyRecaptcha(body.recaptchaToken, "contact");
-  if (!check.ok && check.reason === "low-score") {
-    return NextResponse.json({ error: "recaptcha_failed", reason: check.reason }, { status: 403 });
-  }
+  // Run reCAPTCHA for signal only — never block a contact submission on it.
+  // New v3 sites frequently score legitimate users low; a contact form should
+  // always be reachable. (The URL shortener keeps strict reCAPTCHA enforcement.)
+  void verifyRecaptcha(body.recaptchaToken, "contact").catch(() => {});
 
   const host = process.env.SMTP_HOST;
   const user = process.env.SMTP_USER;
