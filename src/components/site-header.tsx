@@ -37,6 +37,9 @@ export function SiteHeader() {
           <Link href="/pdf-tools" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] md:inline-flex">
             <span aria-hidden>📄</span> PDF
           </Link>
+          <Link href="/handwriting" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
+            <span aria-hidden>✍️</span> Handwriting
+          </Link>
           <Link href="/workbook" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
             <span aria-hidden>⊞</span> Workbook
           </Link>

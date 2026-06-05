@@ -1,0 +1,169 @@
+"use client";
+import { useState } from "react";
+import { CopyBtn, ToolWrap } from "../ui";
+
+/**
+ * Data-driven unit converter. Each category maps unit → factor relative to a
+ * base unit. Temperature and fuel economy are handled specially.
+ */
+type Cat = { id: string; label: string; icon: string; units: Record<string, number>; special?: "temp" | "fuel" };
+
+export const CONV: Cat[] = [
+  { id: "length", label: "Length", icon: "📏", units: { "Meters": 1, "Kilometers": 1000, "Centimeters": 0.01, "Millimeters": 0.001, "Micrometers": 1e-6, "Nanometers": 1e-9, "Miles": 1609.344, "Yards": 0.9144, "Feet": 0.3048, "Inches": 0.0254, "Nautical miles": 1852, "Light-years": 9.461e15 } },
+  { id: "mass", label: "Mass / Weight", icon: "⚖", units: { "Kilograms": 1, "Grams": 0.001, "Milligrams": 1e-6, "Metric tons": 1000, "Pounds": 0.453592, "Ounces": 0.0283495, "Stones": 6.35029, "Carats": 0.0002, "US tons": 907.185 } },
+  { id: "temperature", label: "Temperature", icon: "🌡", units: { "Celsius": 1, "Fahrenheit": 1, "Kelvin": 1, "Rankine": 1 }, special: "temp" },
+  { id: "area", label: "Area", icon: "▭", units: { "Square meters": 1, "Square kilometers": 1e6, "Square miles": 2.59e6, "Square feet": 0.092903, "Square inches": 0.00064516, "Hectares": 10000, "Acres": 4046.86, "Square yards": 0.836127 } },
+  { id: "volume", label: "Volume", icon: "🧊", units: { "Liters": 1, "Milliliters": 0.001, "Cubic meters": 1000, "Cubic cm": 0.001, "US gallons": 3.78541, "UK gallons": 4.54609, "US quarts": 0.946353, "US pints": 0.473176, "US cups": 0.236588, "Fluid ounces": 0.0295735, "Tablespoons": 0.0147868, "Teaspoons": 0.00492892 } },
+  { id: "speed", label: "Speed", icon: "⚡", units: { "Meters/sec": 1, "Km/hour": 0.277778, "Miles/hour": 0.44704, "Feet/sec": 0.3048, "Knots": 0.514444, "Mach": 343 } },
+  { id: "time", label: "Time", icon: "⏱", units: { "Seconds": 1, "Milliseconds": 0.001, "Minutes": 60, "Hours": 3600, "Days": 86400, "Weeks": 604800, "Months (30d)": 2592000, "Years": 31557600 } },
+  { id: "digital", label: "Digital Storage", icon: "💾", units: { "Bytes": 1, "Kilobytes": 1e3, "Megabytes": 1e6, "Gigabytes": 1e9, "Terabytes": 1e12, "Petabytes": 1e15, "Kibibytes": 1024, "Mebibytes": 1048576, "Gibibytes": 1073741824, "Bits": 0.125 } },
+  { id: "datarate", label: "Data Transfer", icon: "🌐", units: { "Bits/sec": 1, "Kbps": 1e3, "Mbps": 1e6, "Gbps": 1e9, "Bytes/sec": 8, "KB/s": 8e3, "MB/s": 8e6 } },
+  { id: "energy", label: "Energy", icon: "🔋", units: { "Joules": 1, "Kilojoules": 1000, "Calories": 4.184, "Kilocalories": 4184, "Watt-hours": 3600, "Kilowatt-hours": 3.6e6, "BTU": 1055.06, "Electronvolts": 1.602e-19, "Foot-pounds": 1.35582 } },
+  { id: "power", label: "Power", icon: "🔌", units: { "Watts": 1, "Kilowatts": 1000, "Megawatts": 1e6, "Horsepower": 745.7, "Metric HP": 735.5, "BTU/hour": 0.293071, "Foot-lb/s": 1.35582 } },
+  { id: "pressure", label: "Pressure", icon: "🎈", units: { "Pascals": 1, "Kilopascals": 1000, "Bar": 1e5, "PSI": 6894.76, "Atmospheres": 101325, "Torr": 133.322, "mmHg": 133.322, "Millibar": 100 } },
+  { id: "force", label: "Force", icon: "💪", units: { "Newtons": 1, "Kilonewtons": 1000, "Dynes": 1e-5, "Pound-force": 4.44822, "Kgf": 9.80665 } },
+  { id: "torque", label: "Torque", icon: "🔧", units: { "Newton-meters": 1, "Newton-cm": 0.01, "Pound-feet": 1.35582, "Pound-inches": 0.112985, "Kgf-meters": 9.80665 } },
+  { id: "angle", label: "Angle", icon: "📐", units: { "Degrees": 1, "Radians": 57.2958, "Gradians": 0.9, "Arcminutes": 1 / 60, "Arcseconds": 1 / 3600, "Turns": 360 } },
+  { id: "frequency", label: "Frequency", icon: "〰", units: { "Hertz": 1, "Kilohertz": 1000, "Megahertz": 1e6, "Gigahertz": 1e9, "RPM": 1 / 60, "BPM": 1 / 60 } },
+  { id: "data-density", label: "Density", icon: "🪨", units: { "kg/m³": 1, "g/cm³": 1000, "g/mL": 1000, "lb/ft³": 16.0185, "kg/L": 1000 } },
+  { id: "flow", label: "Flow Rate", icon: "🚿", units: { "L/sec": 1, "L/min": 1 / 60, "m³/hour": 1000 / 3600, "US gal/min": 0.0630902, "Cubic ft/min": 0.471947 } },
+  { id: "illuminance", label: "Illuminance", icon: "💡", units: { "Lux": 1, "Foot-candles": 10.7639, "Phot": 10000, "Nox": 0.001 } },
+  { id: "acceleration", label: "Acceleration", icon: "🏎", units: { "m/s²": 1, "ft/s²": 0.3048, "g-force": 9.80665, "Gal": 0.01 } },
+  { id: "current", label: "Electric Current", icon: "🔋", units: { "Amperes": 1, "Milliamps": 0.001, "Microamps": 1e-6, "Kiloamps": 1000 } },
+  { id: "voltage", label: "Voltage", icon: "⚡", units: { "Volts": 1, "Millivolts": 0.001, "Kilovolts": 1000, "Microvolts": 1e-6 } },
+  { id: "resistance", label: "Resistance", icon: "🔘", units: { "Ohms": 1, "Kiloohms": 1000, "Megaohms": 1e6, "Milliohms": 0.001 } },
+  { id: "capacitance", label: "Capacitance", icon: "🔋", units: { "Farads": 1, "Microfarads": 1e-6, "Nanofarads": 1e-9, "Picofarads": 1e-12, "Millifarads": 0.001 } },
+  { id: "charge", label: "Electric Charge", icon: "⚡", units: { "Coulombs": 1, "Milliamp-hours": 3.6, "Amp-hours": 3600, "Microcoulombs": 1e-6 } },
+  { id: "fuel", label: "Fuel Economy", icon: "⛽", units: { "km/L": 1, "L/100km": 1, "MPG (US)": 1, "MPG (UK)": 1 }, special: "fuel" },
+  { id: "cooking-vol", label: "Cooking Volume", icon: "🥄", units: { "Milliliters": 1, "US cups": 236.588, "US tbsp": 14.7868, "US tsp": 4.92892, "Fluid oz": 29.5735, "Liters": 1000 } },
+  { id: "typography", label: "Typography", icon: "🔤", units: { "Pixels (96dpi)": 1, "Points": 1.33333, "Picas": 16, "Ems (16px)": 16, "Rems (16px)": 16, "Inches": 96, "Centimeters": 37.7953 } },
+  { id: "luminance", label: "Luminance", icon: "🌟", units: { "Candela/m²": 1, "Nits": 1, "Foot-lamberts": 3.42626, "Stilb": 10000 } },
+  { id: "radioactivity", label: "Radioactivity", icon: "☢", units: { "Becquerels": 1, "Curies": 3.7e10, "Kilobecquerels": 1000, "Megabecquerels": 1e6 } },
+  { id: "radiation", label: "Radiation Dose", icon: "☢", units: { "Sieverts": 1, "Millisieverts": 0.001, "Microsieverts": 1e-6, "Rem": 0.01 } },
+  { id: "angular-vel", label: "Angular Velocity", icon: "🌀", units: { "Rad/sec": 1, "Deg/sec": 0.0174533, "RPM": 0.10472, "RPS": 6.28319 } },
+  { id: "magnetic", label: "Magnetic Flux", icon: "🧲", units: { "Webers": 1, "Maxwells": 1e-8, "Milliwebers": 0.001, "Microwebers": 1e-6 } },
+  { id: "data-luminous", label: "Luminous Flux", icon: "🔦", units: { "Lumens": 1, "Candela·sr": 1 } },
+  { id: "sound", label: "Sound (intensity)", icon: "🔊", units: { "W/m²": 1, "mW/m²": 0.001, "µW/m²": 1e-6 } },
+  { id: "viscosity", label: "Viscosity", icon: "🛢", units: { "Pascal-sec": 1, "Poise": 0.1, "Centipoise": 0.001, "lb/(ft·s)": 1.48816 } },
+];
+
+/** Popular direct conversions, each registered as its own tool. */
+export const PAIRS: { id: string; cat: string; from: string; to: string; name: string; icon: string }[] = [
+  { id: "km-to-miles", cat: "length", from: "Kilometers", to: "Miles", name: "Kilometers to Miles", icon: "📏" },
+  { id: "miles-to-km", cat: "length", from: "Miles", to: "Kilometers", name: "Miles to Kilometers", icon: "📏" },
+  { id: "cm-to-inches", cat: "length", from: "Centimeters", to: "Inches", name: "cm to Inches", icon: "📏" },
+  { id: "inches-to-cm", cat: "length", from: "Inches", to: "Centimeters", name: "Inches to cm", icon: "📏" },
+  { id: "feet-to-meters", cat: "length", from: "Feet", to: "Meters", name: "Feet to Meters", icon: "📏" },
+  { id: "meters-to-feet", cat: "length", from: "Meters", to: "Feet", name: "Meters to Feet", icon: "📏" },
+  { id: "mm-to-inches", cat: "length", from: "Millimeters", to: "Inches", name: "mm to Inches", icon: "📏" },
+  { id: "feet-to-cm", cat: "length", from: "Feet", to: "Centimeters", name: "Feet to cm", icon: "📏" },
+  { id: "yards-to-meters", cat: "length", from: "Yards", to: "Meters", name: "Yards to Meters", icon: "📏" },
+  { id: "miles-to-feet", cat: "length", from: "Miles", to: "Feet", name: "Miles to Feet", icon: "📏" },
+  { id: "kg-to-lbs", cat: "mass", from: "Kilograms", to: "Pounds", name: "Kg to Pounds", icon: "⚖" },
+  { id: "lbs-to-kg", cat: "mass", from: "Pounds", to: "Kilograms", name: "Pounds to Kg", icon: "⚖" },
+  { id: "g-to-oz", cat: "mass", from: "Grams", to: "Ounces", name: "Grams to Ounces", icon: "⚖" },
+  { id: "oz-to-g", cat: "mass", from: "Ounces", to: "Grams", name: "Ounces to Grams", icon: "⚖" },
+  { id: "kg-to-stones", cat: "mass", from: "Kilograms", to: "Stones", name: "Kg to Stones", icon: "⚖" },
+  { id: "lbs-to-oz", cat: "mass", from: "Pounds", to: "Ounces", name: "Pounds to Ounces", icon: "⚖" },
+  { id: "tons-to-kg", cat: "mass", from: "Metric tons", to: "Kilograms", name: "Tons to Kg", icon: "⚖" },
+  { id: "c-to-f", cat: "temperature", from: "Celsius", to: "Fahrenheit", name: "Celsius to Fahrenheit", icon: "🌡" },
+  { id: "f-to-c", cat: "temperature", from: "Fahrenheit", to: "Celsius", name: "Fahrenheit to Celsius", icon: "🌡" },
+  { id: "c-to-k", cat: "temperature", from: "Celsius", to: "Kelvin", name: "Celsius to Kelvin", icon: "🌡" },
+  { id: "k-to-c", cat: "temperature", from: "Kelvin", to: "Celsius", name: "Kelvin to Celsius", icon: "🌡" },
+  { id: "kmh-to-mph", cat: "speed", from: "Km/hour", to: "Miles/hour", name: "km/h to mph", icon: "⚡" },
+  { id: "mph-to-kmh", cat: "speed", from: "Miles/hour", to: "Km/hour", name: "mph to km/h", icon: "⚡" },
+  { id: "ms-to-kmh", cat: "speed", from: "Meters/sec", to: "Km/hour", name: "m/s to km/h", icon: "⚡" },
+  { id: "knots-to-kmh", cat: "speed", from: "Knots", to: "Km/hour", name: "Knots to km/h", icon: "⚡" },
+  { id: "mph-to-ms", cat: "speed", from: "Miles/hour", to: "Meters/sec", name: "mph to m/s", icon: "⚡" },
+  { id: "l-to-gal", cat: "volume", from: "Liters", to: "US gallons", name: "Liters to US Gallons", icon: "🧊" },
+  { id: "gal-to-l", cat: "volume", from: "US gallons", to: "Liters", name: "US Gallons to Liters", icon: "🧊" },
+  { id: "ml-to-cups", cat: "volume", from: "Milliliters", to: "US cups", name: "mL to Cups", icon: "🧊" },
+  { id: "cups-to-ml", cat: "volume", from: "US cups", to: "Milliliters", name: "Cups to mL", icon: "🧊" },
+  { id: "l-to-ukgal", cat: "volume", from: "Liters", to: "UK gallons", name: "Liters to UK Gallons", icon: "🧊" },
+  { id: "tbsp-to-ml", cat: "volume", from: "Tablespoons", to: "Milliliters", name: "Tbsp to mL", icon: "🧊" },
+  { id: "floz-to-ml", cat: "volume", from: "Fluid ounces", to: "Milliliters", name: "Fluid oz to mL", icon: "🧊" },
+  { id: "sqft-to-sqm", cat: "area", from: "Square feet", to: "Square meters", name: "Sq Feet to Sq Meters", icon: "▭" },
+  { id: "sqm-to-sqft", cat: "area", from: "Square meters", to: "Square feet", name: "Sq Meters to Sq Feet", icon: "▭" },
+  { id: "acres-to-sqft", cat: "area", from: "Acres", to: "Square feet", name: "Acres to Sq Feet", icon: "▭" },
+  { id: "hectares-to-acres", cat: "area", from: "Hectares", to: "Acres", name: "Hectares to Acres", icon: "▭" },
+  { id: "acres-to-hectares", cat: "area", from: "Acres", to: "Hectares", name: "Acres to Hectares", icon: "▭" },
+  { id: "mb-to-gb", cat: "digital", from: "Megabytes", to: "Gigabytes", name: "MB to GB", icon: "💾" },
+  { id: "gb-to-mb", cat: "digital", from: "Gigabytes", to: "Megabytes", name: "GB to MB", icon: "💾" },
+  { id: "gb-to-tb", cat: "digital", from: "Gigabytes", to: "Terabytes", name: "GB to TB", icon: "💾" },
+  { id: "kb-to-mb", cat: "digital", from: "Kilobytes", to: "Megabytes", name: "KB to MB", icon: "💾" },
+  { id: "bytes-to-kb", cat: "digital", from: "Bytes", to: "Kilobytes", name: "Bytes to KB", icon: "💾" },
+  { id: "mbps-to-mbs", cat: "datarate", from: "Mbps", to: "MB/s", name: "Mbps to MB/s", icon: "🌐" },
+  { id: "gbps-to-mbps", cat: "datarate", from: "Gbps", to: "Mbps", name: "Gbps to Mbps", icon: "🌐" },
+  { id: "kwh-to-j", cat: "energy", from: "Kilowatt-hours", to: "Joules", name: "kWh to Joules", icon: "🔋" },
+  { id: "cal-to-j", cat: "energy", from: "Calories", to: "Joules", name: "Calories to Joules", icon: "🔋" },
+  { id: "kcal-to-kj", cat: "energy", from: "Kilocalories", to: "Kilojoules", name: "kcal to kJ", icon: "🔋" },
+  { id: "btu-to-j", cat: "energy", from: "BTU", to: "Joules", name: "BTU to Joules", icon: "🔋" },
+  { id: "hp-to-kw", cat: "power", from: "Horsepower", to: "Kilowatts", name: "HP to kW", icon: "🔌" },
+  { id: "kw-to-hp", cat: "power", from: "Kilowatts", to: "Horsepower", name: "kW to HP", icon: "🔌" },
+  { id: "w-to-hp", cat: "power", from: "Watts", to: "Horsepower", name: "Watts to HP", icon: "🔌" },
+  { id: "psi-to-bar", cat: "pressure", from: "PSI", to: "Bar", name: "PSI to Bar", icon: "🎈" },
+  { id: "bar-to-psi", cat: "pressure", from: "Bar", to: "PSI", name: "Bar to PSI", icon: "🎈" },
+  { id: "psi-to-kpa", cat: "pressure", from: "PSI", to: "Kilopascals", name: "PSI to kPa", icon: "🎈" },
+  { id: "atm-to-bar", cat: "pressure", from: "Atmospheres", to: "Bar", name: "Atm to Bar", icon: "🎈" },
+  { id: "deg-to-rad", cat: "angle", from: "Degrees", to: "Radians", name: "Degrees to Radians", icon: "📐" },
+  { id: "rad-to-deg", cat: "angle", from: "Radians", to: "Degrees", name: "Radians to Degrees", icon: "📐" },
+  { id: "hz-to-khz", cat: "frequency", from: "Hertz", to: "Kilohertz", name: "Hz to kHz", icon: "〰" },
+  { id: "mhz-to-ghz", cat: "frequency", from: "Megahertz", to: "Gigahertz", name: "MHz to GHz", icon: "〰" },
+  { id: "min-to-sec", cat: "time", from: "Minutes", to: "Seconds", name: "Minutes to Seconds", icon: "⏱" },
+  { id: "hours-to-min", cat: "time", from: "Hours", to: "Minutes", name: "Hours to Minutes", icon: "⏱" },
+  { id: "days-to-hours", cat: "time", from: "Days", to: "Hours", name: "Days to Hours", icon: "⏱" },
+  { id: "weeks-to-days", cat: "time", from: "Weeks", to: "Days", name: "Weeks to Days", icon: "⏱" },
+  { id: "years-to-days", cat: "time", from: "Years", to: "Days", name: "Years to Days", icon: "⏱" },
+  { id: "px-to-pt", cat: "typography", from: "Pixels (96dpi)", to: "Points", name: "Pixels to Points", icon: "🔤" },
+  { id: "pt-to-px", cat: "typography", from: "Points", to: "Pixels (96dpi)", name: "Points to Pixels", icon: "🔤" },
+  { id: "px-to-rem", cat: "typography", from: "Pixels (96dpi)", to: "Rems (16px)", name: "Pixels to Rem", icon: "🔤" },
+  { id: "nm-to-lbft", cat: "torque", from: "Newton-meters", to: "Pound-feet", name: "Nm to lb-ft", icon: "🔧" },
+  { id: "lbft-to-nm", cat: "torque", from: "Pound-feet", to: "Newton-meters", name: "lb-ft to Nm", icon: "🔧" },
+  { id: "n-to-lbf", cat: "force", from: "Newtons", to: "Pound-force", name: "Newtons to lbf", icon: "💪" },
+  { id: "kmpl-to-mpg", cat: "fuel", from: "km/L", to: "MPG (US)", name: "km/L to MPG", icon: "⛽" },
+  { id: "lux-to-fc", cat: "illuminance", from: "Lux", to: "Foot-candles", name: "Lux to Foot-candles", icon: "💡" },
+];
+
+function convert(cat: Cat, value: number, from: string, to: string): number {
+  if (cat.special === "temp") {
+    let c: number; // to Celsius
+    switch (from) { case "Fahrenheit": c = (value - 32) * 5 / 9; break; case "Kelvin": c = value - 273.15; break; case "Rankine": c = (value - 491.67) * 5 / 9; break; default: c = value; }
+    switch (to) { case "Fahrenheit": return c * 9 / 5 + 32; case "Kelvin": return c + 273.15; case "Rankine": return (c + 273.15) * 9 / 5; default: return c; }
+  }
+  if (cat.special === "fuel") {
+    let kmpl: number;
+    switch (from) { case "L/100km": kmpl = 100 / value; break; case "MPG (US)": kmpl = value * 0.425144; break; case "MPG (UK)": kmpl = value * 0.354006; break; default: kmpl = value; }
+    switch (to) { case "L/100km": return 100 / kmpl; case "MPG (US)": return kmpl / 0.425144; case "MPG (UK)": return kmpl / 0.354006; default: return kmpl; }
+  }
+  return (value * cat.units[from]) / cat.units[to];
+}
+
+export function UnitConverter({ catId, initFrom, initTo }: { catId: string; initFrom?: string; initTo?: string }) {
+  const cat = CONV.find((c) => c.id === catId)!;
+  const names = Object.keys(cat.units);
+  const [value, setValue] = useState(1);
+  const [from, setFrom] = useState(initFrom && names.includes(initFrom) ? initFrom : names[0]);
+  const [to, setTo] = useState(initTo && names.includes(initTo) ? initTo : (names[1] ?? names[0]));
+  const result = convert(cat, value, from, to);
+  const fmt = (n: number) => Number.isFinite(n) ? (Math.abs(n) >= 1e15 || (Math.abs(n) < 1e-4 && n !== 0) ? n.toExponential(6) : +n.toFixed(6)).toString() : "—";
+  return (
+    <ToolWrap>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <label className="flex-1 text-sm">Value<input type="number" step="any" className="input-field mt-1 w-full" value={value} onChange={(e) => setValue(+e.target.value)} /></label>
+        <label className="flex-1 text-sm">From<select className="input-field mt-1 w-full" value={from} onChange={(e) => setFrom(e.target.value)}>{names.map((n) => <option key={n}>{n}</option>)}</select></label>
+        <button onClick={() => { setFrom(to); setTo(from); }} className="surface rounded-lg border px-3 py-2 text-sm" title="Swap">⇄</button>
+        <label className="flex-1 text-sm">To<select className="input-field mt-1 w-full" value={to} onChange={(e) => setTo(e.target.value)}>{names.map((n) => <option key={n}>{n}</option>)}</select></label>
+      </div>
+      <div className="relative surface mt-3 rounded-xl border p-4 text-center">
+        <div className="text-2xl font-black text-brand-600 break-all">{fmt(result)}</div>
+        <div className="mt-1 text-sm text-muted">{value} {from} = {fmt(result)} {to}</div>
+        <CopyBtn text={fmt(result)} absolute />
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {names.filter((n) => n !== from).slice(0, 6).map((n) => (
+          <div key={n} className="surface rounded-lg border px-2 py-1.5 text-center"><div className="font-mono text-sm font-semibold">{fmt(convert(cat, value, from, n))}</div><div className="text-[10px] text-muted">{n}</div></div>
+        ))}
+      </div>
+    </ToolWrap>
+  );
+}

@@ -65,6 +65,8 @@ import { Magic8Ball, RandomQuote, WouldYouRather, TruthOrDare, RandomColorGenera
 import { UTMLinkBuilder, ImagePlaceholderURL, HtmlToMarkdown, SrcsetGenerator, EmailSignatureGenerator, SocialShareLinks, JsonQueryString, MetaRobotsBuilder, ScreenInfo } from "./tools/more3-web";
 // Batch 3 — datetime
 import { ZodiacSign, ChineseZodiac, MoonPhase, DaysAlive, BirthdayCountdown, HolidayCountdown, NextWeekdayFinder, WeeklyTimecard, SeasonFinder } from "./tools/more3-datetime2";
+// Batch 4 — data converters (data-driven)
+import { CONV, PAIRS, UnitConverter as DataUnitConverter } from "./tools/more4-converters";
 
 type ToolEntry = {
   id: string;
@@ -74,6 +76,20 @@ type ToolEntry = {
   short: string;
   component: React.ComponentType<Record<string, never>>;
 };
+
+// Auto-generated converter tools: one per category + popular direct pairs.
+const CONVERTER_TOOLS: ToolEntry[] = [
+  ...CONV.map((c) => ({
+    id: `conv-${c.id}`, name: `${c.label} Converter`, icon: c.icon, category: "converters",
+    short: `Convert ${c.label.toLowerCase()} between ${Object.keys(c.units).length} units`,
+    component: function CatConv() { return <DataUnitConverter catId={c.id} />; },
+  })),
+  ...PAIRS.map((p) => ({
+    id: `conv-${p.id}`, name: p.name, icon: p.icon, category: "converters",
+    short: `Convert ${p.name.toLowerCase()} instantly`,
+    component: function PairConv() { return <DataUnitConverter catId={p.cat} initFrom={p.from} initTo={p.to} />; },
+  })),
+];
 
 const TOOLS: ToolEntry[] = [
   // ── Text ──────────────────────────────────────────────────────
@@ -425,6 +441,8 @@ const TOOLS: ToolEntry[] = [
   { id:"next-weekday", name:"Next Weekday Finder", icon:"📆", category:"datetime", short:"Find the date of the next Monday, Friday, etc.", component:NextWeekdayFinder },
   { id:"weekly-timecard", name:"Weekly Timecard", icon:"🕗", category:"datetime", short:"Add up weekly work hours and overtime", component:WeeklyTimecard },
   { id:"season-finder", name:"Season Finder", icon:"🍂", category:"datetime", short:"Find the season for any date and hemisphere", component:SeasonFinder },
+
+  ...CONVERTER_TOOLS,
 ];
 
 const CATEGORIES = [
@@ -436,6 +454,7 @@ const CATEGORIES = [
   { id:"css", label:"CSS & Design", icon:"🎨" },
   { id:"security", label:"Security", icon:"🔐" },
   { id:"math", label:"Math & Units", icon:"∑" },
+  { id:"converters", label:"Converters", icon:"⇄" },
   { id:"finance", label:"Finance", icon:"💰" },
   { id:"health", label:"Health", icon:"❤️" },
   { id:"datetime", label:"Date & Time", icon:"⏱" },
