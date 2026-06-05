@@ -6,7 +6,8 @@ const FONTS = [
   "Homemade Apple", "Gloria Hallelujah", "Reenie Beanie", "Kalam", "Sacramento",
   "Satisfy", "Pacifico", "Permanent Marker", "Rock Salt", "Nanum Pen Script",
   "Cookie", "Architects Daughter", "Covered By Your Grace", "La Belle Aurore",
-  "Zeyada", "Gochi Hand", "Liu Jian Mao Cao",
+  "Zeyada", "Gochi Hand", "Liu Jian Mao Cao", "Just Another Hand", "Marck Script",
+  "Yellowtail", "Bad Script", "Caveat Brush", "Mali", "Klee One", "Square Peg",
 ];
 
 const INKS = [
@@ -41,6 +42,10 @@ export function HandwritingClient() {
   const [letterSpace, setLetterSpace] = useState(0);
   const [inkVar, setInkVar] = useState(0.15);
   const [penWeight, setPenWeight] = useState(0);
+  const [inkBleed, setInkBleed] = useState(0);
+  const [texture, setTexture] = useState(true);
+  const [customPaper, setCustomPaper] = useState("");
+  const [ruleColor, setRuleColor] = useState("");
   const [fontsReady, setFontsReady] = useState(false);
   const [pages, setPages] = useState<string[]>([]);
   const [page, setPage] = useState(0);
@@ -95,12 +100,20 @@ export function HandwritingClient() {
       const canvas = document.createElement("canvas");
       canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext("2d")!;
-      // paper bg
-      ctx.fillStyle = paper === "dark" ? "#1a1f2b" : paper === "aged" ? "#f3e9d2" : paper === "legal" ? "#fffdf0" : "#ffffff";
+      // paper bg (custom colour overrides the preset)
+      ctx.fillStyle = customPaper || (paper === "dark" ? "#1a1f2b" : paper === "aged" ? "#f3e9d2" : paper === "legal" ? "#fffdf0" : "#ffffff");
       ctx.fillRect(0, 0, W, H);
       if (paper === "aged") { ctx.fillStyle = "rgba(140,110,60,0.05)"; for (let i = 0; i < 400; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+      // paper grain / fibre texture
+      if (texture) {
+        const dark = paper === "dark";
+        for (let i = 0; i < W * H / 900; i++) {
+          ctx.fillStyle = dark ? `rgba(255,255,255,${Math.random() * 0.03})` : `rgba(0,0,0,${Math.random() * 0.025})`;
+          ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+        }
+      }
       // guide lines
-      const lineCol = paper === "dark" ? "#33405a" : "#cfe0f5";
+      const lineCol = ruleColor || (paper === "dark" ? "#33405a" : "#cfe0f5");
       ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
       if (paper === "ruled" || paper === "legal" || paper === "aged") {
         for (let y = marginY + lineHeight; y < H - 20; y += lineHeight) { ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke(); }
@@ -129,8 +142,11 @@ export function HandwritingClient() {
           const dy = (Math.random() - 0.5) * jitter * 1.6;
           const rot = (Math.random() - 0.5) * 0.02 * jitter;
           ctx.save(); ctx.translate(x, baseY + dy); ctx.rotate(rot);
+          if (inkBleed > 0) { ctx.shadowColor = ctx.fillStyle as string; ctx.shadowBlur = inkBleed; }
           if (penWeight > 0) { ctx.strokeStyle = ctx.fillStyle as string; ctx.lineWidth = penWeight; ctx.strokeText(ch, 0, 0); }
-          ctx.fillText(ch, 0, 0); ctx.restore();
+          ctx.fillText(ch, 0, 0);
+          if (inkBleed > 0) ctx.shadowBlur = 0;
+          ctx.restore();
           x += ctx.measureText(ch).width + letterSpace;
         }
       });
@@ -138,7 +154,7 @@ export function HandwritingClient() {
     }
     setPages(result);
     setPage((c) => Math.min(c, result.length - 1));
-  }, [fontsReady, font, ink, paper, size, fontSize, lineHeight, marginX, marginY, jitter, letterSpace, inkVar, penWeight, wrap]);
+  }, [fontsReady, font, ink, paper, size, fontSize, lineHeight, marginX, marginY, jitter, letterSpace, inkVar, penWeight, inkBleed, texture, customPaper, ruleColor, wrap]);
 
   useEffect(() => { const t = setTimeout(render, 250); return () => clearTimeout(t); }, [render]);
 
@@ -186,6 +202,16 @@ export function HandwritingClient() {
             <p className="mb-1 text-sm">Paper</p>
             <div className="flex flex-wrap gap-1.5">{PAPERS.map(([p, l]) => <button key={p} onClick={() => setPaper(p)} className={`rounded-lg border px-2.5 py-1 text-xs ${paper === p ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{l}</button>)}</div>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-1 text-sm">Paper colour
+              <input type="color" value={customPaper || "#ffffff"} onChange={(e) => setCustomPaper(e.target.value)} className="h-7 w-9 rounded" />
+              {customPaper && <button onClick={() => setCustomPaper("")} className="text-xs text-brand-600">reset</button>}
+            </label>
+            <label className="flex items-center gap-1 text-sm">Line colour
+              <input type="color" value={ruleColor || "#cfe0f5"} onChange={(e) => setRuleColor(e.target.value)} className="h-7 w-9 rounded" />
+              {ruleColor && <button onClick={() => setRuleColor("")} className="text-xs text-brand-600">reset</button>}
+            </label>
+          </div>
           <div>
             <p className="mb-1 text-sm">Page size</p>
             <div className="flex gap-1.5">{Object.keys(SIZES).map((s) => <button key={s} onClick={() => setSize(s)} className={`rounded-lg border px-3 py-1 text-xs ${size === s ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{s}</button>)}</div>
@@ -196,6 +222,8 @@ export function HandwritingClient() {
           <Slider label="Realism (jitter)" val={jitter} set={setJitter} min={0} max={4} step={0.2} />
           <Slider label="Ink variation" val={inkVar} set={setInkVar} min={0} max={1} step={0.05} />
           <Slider label="Pen weight" val={penWeight} set={setPenWeight} min={0} max={2} step={0.2} />
+          <Slider label="Ink bleed" val={inkBleed} set={setInkBleed} min={0} max={4} step={0.5} />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={texture} onChange={(e) => setTexture(e.target.checked)} /> Paper texture</label>
           <div className="grid grid-cols-2 gap-2">
             <Slider label="Margin X" val={marginX} set={setMarginX} min={20} max={160} />
             <Slider label="Margin Y" val={marginY} set={setMarginY} min={20} max={200} />

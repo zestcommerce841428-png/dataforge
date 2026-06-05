@@ -127,6 +127,7 @@ export default function HomePage() {
             { href: "/handwriting", icon: "✍️", title: "Text to Handwriting", desc: "10 fonts, inks & papers, unlimited pages, PNG/PDF" },
             { href: "/image-tools", icon: "🖼️", title: "Image Resizer & Compressor", desc: "Resize, crop, compress to KB, convert, DPI presets" },
             { href: "/pdf-tools", icon: "📄", title: "PDF Tools", desc: "Merge, split, compress, rotate, images↔PDF" },
+            { href: "/format-converter", icon: "⇄", title: "JSON / YAML / XML / CSV", desc: "Convert any data format to any other" },
             { href: "/workbook", icon: "⊞", title: "Spreadsheet Workbook", desc: "Excel-style grid with 360+ formulas" },
             { href: "/formula-manager", icon: "ƒ", title: "Excel Formula Manager", desc: "All 360+ Excel 365 functions, live" },
             { href: "/typing", icon: "⌨", title: "Typing Practice", desc: "WPM & accuracy test with live feedback" },
