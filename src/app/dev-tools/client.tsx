@@ -49,6 +49,22 @@ import { PasswordGenerator, PassphraseGenerator, RandomStringGenerator, CreditCa
 import { UserAgentParser, HttpHeaderAnalyzer, PortReference, CookieParser, MacAddressTool, IpRangeExpander, HostnameValidator, AcceptLanguageParser, ConnectionStringParser } from "./tools/more2-network";
 // Batch 2 — converter tools
 import { NumberBaseMulti, TextBinaryConverter, FeelsLikeCalc, BmiCalculator, GeometryCalc, FractionConverter, RomanConverterLive, AngleConverter, ByteSizeHumanizer } from "./tools/more2-convert";
+// Batch 3 — productivity
+import { PomodoroTimer, TodoList, Scratchpad, CoinFlip, DiceRoller, DecisionMaker, RandomPicker, EventCountdown, TimerAlarm } from "./tools/more3-productivity";
+// Batch 3 — finance
+import { SimpleInterestCalc, SIPCalculator, EMICalculator, GSTCalculator, IncomeTaxIndia, ProfitMarginCalc, ROICalculator, SavingsGoalCalc, InflationCalc } from "./tools/more3-finance";
+// Batch 3 — health
+import { BMRCalorieCalc, BodyFatEstimator, WaterIntakeCalc, IdealWeightCalc, PregnancyDueDate, OvulationCalc, MacroCalculator, HeartRateZones, SleepCalculator } from "./tools/more3-health";
+// Batch 3 — converters
+import { CookingConverter, ShoeSizeConverter, RingSizeConverter, FuelEconomyConverter, PressureConverter, EnergyConverter, PowerConverter, OvenTempConverter, PaperSizeReference } from "./tools/more3-convert";
+// Batch 3 — text
+import { CharLimitCounter, RemoveLineBreaks, ListCommaConverter, EmailExtractor, BionicReading, RandomWordGenerator, UsernameGenerator, ListDeduplicator, CaseSentence } from "./tools/more3-text2";
+// Batch 3 — fun
+import { Magic8Ball, RandomQuote, WouldYouRather, TruthOrDare, RandomColorGenerator, FantasyNameGenerator, RockPaperScissors, NumberGuessGame, RandomEmoji } from "./tools/more3-fun";
+// Batch 3 — web
+import { UTMLinkBuilder, ImagePlaceholderURL, HtmlToMarkdown, SrcsetGenerator, EmailSignatureGenerator, SocialShareLinks, JsonQueryString, MetaRobotsBuilder, ScreenInfo } from "./tools/more3-web";
+// Batch 3 — datetime
+import { ZodiacSign, ChineseZodiac, MoonPhase, DaysAlive, BirthdayCountdown, HolidayCountdown, NextWeekdayFinder, WeeklyTimecard, SeasonFinder } from "./tools/more3-datetime2";
 
 type ToolEntry = {
   id: string;
@@ -321,6 +337,94 @@ const TOOLS: ToolEntry[] = [
   { id:"roman-live", name:"Roman Numeral Converter", icon:"Ⅻ", category:"math", short:"Convert between numbers and Roman numerals either way", component:RomanConverterLive },
   { id:"angle-converter", name:"Angle Converter", icon:"∠", category:"math", short:"Convert between degrees, radians, gradians and turns", component:AngleConverter },
   { id:"byte-humanizer", name:"Byte Size Humanizer", icon:"💾", category:"math", short:"Convert raw bytes to human-readable KB/MB/GB (binary and decimal)", component:ByteSizeHumanizer },
+
+  // ── Batch 3: Productivity ──────────────────────────────────────
+  { id:"pomodoro", name:"Pomodoro Timer", icon:"🍅", category:"productivity", short:"25/5 focus timer to boost your productivity", component:PomodoroTimer },
+  { id:"todo-list", name:"To-Do List", icon:"✅", category:"productivity", short:"Simple task list saved to your device", component:TodoList },
+  { id:"scratchpad", name:"Scratchpad / Notes", icon:"📝", category:"productivity", short:"Quick notes with auto-save and word count", component:Scratchpad },
+  { id:"coin-flip", name:"Coin Flip", icon:"🪙", category:"productivity", short:"Flip a virtual coin with running stats", component:CoinFlip },
+  { id:"dice-roller", name:"Dice Roller", icon:"🎲", category:"productivity", short:"Roll any number of dice with any sides", component:DiceRoller },
+  { id:"decision-maker", name:"Decision Maker", icon:"🤷", category:"productivity", short:"Can't decide? Let it pick from your options", component:DecisionMaker },
+  { id:"random-picker", name:"Random Name Picker", icon:"🎯", category:"productivity", short:"Draw random winners from a list (raffle)", component:RandomPicker },
+  { id:"event-countdown", name:"Event Countdown", icon:"⏳", category:"productivity", short:"Live countdown to any event", component:EventCountdown },
+  { id:"timer-alarm", name:"Timer with Alarm", icon:"⏰", category:"productivity", short:"Countdown timer that beeps when done", component:TimerAlarm },
+
+  // ── Batch 3: Finance ───────────────────────────────────────────
+  { id:"simple-interest", name:"Simple Interest Calculator", icon:"💵", category:"finance", short:"Calculate simple interest and total amount", component:SimpleInterestCalc },
+  { id:"sip-calculator", name:"SIP / Investment Calculator", icon:"📈", category:"finance", short:"Future value of monthly investments with compounding", component:SIPCalculator },
+  { id:"emi-calculator", name:"EMI Calculator", icon:"🏦", category:"finance", short:"Monthly loan EMI, total interest and payable", component:EMICalculator },
+  { id:"gst-calculator", name:"GST Calculator", icon:"🧾", category:"finance", short:"Add or remove GST with CGST/SGST split", component:GSTCalculator },
+  { id:"income-tax-india", name:"Income Tax Calculator (India)", icon:"🇮🇳", category:"finance", short:"Estimate tax under the new regime (FY 2024-25)", component:IncomeTaxIndia },
+  { id:"profit-margin", name:"Profit Margin Calculator", icon:"📊", category:"finance", short:"Profit, margin and markup from cost and price", component:ProfitMarginCalc },
+  { id:"roi-calculator", name:"ROI Calculator", icon:"💹", category:"finance", short:"Return on investment, total and annualized", component:ROICalculator },
+  { id:"savings-goal", name:"Savings Goal Calculator", icon:"🎯", category:"finance", short:"How much to save monthly to hit a goal", component:SavingsGoalCalc },
+  { id:"inflation-calc", name:"Inflation Calculator", icon:"📉", category:"finance", short:"Future cost and today's value with inflation", component:InflationCalc },
+
+  // ── Batch 3: Health ────────────────────────────────────────────
+  { id:"bmr-calories", name:"BMR & Calorie Calculator", icon:"🔥", category:"health", short:"Daily calorie needs from BMR and activity", component:BMRCalorieCalc },
+  { id:"body-fat", name:"Body Fat Estimator", icon:"📏", category:"health", short:"Estimate body fat % with the US Navy method", component:BodyFatEstimator },
+  { id:"water-intake", name:"Water Intake Calculator", icon:"💧", category:"health", short:"Recommended daily water based on weight & activity", component:WaterIntakeCalc },
+  { id:"ideal-weight", name:"Ideal Weight Calculator", icon:"⚖", category:"health", short:"Ideal body weight by Devine, Robinson and BMI", component:IdealWeightCalc },
+  { id:"pregnancy-due", name:"Pregnancy Due Date", icon:"🤰", category:"health", short:"Estimate due date and current week", component:PregnancyDueDate },
+  { id:"ovulation-calc", name:"Ovulation Calculator", icon:"📅", category:"health", short:"Estimate ovulation day and fertile window", component:OvulationCalc },
+  { id:"macro-calculator", name:"Macro Calculator", icon:"🍗", category:"health", short:"Daily carbs, protein and fat from calories", component:MacroCalculator },
+  { id:"heart-rate-zones", name:"Heart Rate Zones", icon:"❤️", category:"health", short:"Target heart-rate training zones by age", component:HeartRateZones },
+  { id:"sleep-calculator", name:"Sleep Calculator", icon:"😴", category:"health", short:"Best bedtimes based on 90-minute sleep cycles", component:SleepCalculator },
+
+  // ── Batch 3: Converters ────────────────────────────────────────
+  { id:"cooking-converter", name:"Cooking Measurement Converter", icon:"🥄", category:"math", short:"Convert cups, tbsp, tsp, ml, fl oz and pints", component:CookingConverter },
+  { id:"shoe-size", name:"Shoe Size Converter", icon:"👟", category:"math", short:"Convert shoe sizes between US, UK, EU and cm", component:ShoeSizeConverter },
+  { id:"ring-size", name:"Ring Size Converter", icon:"💍", category:"math", short:"Convert ring sizes between US, UK and EU", component:RingSizeConverter },
+  { id:"fuel-economy", name:"Fuel Economy Converter", icon:"⛽", category:"math", short:"Convert km/L, L/100km and MPG (US/UK)", component:FuelEconomyConverter },
+  { id:"pressure-converter", name:"Pressure Converter", icon:"🌡", category:"math", short:"Convert bar, psi, atm, kPa and mmHg", component:PressureConverter },
+  { id:"energy-converter", name:"Energy Converter", icon:"⚡", category:"math", short:"Convert joules, kcal, kWh and BTU", component:EnergyConverter },
+  { id:"power-converter", name:"Power Converter", icon:"🔌", category:"math", short:"Convert watts, kW, HP and PS", component:PowerConverter },
+  { id:"oven-temp", name:"Oven Temperature Converter", icon:"🍞", category:"math", short:"Convert °C, °F and gas mark", component:OvenTempConverter },
+  { id:"paper-sizes", name:"Paper Size Reference", icon:"📄", category:"reference", short:"A0–A6, Letter and Legal dimensions in mm/inches", component:PaperSizeReference },
+
+  // ── Batch 3: Text ──────────────────────────────────────────────
+  { id:"char-limit", name:"Character Limit Counter", icon:"🔢", category:"text", short:"Count characters against Tweet, SMS and SEO limits", component:CharLimitCounter },
+  { id:"remove-line-breaks", name:"Remove Line Breaks", icon:"↵", category:"text", short:"Strip or replace line breaks in text", component:RemoveLineBreaks },
+  { id:"list-comma", name:"List ↔ Comma Converter", icon:"，", category:"text", short:"Convert between line lists and comma-separated", component:ListCommaConverter },
+  { id:"email-extractor", name:"Email Extractor", icon:"✉", category:"text", short:"Pull all email addresses out of any text", component:EmailExtractor },
+  { id:"bionic-reading", name:"Bionic Reading Converter", icon:"👁", category:"text", short:"Bold word beginnings to read faster", component:BionicReading },
+  { id:"random-word", name:"Random Word Generator", icon:"🎲", category:"text", short:"Generate random words for ideas and games", component:RandomWordGenerator },
+  { id:"username-gen", name:"Username Generator", icon:"@", category:"text", short:"Generate catchy available-style usernames", component:UsernameGenerator },
+  { id:"list-dedupe", name:"List Deduplicator", icon:"⊟", category:"text", short:"Remove duplicate lines, optionally sort", component:ListDeduplicator },
+  { id:"sentence-case", name:"Sentence Case Converter", icon:"Aa", category:"text", short:"Capitalize the first letter of each sentence", component:CaseSentence },
+
+  // ── Batch 3: Fun & Random ──────────────────────────────────────
+  { id:"magic-8-ball", name:"Magic 8 Ball", icon:"🎱", category:"fun", short:"Ask a yes/no question and shake for an answer", component:Magic8Ball },
+  { id:"random-quote", name:"Random Quote", icon:"💬", category:"fun", short:"Get an inspiring quote to copy and share", component:RandomQuote },
+  { id:"would-you-rather", name:"Would You Rather", icon:"🤔", category:"fun", short:"Random would-you-rather questions", component:WouldYouRather },
+  { id:"truth-or-dare", name:"Truth or Dare", icon:"😈", category:"fun", short:"Random truths and dares for parties", component:TruthOrDare },
+  { id:"random-color-fun", name:"Random Color Generator", icon:"🎨", category:"fun", short:"Generate a random color with hex code", component:RandomColorGenerator },
+  { id:"fantasy-name", name:"Fantasy Name Generator", icon:"🧝", category:"fun", short:"Generate fantasy character names", component:FantasyNameGenerator },
+  { id:"rock-paper-scissors", name:"Rock Paper Scissors", icon:"✊", category:"fun", short:"Play rock-paper-scissors vs the computer", component:RockPaperScissors },
+  { id:"number-guess", name:"Number Guessing Game", icon:"🔮", category:"fun", short:"Guess the secret number 1–100", component:NumberGuessGame },
+  { id:"random-emoji", name:"Random Emoji Generator", icon:"😀", category:"fun", short:"Generate a random set of emojis", component:RandomEmoji },
+
+  // ── Batch 3: Web ───────────────────────────────────────────────
+  { id:"utm-builder", name:"UTM Link Builder", icon:"🔗", category:"network", short:"Build campaign tracking URLs with UTM parameters", component:UTMLinkBuilder },
+  { id:"image-placeholder", name:"Image Placeholder URL", icon:"🖼", category:"developer", short:"Generate Lorem Picsum / placehold.co image URLs", component:ImagePlaceholderURL },
+  { id:"html-to-markdown", name:"HTML → Markdown", icon:"⇄", category:"developer", short:"Convert HTML into clean Markdown", component:HtmlToMarkdown },
+  { id:"srcset-gen", name:"Srcset Generator", icon:"🖼", category:"developer", short:"Build responsive <img srcset> markup", component:SrcsetGenerator },
+  { id:"email-signature", name:"Email Signature Generator", icon:"✍", category:"developer", short:"Create an HTML email signature", component:EmailSignatureGenerator },
+  { id:"social-share", name:"Social Share Link Generator", icon:"📣", category:"network", short:"Generate share links for WhatsApp, X, FB and more", component:SocialShareLinks },
+  { id:"json-querystring", name:"JSON ↔ Query String", icon:"?=", category:"developer", short:"Convert between JSON and URL query strings", component:JsonQueryString },
+  { id:"meta-robots", name:"Meta Robots Generator", icon:"🤖", category:"network", short:"Build the robots meta tag for SEO", component:MetaRobotsBuilder },
+  { id:"screen-info", name:"Screen & Viewport Info", icon:"🖥", category:"developer", short:"Your screen size, DPR, color depth and more", component:ScreenInfo },
+
+  // ── Batch 3: Date & Time ───────────────────────────────────────
+  { id:"zodiac-sign", name:"Zodiac Sign Finder", icon:"♌", category:"datetime", short:"Find your Western zodiac sign from your birthday", component:ZodiacSign },
+  { id:"chinese-zodiac", name:"Chinese Zodiac", icon:"🐉", category:"datetime", short:"Find your Chinese zodiac animal and element", component:ChineseZodiac },
+  { id:"moon-phase", name:"Moon Phase Calculator", icon:"🌙", category:"datetime", short:"Moon phase and illumination for any date", component:MoonPhase },
+  { id:"days-alive", name:"Days Alive Counter", icon:"🎂", category:"datetime", short:"How many days, hours and seconds you've lived", component:DaysAlive },
+  { id:"birthday-countdown", name:"Birthday Countdown", icon:"🎈", category:"datetime", short:"Days until your next birthday", component:BirthdayCountdown },
+  { id:"holiday-countdown", name:"Holiday Countdown", icon:"🎄", category:"datetime", short:"Days until New Year, Christmas and more", component:HolidayCountdown },
+  { id:"next-weekday", name:"Next Weekday Finder", icon:"📆", category:"datetime", short:"Find the date of the next Monday, Friday, etc.", component:NextWeekdayFinder },
+  { id:"weekly-timecard", name:"Weekly Timecard", icon:"🕗", category:"datetime", short:"Add up weekly work hours and overtime", component:WeeklyTimecard },
+  { id:"season-finder", name:"Season Finder", icon:"🍂", category:"datetime", short:"Find the season for any date and hemisphere", component:SeasonFinder },
 ];
 
 const CATEGORIES = [
@@ -332,9 +436,13 @@ const CATEGORIES = [
   { id:"css", label:"CSS & Design", icon:"🎨" },
   { id:"security", label:"Security", icon:"🔐" },
   { id:"math", label:"Math & Units", icon:"∑" },
+  { id:"finance", label:"Finance", icon:"💰" },
+  { id:"health", label:"Health", icon:"❤️" },
   { id:"datetime", label:"Date & Time", icon:"⏱" },
+  { id:"productivity", label:"Productivity", icon:"✅" },
   { id:"image", label:"Image Tools", icon:"🖼" },
   { id:"reference", label:"Reference", icon:"📚" },
+  { id:"fun", label:"Fun & Random", icon:"🎲" },
 ];
 
 export function DevToolsClient() {
