@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 
-type Tool = "merge" | "images" | "split" | "rotate" | "delete" | "topng" | "numbers" | "watermark";
+type Tool = "merge" | "images" | "split" | "rotate" | "delete" | "topng" | "numbers" | "watermark" | "compress";
 
 const TOOLS: { id: Tool; name: string; icon: string; desc: string }[] = [
   { id: "merge", name: "Merge PDFs", icon: "🔗", desc: "Combine several PDFs into one" },
+  { id: "compress", name: "Compress PDF", icon: "🗜️", desc: "Shrink file size (great for scans)" },
   { id: "images", name: "Images → PDF", icon: "🖼️", desc: "Turn JPG/PNG images into a PDF" },
-  { id: "topng", name: "PDF → JPG", icon: "📸", desc: "Export each page as an image" },
+  { id: "topng", name: "PDF → Image", icon: "📸", desc: "Export each page as JPG or PNG" },
   { id: "split", name: "Extract pages", icon: "✂️", desc: "Keep a page range as a new PDF" },
   { id: "delete", name: "Delete pages", icon: "🗑️", desc: "Remove specific pages" },
   { id: "rotate", name: "Rotate", icon: "↻", desc: "Rotate every page" },
@@ -38,6 +39,8 @@ export function PdfToolsClient() {
   const [pageSpec, setPageSpec] = useState("1-3");
   const [angle, setAngle] = useState(90);
   const [watermarkText, setWatermarkText] = useState("CONFIDENTIAL");
+  const [imgFormat, setImgFormat] = useState<"jpg" | "png">("jpg");
+  const [quality, setQuality] = useState(0.6);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -82,6 +85,7 @@ export function PdfToolsClient() {
         const pdf = await getDocument({ data: buf }).promise;
         const { default: JSZip } = await import("jszip");
         const zip = new JSZip();
+        const mime = imgFormat === "png" ? "image/png" : "image/jpeg";
         let single: Blob | null = null;
         for (let i = 1; i <= pdf.numPages; i++) {
           setBusy(`Rendering page ${i} of ${pdf.numPages}…`);
@@ -91,12 +95,12 @@ export function PdfToolsClient() {
           canvas.width = viewport.width; canvas.height = viewport.height;
           const ctx = canvas.getContext("2d")!;
           await page.render({ canvas, canvasContext: ctx, viewport }).promise;
-          const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.92));
-          if (blob) { single = blob; zip.file(`page-${String(i).padStart(3, "0")}.jpg`, blob); }
+          const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, mime, 0.92));
+          if (blob) { single = blob; zip.file(`page-${String(i).padStart(3, "0")}.${imgFormat}`, blob); }
         }
         if (pdf.numPages === 1 && single) {
           const url = URL.createObjectURL(single);
-          const a = document.createElement("a"); a.href = url; a.download = "page-1-dataforge.jpg"; a.click();
+          const a = document.createElement("a"); a.href = url; a.download = `page-1-dataforge.${imgFormat}`; a.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         } else {
           const zblob = await zip.generateAsync({ type: "blob" });
@@ -104,7 +108,38 @@ export function PdfToolsClient() {
           const a = document.createElement("a"); a.href = url; a.download = "pdf-images-dataforge.zip"; a.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
-        setMsg(`Exported ${pdf.numPages} page(s) as JPG.`);
+        setMsg(`Exported ${pdf.numPages} page(s) as ${imgFormat.toUpperCase()}.`);
+      }
+
+      else if (tool === "compress") {
+        if (files.length !== 1) throw new Error("Select exactly one PDF.");
+        const origSize = files[0].size;
+        setBusy("Rendering & compressing…");
+        const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
+        GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+        const buf = new Uint8Array(await files[0].arrayBuffer());
+        const pdf = await getDocument({ data: buf }).promise;
+        const out = await PDFDocument.create();
+        for (let i = 1; i <= pdf.numPages; i++) {
+          setBusy(`Compressing page ${i} of ${pdf.numPages}…`);
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width; canvas.height = viewport.height;
+          const ctx = canvas.getContext("2d")!;
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          const jpg = await out.embedJpg(dataUrl);
+          // page size in points (72 dpi) from the unscaled viewport
+          const base = page.getViewport({ scale: 1 });
+          const p = out.addPage([base.width, base.height]);
+          p.drawImage(jpg, { x: 0, y: 0, width: base.width, height: base.height });
+        }
+        const bytes = await out.save();
+        download(bytes, "compressed-dataforge.pdf");
+        const pct = Math.max(0, Math.round(100 - (bytes.length / origSize) * 100));
+        setMsg(bytes.length < origSize ? `Compressed ${(origSize / 1024).toFixed(0)} KB → ${(bytes.length / 1024).toFixed(0)} KB (↓ ${pct}%).` : `Output ${(bytes.length / 1024).toFixed(0)} KB (already optimized).`);
       }
 
       else {
@@ -229,6 +264,18 @@ export function PdfToolsClient() {
         {tool === "watermark" && (
           <label className="mt-4 block text-sm">Watermark text
             <input className="input-field mt-1 w-full" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} />
+          </label>
+        )}
+        {tool === "topng" && (
+          <div className="mt-4 flex gap-2">
+            {(["jpg", "png"] as const).map((f) => (
+              <button key={f} onClick={() => setImgFormat(f)} className={`rounded-lg border px-3 py-1.5 text-sm uppercase ${imgFormat === f ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{f}</button>
+            ))}
+          </div>
+        )}
+        {tool === "compress" && (
+          <label className="mt-4 block text-sm">Quality: {Math.round(quality * 100)}% {quality <= 0.4 ? "(smallest)" : quality >= 0.8 ? "(best)" : "(balanced)"}
+            <input type="range" min={0.2} max={0.9} step={0.05} value={quality} onChange={(e) => setQuality(+e.target.value)} className="mt-1 w-full" />
           </label>
         )}
 
