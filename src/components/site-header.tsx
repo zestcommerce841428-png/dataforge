@@ -40,6 +40,9 @@ export function SiteHeader() {
           <Link href="/handwriting" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
             <span aria-hidden>✍️</span> Handwriting
           </Link>
+          <Link href="/code-formatter" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
+            <span aria-hidden>{"{ }"}</span> Formatter
+          </Link>
           <Link href="/workbook" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
             <span aria-hidden>⊞</span> Workbook
           </Link>
