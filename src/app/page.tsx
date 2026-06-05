@@ -118,6 +118,29 @@ export default function HomePage() {
         ))}
       </section>
 
+      {/* Featured apps */}
+      <section className="py-4" aria-label="Featured tools">
+        <h2 className="mb-3 text-2xl font-bold tracking-tight">Explore our tools</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { href: "/dev-tools", icon: "🛠", title: "397+ Developer Tools", desc: "JSON, regex, hashing, converters, finance, health, fun & more" },
+            { href: "/handwriting", icon: "✍️", title: "Text to Handwriting", desc: "10 fonts, inks & papers, unlimited pages, PNG/PDF" },
+            { href: "/image-tools", icon: "🖼️", title: "Image Resizer & Compressor", desc: "Resize, crop, compress to KB, convert, DPI presets" },
+            { href: "/pdf-tools", icon: "📄", title: "PDF Tools", desc: "Merge, split, compress, rotate, images↔PDF" },
+            { href: "/workbook", icon: "⊞", title: "Spreadsheet Workbook", desc: "Excel-style grid with 360+ formulas" },
+            { href: "/formula-manager", icon: "ƒ", title: "Excel Formula Manager", desc: "All 360+ Excel 365 functions, live" },
+            { href: "/typing", icon: "⌨", title: "Typing Practice", desc: "WPM & accuracy test with live feedback" },
+            { href: "/crypto", icon: "₿", title: "Live Crypto Tracker", desc: "Real-time prices, charts & order book" },
+          ].map((a) => (
+            <Link key={a.href} href={a.href} className="surface rounded-2xl border p-5 shadow-sm transition-colors hover:border-brand-400">
+              <div className="text-2xl" aria-hidden>{a.icon}</div>
+              <h3 className="mt-2 font-bold">{a.title}</h3>
+              <p className="mt-1 text-sm text-muted">{a.desc}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Crypto banner */}
       <section className="surface mb-4 overflow-hidden rounded-2xl border">
         <div className="flex flex-col items-start justify-between gap-4 bg-gradient-to-r from-brand-600/10 to-transparent p-6 sm:flex-row sm:items-center">
