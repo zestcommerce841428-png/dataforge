@@ -451,11 +451,64 @@ export const GENERATORS: Generator[] = [
     slug: "address",
     name: "Address Generator",
     category: "address",
-    short: "Realistic postal addresses.",
-    description: "Generate realistic-looking US-style postal addresses for form testing and demos. All data is fictional.",
-    keywords: ["address", "postal", "fake address"],
-    fields: [],
-    generate: () => {
+    short: "Realistic postal addresses (7 countries).",
+    description: "Generate realistic-looking postal addresses for form testing and demos. Supports US, UK, India, Australia, Canada, Germany and France. All data is fictional.",
+    keywords: ["address", "postal", "fake address", "international", "uk", "india", "australia"],
+    fields: [
+      { key: "country", label: "Country", type: "select", default: "us", options: [
+        { value: "us",  label: "United States" },
+        { value: "uk",  label: "United Kingdom" },
+        { value: "in",  label: "India" },
+        { value: "au",  label: "Australia" },
+        { value: "ca",  label: "Canada" },
+        { value: "de",  label: "Germany" },
+        { value: "fr",  label: "France" },
+        { value: "random", label: "Random country" },
+      ]},
+    ],
+    generate: (o) => {
+      const country = o.country === "random" ? pick(["us","uk","in","au","ca","de","fr"]) : String(o.country);
+      const num = randomInt(1, 999);
+      if (country === "uk") {
+        const roads = ["High Street","Church Road","Park Lane","Victoria Road","London Road","Station Road","Mill Lane","Elm Close"];
+        const towns = ["London","Manchester","Birmingham","Leeds","Glasgow","Bristol","Sheffield","Liverpool"];
+        const area = pick(UK_AREAS);
+        return `${num} ${pick(roads)}, ${pick(towns)}, ${area}${randomInt(1,20)} ${randomInt(0,9)}${randomString(2,"ABDEFGHJLNPRSTUVWXY")}, UK`;
+      }
+      if (country === "in") {
+        const areas = ["MG Road","Gandhi Nagar","Nehru Street","Anna Nagar","Bandra West","Koramangala","Connaught Place","Sector 15"];
+        const cities = ["Mumbai","Delhi","Bengaluru","Hyderabad","Chennai","Kolkata","Pune","Ahmedabad","Jaipur","Surat"];
+        const states = ["Maharashtra","Delhi","Karnataka","Telangana","Tamil Nadu","West Bengal","Gujarat","Rajasthan"];
+        const pin = digits(6);
+        return `${num}, ${pick(areas)}, ${pick(cities)}, ${pick(states)} - ${pin}, India`;
+      }
+      if (country === "au") {
+        const roads = ["Main Street","Beach Road","Park Drive","Queen Street","King Street","George Street","Pitt Street"];
+        const cities = ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Gold Coast","Canberra","Hobart"];
+        const states = ["NSW","VIC","QLD","WA","SA","ACT","TAS"];
+        return `${num} ${pick(roads)}, ${pick(cities)} ${pick(states)} ${randomInt(2000,7999)}, Australia`;
+      }
+      if (country === "ca") {
+        const roads = ["Main Street","Maple Avenue","Oak Drive","Queen Street","King Street","Bay Street","Yonge Street"];
+        const cities = ["Toronto","Vancouver","Montreal","Calgary","Ottawa","Edmonton","Winnipeg","Quebec City"];
+        const provinces = ["ON","BC","QC","AB","MB","SK","NS","NB"];
+        const fsa = randomString(1, CA_FSA_CHARS) + randomInt(0,9) + randomString(1, CA_FSA_CHARS);
+        const ldu = randomInt(0,9) + randomString(1, CA_FSA_CHARS) + randomInt(0,9);
+        return `${num} ${pick(roads)}, ${pick(cities)}, ${pick(provinces)} ${fsa} ${ldu}, Canada`;
+      }
+      if (country === "de") {
+        const roads = ["Hauptstraße","Bahnhofstraße","Gartenstraße","Berliner Straße","Schillerstraße","Goethestraße","Parkweg"];
+        const cities = ["Berlin","Hamburg","München","Köln","Frankfurt","Stuttgart","Düsseldorf","Leipzig","Dresden"];
+        const states = ["Bayern","Nordrhein-Westfalen","Baden-Württemberg","Hessen","Sachsen","Niedersachsen","Brandenburg"];
+        return `${pick(roads)} ${num}, ${digits(5)} ${pick(cities)} (${pick(states)}), Germany`;
+      }
+      if (country === "fr") {
+        const roads = ["Rue de la Paix","Avenue des Champs","Boulevard Saint-Germain","Rue du Faubourg","Allée des Roses","Impasse des Lilas"];
+        const cities = ["Paris","Lyon","Marseille","Toulouse","Bordeaux","Nantes","Nice","Strasbourg","Rennes"];
+        const depts = ["Île-de-France","Rhône","Bouches-du-Rhône","Haute-Garonne","Gironde","Loire-Atlantique"];
+        return `${num} ${pick(roads)}, ${digits(5)} ${pick(cities)}, ${pick(depts)}, France`;
+      }
+      // US default
       const [state, abbr] = pick(STATES);
       return `${randomInt(1, 9999)} ${pick(STREETS)}, ${pick(CITIES)}, ${abbr} ${digits(5)} (${state}), USA`;
     },
@@ -876,18 +929,34 @@ export const GENERATORS: Generator[] = [
     keywords: ["credit card", "luhn", "test card", "payment"],
     fields: [
       { key: "brand", label: "Brand", type: "select", default: "visa", options: [
-        { value: "visa", label: "Visa" }, { value: "mc", label: "Mastercard" }, { value: "amex", label: "American Express" },
+        { value: "visa", label: "Visa" },
+        { value: "mc", label: "Mastercard" },
+        { value: "amex", label: "American Express" },
+        { value: "discover", label: "Discover" },
+        { value: "unionpay", label: "UnionPay" },
+        { value: "maestro", label: "Maestro" },
+        { value: "jcb", label: "JCB" },
+        { value: "random", label: "Random brand" },
       ] },
     ],
     generate: (o) => {
+      const brand = o.brand === "random" ? pick(["visa","mc","amex","discover","unionpay","maestro","jcb"]) : String(o.brand);
       let prefix: string, len: number;
-      if (o.brand === "amex") { prefix = pick(["34", "37"]); len = 15; }
-      else if (o.brand === "mc") { prefix = String(randomInt(51, 55)); len = 16; }
+      if (brand === "amex")      { prefix = pick(["34", "37"]); len = 15; }
+      else if (brand === "mc")   { prefix = String(randomInt(51, 55)); len = 16; }
+      else if (brand === "discover") { prefix = pick(["6011", "644", "645", "646", "647", "648", "649", "65"]); len = 16; }
+      else if (brand === "unionpay") { prefix = "62"; len = 16; }
+      else if (brand === "maestro")  { prefix = pick(["6304", "6759", "6761", "6762", "6763"]); len = 16; }
+      else if (brand === "jcb")  { prefix = pick(["3528", "3529", "353", "354", "355", "356", "357", "358"]); len = 16; }
       else { prefix = "4"; len = 16; }
       let body = prefix;
       while (body.length < len - 1) body += randomInt(0, 9);
       const full = body + luhnCheckDigit(body);
-      return full.replace(/(.{4})/g, "$1 ").trim();
+      const formatted = brand === "amex"
+        ? `${full.slice(0,4)} ${full.slice(4,10)} ${full.slice(10)}`
+        : full.replace(/(.{4})/g, "$1 ").trim();
+      const label = ({ visa:"VISA", mc:"Mastercard", amex:"Amex", discover:"Discover", unionpay:"UnionPay", maestro:"Maestro", jcb:"JCB" } as Record<string,string>)[brand] ?? brand;
+      return `${formatted}  [${label}]`;
     },
   },
   {
@@ -901,11 +970,24 @@ export const GENERATORS: Generator[] = [
       { key: "country", label: "Country", type: "select", default: "DE", options: [
         { value: "DE", label: "Germany (DE)" }, { value: "GB", label: "United Kingdom (GB)" },
         { value: "FR", label: "France (FR)" }, { value: "ES", label: "Spain (ES)" },
+        { value: "NL", label: "Netherlands (NL)" }, { value: "IT", label: "Italy (IT)" },
+        { value: "SE", label: "Sweden (SE)" }, { value: "PL", label: "Poland (PL)" },
+        { value: "CH", label: "Switzerland (CH)" }, { value: "AT", label: "Austria (AT)" },
+        { value: "BE", label: "Belgium (BE)" }, { value: "DK", label: "Denmark (DK)" },
+        { value: "NO", label: "Norway (NO)" }, { value: "FI", label: "Finland (FI)" },
+        { value: "PT", label: "Portugal (PT)" }, { value: "IE", label: "Ireland (IE)" },
+        { value: "LU", label: "Luxembourg (LU)" }, { value: "AE", label: "UAE (AE)" },
       ] },
     ],
     generate: (o) => {
       const c = String(o.country);
-      const lengths: Record<string, number> = { DE: 18, GB: 18, FR: 23, ES: 20 };
+      const lengths: Record<string, number> = {
+        DE: 18, GB: 18, FR: 23, ES: 20,
+        NL: 14, IT: 23, SE: 20, PL: 24,
+        CH: 17, AT: 16, BE: 12, DK: 14,
+        NO: 11, FI: 14, PT: 21, IE: 18,
+        LU: 16, AE: 19,
+      };
       const bban = digits(lengths[c] || 18);
       const check = ibanCheckDigits(c, bban);
       return `${c}${check}${bban}`.replace(/(.{4})/g, "$1 ").trim();
@@ -3636,7 +3718,6 @@ export const GENERATORS: Generator[] = [
       const reserved = "00";
       const entity = randomString(12, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
       const body = lou + reserved + entity;
-      // Compute ISO 7064 mod-97-10 check digits
       const numeric = (body + "00").split("").map(c =>
         c >= "A" && c <= "Z" ? (c.charCodeAt(0) - 55).toString() : c
       ).join("");
@@ -3644,6 +3725,300 @@ export const GENERATORS: Generator[] = [
       for (const ch of numeric) rem = (rem * 10 + parseInt(ch)) % 97;
       const checkNum = (98 - rem).toString().padStart(2, "0");
       return `${body}${checkNum}`;
+    },
+  },
+
+  // ===== NEW GENERATORS =====
+
+  {
+    slug: "uuid-v1",
+    name: "UUID v1 Generator",
+    category: "developer",
+    short: "Timestamp-based UUID (version 1).",
+    description: "Generate a UUID version 1 using the current timestamp. The node section uses cryptographically random bytes.",
+    keywords: ["uuid", "v1", "timestamp", "identifier", "guid"],
+    fields: [
+      { key: "uppercase", label: "Uppercase", type: "checkbox", default: false },
+    ],
+    generate: (o) => {
+      const EPOCH_DIFF = 122192928000000000n;
+      const ts = BigInt(Date.now()) * 10000n + EPOCH_DIFF;
+      const timeLow = (ts & 0xFFFFFFFFn).toString(16).padStart(8, "0");
+      const timeMid = ((ts >> 32n) & 0xFFFFn).toString(16).padStart(4, "0");
+      const timeHigh = ((ts >> 48n) & 0x0FFFn | 0x1000n).toString(16).padStart(4, "0");
+      const clockSeq = (randomInt(0, 0x3FFF) | 0x8000).toString(16).padStart(4, "0");
+      const node = Array.from({ length: 6 }, () => randomInt(0, 255).toString(16).padStart(2, "0")).join("");
+      const id = `${timeLow}-${timeMid}-${timeHigh}-${clockSeq}-${node}`;
+      return o.uppercase ? id.toUpperCase() : id;
+    },
+  },
+
+  {
+    slug: "uuid-v5",
+    name: "UUID v5 Generator",
+    category: "developer",
+    short: "SHA-1 namespace hashed UUID (version 5).",
+    description: "Generate a UUID version 5 by hashing a name string in the DNS namespace using SHA-1. Same name always produces the same UUID.",
+    keywords: ["uuid", "v5", "namespace", "hash", "deterministic", "identifier"],
+    fields: [
+      { key: "name", label: "Input name", type: "text", default: "example.com" },
+    ],
+    generate: async (o) => {
+      const NS_DNS = new Uint8Array([0x6b,0xa7,0xb8,0x10,0x9d,0xad,0x11,0xd1,0x80,0xb4,0x00,0xc0,0x4f,0xd4,0x30,0xc8]);
+      const nameBytes = new TextEncoder().encode(String(o.name || "example.com"));
+      const combined = new Uint8Array(NS_DNS.length + nameBytes.length);
+      combined.set(NS_DNS); combined.set(nameBytes, NS_DNS.length);
+      const hashBuf = await crypto.subtle.digest("SHA-1", combined);
+      const h = new Uint8Array(hashBuf);
+      h[6] = (h[6] & 0x0f) | 0x50;
+      h[8] = (h[8] & 0x3f) | 0x80;
+      const hex = Array.from(h.slice(0,16), b => b.toString(16).padStart(2,"0")).join("");
+      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20,32)}`;
+    },
+  },
+
+  {
+    slug: "full-profile",
+    name: "Full Person Profile",
+    category: "identity",
+    short: "Complete fake identity record as JSON.",
+    description: "Generate a full fictional person profile: name, email, phone, DOB, address, job, username, UUID and test credit card — ideal for database seeding and UI mockups.",
+    keywords: ["person", "profile", "identity", "fake", "mock", "seed", "fixture", "json"],
+    fields: [
+      { key: "gender", label: "Gender", type: "select", default: "any", options: [
+        { value: "any", label: "Any" }, { value: "m", label: "Male" }, { value: "f", label: "Female" },
+      ]},
+      { key: "format", label: "Output format", type: "select", default: "json", options: [
+        { value: "json", label: "JSON" }, { value: "text", label: "Plain text" },
+      ]},
+    ],
+    generate: (o) => {
+      const first = o.gender === "m" ? pick(FIRST_NAMES_M) : o.gender === "f" ? pick(FIRST_NAMES_F) : pick([...FIRST_NAMES_M, ...FIRST_NAMES_F]);
+      const last = pick(LAST_NAMES2);
+      const email = `${first.toLowerCase()}.${last.toLowerCase()}${randomInt(1,99)}@example.com`;
+      const [state, abbr] = pick(STATES);
+      const address = `${randomInt(1,9999)} ${pick(STREETS)}, ${pick(CITIES)}, ${abbr} ${digits(5)}`;
+      const age = randomInt(18, 65);
+      const dob = new Date(new Date().getFullYear() - age, randomInt(0,11), randomInt(1,28)).toISOString().slice(0,10);
+      const ccBody = "4" + digits(14);
+      const cc = (ccBody.slice(0,15) + luhnCheckDigit(ccBody.slice(0,15))).replace(/(.{4})/g,"$1 ").trim();
+      const expY = (new Date().getFullYear() + randomInt(1,5)).toString().slice(-2);
+      const expM = randomInt(1,12).toString().padStart(2,"0");
+      if (o.format === "text") {
+        return [
+          `Name:     ${first} ${last}`,
+          `Email:    ${email}`,
+          `Phone:    +1 ${digits(3)} ${digits(3)} ${digits(4)}`,
+          `DOB:      ${dob}  (age ${age})`,
+          `Address:  ${address}, USA`,
+          `Job:      ${pick(JOB_TITLES)} · ${pick(COMPANY_PREFIX)} ${pick(COMPANY_SUFFIX)}`,
+          `Dept:     ${pick(DEPARTMENTS)}`,
+          `Username: ${pick(ADJECTIVES)}_${pick(NOUNS)}${randomInt(1,999)}`,
+          `UUID:     ${crypto.randomUUID()}`,
+          `Visa:     ${cc}  exp ${expM}/${expY}`,
+        ].join("\n");
+      }
+      return JSON.stringify({
+        id: crypto.randomUUID(),
+        name: { first, last, full: `${first} ${last}` },
+        email,
+        phone: `+1 ${digits(3)} ${digits(3)} ${digits(4)}`,
+        dob, age,
+        gender: o.gender === "any" ? pick(["male","female"]) : o.gender === "m" ? "male" : "female",
+        address: { line1: address, country: "USA", state },
+        job: { title: pick(JOB_TITLES), company: `${pick(COMPANY_PREFIX)} ${pick(COMPANY_SUFFIX)}`, department: pick(DEPARTMENTS) },
+        username: `${pick(ADJECTIVES)}_${pick(NOUNS)}${randomInt(1,999)}`,
+        creditCard: { number: cc, brand: "visa", expires: `${expM}/${expY}` },
+      }, null, 2);
+    },
+  },
+
+  {
+    slug: "file-path",
+    name: "File Path Generator",
+    category: "developer",
+    short: "Unix or Windows-style file paths.",
+    description: "Generate realistic random file paths for test fixtures, path-parsing tests and documentation examples.",
+    keywords: ["file path", "unix", "windows", "directory", "filesystem", "path"],
+    fields: [
+      { key: "os", label: "OS style", type: "select", default: "unix", options: [
+        { value: "unix",    label: "Unix / macOS" },
+        { value: "windows", label: "Windows" },
+      ]},
+      { key: "depth", label: "Directory depth", type: "number", default: 3, min: 1, max: 6 },
+    ],
+    generate: (o) => {
+      const depth = Math.min(6, Math.max(1, Number(o.depth)));
+      const dirs = Array.from({ length: depth }, () => pick([...NOUNS, ...ADJECTIVES]));
+      const exts = ["txt","json","csv","log","md","ts","py","go","sql","xml","yaml","png","pdf","env","sh","lock"];
+      const file = `${pick(NOUNS)}_${randomInt(1,999)}.${pick(exts)}`;
+      if (o.os === "windows") {
+        const drive = pick(["C","D","E"]);
+        return `${drive}:\\${dirs.join("\\")}\\${file}`;
+      }
+      const root = pick(["/home/user","/var/data","/opt","/usr/local","/tmp","/srv","/etc/config"]);
+      return `${root}/${dirs.join("/")}/${file}`;
+    },
+  },
+
+  {
+    slug: "proverb",
+    name: "Proverb Generator",
+    category: "text",
+    short: "Random proverbs and wisdom sayings.",
+    description: "Pick a random proverb or saying from a curated international collection.",
+    keywords: ["proverb", "quote", "saying", "wisdom", "phrase"],
+    fields: [],
+    generate: () => pick(PROVERBS),
+  },
+
+  {
+    slug: "airport",
+    name: "Airport Code Generator",
+    category: "reference",
+    short: "Real IATA airport codes.",
+    description: "Pick a real IATA airport code with airport name, city and country.",
+    keywords: ["airport", "iata", "flight", "aviation", "travel"],
+    fields: [],
+    generate: () => {
+      const [code, name, city, country] = pick(AIRPORTS);
+      return `${code}  —  ${name}  (${city}, ${country})`;
+    },
+  },
+
+  {
+    slug: "stock-ticker",
+    name: "Stock Ticker Generator",
+    category: "reference",
+    short: "Real stock ticker symbols.",
+    description: "Pick a real stock ticker symbol with company name and exchange for financial UI and testing.",
+    keywords: ["stock", "ticker", "finance", "equity", "market", "symbol"],
+    fields: [],
+    generate: () => {
+      const [symbol, company, exchange] = pick(STOCK_TICKERS);
+      return `${symbol}  —  ${company}  [${exchange}]`;
+    },
+  },
+
+  {
+    slug: "programming-language",
+    name: "Programming Language Generator",
+    category: "reference",
+    short: "Random programming languages.",
+    description: "Pick a random programming language from a comprehensive list.",
+    keywords: ["programming", "language", "code", "tech", "software", "developer"],
+    fields: [],
+    generate: () => {
+      const [name, creator, year] = pick(PROGRAMMING_LANGUAGES);
+      return `${name}  (by ${creator}, ${year})`;
+    },
+  },
+
+  {
+    slug: "cloud-region",
+    name: "Cloud Region Generator",
+    category: "reference",
+    short: "AWS / GCP / Azure region codes.",
+    description: "Pick a random cloud infrastructure region from AWS, GCP or Azure for DevOps testing.",
+    keywords: ["cloud", "aws", "gcp", "azure", "region", "datacenter", "devops"],
+    fields: [],
+    generate: () => {
+      const [provider, region, location] = pick(CLOUD_REGIONS);
+      return `${provider}  ${region}  (${location})`;
+    },
+  },
+
+  {
+    slug: "car-brand",
+    name: "Car Brand Generator",
+    category: "reference",
+    short: "Random car manufacturers with year.",
+    description: "Pick a random automobile manufacturer with country of origin and a model year for vehicle data mockups.",
+    keywords: ["car", "vehicle", "automobile", "brand", "make", "manufacturer"],
+    fields: [],
+    generate: () => {
+      const [make, country, founded] = pick(CAR_BRANDS);
+      const year = randomInt(2015, new Date().getFullYear() + 1);
+      return `${year} ${make}  (${country} · est. ${founded})`;
+    },
+  },
+
+  {
+    slug: "app-name",
+    name: "App Name Generator",
+    category: "text",
+    short: "Brandable app and startup names.",
+    description: "Generate creative app/startup names from tech-industry prefix-suffix combinations.",
+    keywords: ["app name", "startup", "brand", "product name", "tech", "saas"],
+    fields: [],
+    generate: () => {
+      const style = randomInt(0, 2);
+      if (style === 0) return pick(APP_PREFIXES) + pick(APP_SUFFIXES);
+      if (style === 1) return pick(APP_PREFIXES) + pick(APP_PREFIXES).toLowerCase();
+      return pick(ADJECTIVES).replace(/^\w/, c => c.toUpperCase()) + pick(APP_SUFFIXES);
+    },
+  },
+
+  {
+    slug: "review-snippet",
+    name: "Review Snippet Generator",
+    category: "text",
+    short: "Fake product and service reviews.",
+    description: "Generate realistic-sounding product or service review snippets for UI mockups and e-commerce demos.",
+    keywords: ["review", "testimonial", "feedback", "rating", "ecommerce", "ux"],
+    fields: [
+      { key: "rating", label: "Star rating", type: "select", default: "any", options: [
+        { value: "any", label: "Random" },
+        { value: "5",   label: "5 ★ Excellent" },
+        { value: "4",   label: "4 ★ Good" },
+        { value: "3",   label: "3 ★ Average" },
+        { value: "2",   label: "2 ★ Poor" },
+      ]},
+    ],
+    generate: (o) => {
+      const rating = o.rating === "any" ? randomInt(2, 5) : Number(o.rating);
+      const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+      const text = `${pick(REVIEW_PHRASES.openers)} ${pick(REVIEW_PHRASES.bodies)} ${pick(REVIEW_PHRASES.closers)}`;
+      return `${stars} (${rating}/5)\n"${text}"`;
+    },
+  },
+
+  {
+    slug: "tagline",
+    name: "Tagline Generator",
+    category: "text",
+    short: "Marketing taglines and slogans.",
+    description: "Generate a catchy marketing tagline or product slogan for pitch decks and mockups.",
+    keywords: ["tagline", "slogan", "marketing", "copywriting", "brand", "pitch"],
+    fields: [],
+    generate: () => pick(TAGLINES),
+  },
+
+  {
+    slug: "iso-language",
+    name: "Language Generator",
+    category: "reference",
+    short: "Real ISO 639-1 language codes.",
+    description: "Pick a random human language with its ISO 639-1 code, English name and native name.",
+    keywords: ["language", "iso", "locale", "internationalization", "i18n", "l10n"],
+    fields: [],
+    generate: () => {
+      const [code, name, native] = pick(ISO_LANGUAGES);
+      return `${code}  ${name}  (${native})`;
+    },
+  },
+
+  {
+    slug: "material-color",
+    name: "Material Design Color",
+    category: "color",
+    short: "Material Design palette colours.",
+    description: "Pick a random colour from the Material Design palette with name, shade and hex value.",
+    keywords: ["material design", "color", "palette", "google", "ui", "android"],
+    fields: [],
+    generate: () => {
+      const [name, shade, hex] = pick(MATERIAL_COLORS);
+      return `${name} ${shade}  →  ${hex}`;
     },
   },
 ];

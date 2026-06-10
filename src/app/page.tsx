@@ -6,6 +6,7 @@ import {
   CATEGORIES,
 } from "@/lib/generators";
 import { ToolExplorer } from "@/components/tool-explorer";
+import { RecentTools } from "@/components/recent-tools";
 
 const features = [
   {
@@ -169,6 +170,7 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+        <RecentTools />
         <ToolExplorer tools={TOOL_META} />
       </section>
 
