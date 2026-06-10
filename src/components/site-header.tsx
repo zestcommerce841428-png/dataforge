@@ -53,6 +53,9 @@ export function SiteHeader() {
           <Link href="/typing" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
             <span aria-hidden>⌨</span> Typing
           </Link>
+          <Link href="/compare" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
+            <span aria-hidden>⇄</span> Compare
+          </Link>
           <Link href="/shortcuts" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
             <span aria-hidden>⚡</span> Shortcuts
           </Link>

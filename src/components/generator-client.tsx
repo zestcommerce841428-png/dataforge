@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { getGenerator, type GenOptions } from "@/lib/generators";
 
 const HISTORY_LIMIT = 50;
@@ -56,7 +57,63 @@ function ResultValue({ value, slug }: { value: string; slug: string }) {
     );
   }
 
+  // CSS gradient preview
+  const trimmed = value.trim();
+  if (/^(linear|radial|conic)-gradient\(/.test(trimmed)) {
+    return (
+      <div className="w-full space-y-2">
+        <div className="h-16 w-full rounded-lg border border-app" style={{ background: trimmed } as React.CSSProperties} />
+        <code className="block break-all text-sm">{value}</code>
+      </div>
+    );
+  }
+
   const swatches = hexSwatches(value);
+
+  // Color palette: 4+ distinct hex codes → large colour blocks
+  if (swatches.length >= 4) {
+    return (
+      <div className="w-full space-y-2">
+        <div className="flex overflow-hidden rounded-xl border border-app">
+          {swatches.map((hex) => (
+            <div
+              key={hex}
+              className="flex flex-1 flex-col items-center justify-end pb-2 pt-16"
+              style={{ background: hex } as React.CSSProperties}
+            >
+              <span
+                className="rounded px-1 font-mono text-[9px] font-bold"
+                style={{ background: "rgba(0,0,0,0.45)", color: "#fff" } as React.CSSProperties}
+              >
+                {hex}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Single hex color → dark/light contrast preview
+  if (/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(trimmed)) {
+    return (
+      <div className="w-full space-y-2">
+        <div className="flex gap-2">
+          <div className="flex flex-1 flex-col items-center gap-1 rounded-lg border border-app p-3" style={{ background: "#ffffff" } as React.CSSProperties}>
+            <div className="h-10 w-full rounded-md" style={{ background: trimmed } as React.CSSProperties} />
+            <span className="text-[10px] font-medium" style={{ color: "#555" } as React.CSSProperties}>on white</span>
+          </div>
+          <div className="flex flex-1 flex-col items-center gap-1 rounded-lg border border-app p-3" style={{ background: "#111111" } as React.CSSProperties}>
+            <div className="h-10 w-full rounded-md" style={{ background: trimmed } as React.CSSProperties} />
+            <span className="text-[10px] font-medium" style={{ color: "#aaa" } as React.CSSProperties}>on dark</span>
+          </div>
+        </div>
+        <code className="block text-center font-mono font-bold">{value}</code>
+      </div>
+    );
+  }
+
+  // Default: text with mini colour circles
   return (
     <span className="break-all">
       {value}
@@ -181,6 +238,14 @@ export function GeneratorClient({ slug }: { slug: string }) {
 
   const clearHistory = () => { setHistory([]); try { localStorage.removeItem(historyKey); } catch { /* noop */ } };
 
+  const downloadHistory = () => {
+    if (!history.length) return;
+    const blob = new Blob([history.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `${slug}-history.txt`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const download = () => {
     const textRows = results.filter(r => !r.startsWith("data:image/") && !r.trimStart().startsWith("<svg"));
     if (!textRows.length) return;
@@ -302,11 +367,14 @@ export function GeneratorClient({ slug }: { slug: string }) {
             </div>
           )}
 
-          {/* Share URL */}
+          {/* Share URL + Compare */}
           <div className="flex gap-2">
             <button type="button" onClick={shareURL} className="surface-2 flex-1 rounded-lg border border-app px-2 py-1.5 text-xs font-medium hover:bg-[var(--surface-2)]">
               🔗 Share URL
             </button>
+            <Link href={`/compare?a=${slug}`} className="surface-2 rounded-lg border border-app px-2 py-1.5 text-xs font-medium hover:bg-[var(--surface-2)]" title="Compare this generator side-by-side with another">
+              ⇄ Compare
+            </Link>
             {shareMsg && <span className="self-center text-xs text-brand-600">{shareMsg}</span>}
           </div>
         </div>
@@ -378,7 +446,10 @@ export function GeneratorClient({ slug }: { slug: string }) {
                 History <span className="text-muted font-normal">({history.length}/{HISTORY_LIMIT})</span>
               </h2>
               {history.length > 0 && (
-                <button type="button" onClick={clearHistory} className="text-sm font-medium text-muted hover:text-[var(--text)]">Clear</button>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={downloadHistory} className="text-xs font-medium text-muted hover:text-[var(--text)]" title="Download history as .txt">↓ Export</button>
+                  <button type="button" onClick={clearHistory} className="text-xs font-medium text-muted hover:text-[var(--text)]">Clear</button>
+                </div>
               )}
             </div>
             {history.length === 0 ? (
