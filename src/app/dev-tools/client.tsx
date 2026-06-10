@@ -67,6 +67,8 @@ import { UTMLinkBuilder, ImagePlaceholderURL, HtmlToMarkdown, SrcsetGenerator, E
 import { ZodiacSign, ChineseZodiac, MoonPhase, DaysAlive, BirthdayCountdown, HolidayCountdown, NextWeekdayFinder, WeeklyTimecard, SeasonFinder } from "./tools/more3-datetime2";
 // Batch 4 — data converters (data-driven)
 import { CONV, PAIRS, UnitConverter as DataUnitConverter } from "./tools/more4-converters";
+// Batch 5 — advanced tools
+import { SerpPreview, SchemaGenerator, KeywordDensity, HreflangGenerator, TextSummarizer, VowelPangramCounter, LeetspeakConverter, BrailleTranslator, PercentageChange, ModuloCalculator, PrimeChecker, FactorialCalc, BinaryCalculator, CssClampGenerator, GoldenRatioCalc, ColorMixer, ColorBlindSim, RandomDateGenerator, RandomGpsGenerator, RandomTeamGenerator, InitialsAvatar, SignaturePad, DockerfileGenerator, RedirectGenerator, SqlInBuilder, CronBuilder, ApiTester, NearestColorName, ReadingTime, AspectRatioResize } from "./tools/more5-tools";
 
 type ToolEntry = {
   id: string;
@@ -441,6 +443,38 @@ const TOOLS: ToolEntry[] = [
   { id:"next-weekday", name:"Next Weekday Finder", icon:"📆", category:"datetime", short:"Find the date of the next Monday, Friday, etc.", component:NextWeekdayFinder },
   { id:"weekly-timecard", name:"Weekly Timecard", icon:"🕗", category:"datetime", short:"Add up weekly work hours and overtime", component:WeeklyTimecard },
   { id:"season-finder", name:"Season Finder", icon:"🍂", category:"datetime", short:"Find the season for any date and hemisphere", component:SeasonFinder },
+
+  // ── Batch 5: Advanced ──────────────────────────────────────────
+  { id:"serp-preview", name:"Google SERP Preview", icon:"🔍", category:"network", short:"Preview how your page looks in Google search results", component:SerpPreview },
+  { id:"schema-generator", name:"Schema.org JSON-LD Generator", icon:"{ }", category:"network", short:"Generate structured data for Article, Product, FAQ and more", component:SchemaGenerator },
+  { id:"keyword-density", name:"Keyword Density Analyzer", icon:"📊", category:"network", short:"Analyse keyword frequency and density in content", component:KeywordDensity },
+  { id:"hreflang-generator", name:"Hreflang Tag Generator", icon:"🌍", category:"network", short:"Generate hreflang tags for multilingual SEO", component:HreflangGenerator },
+  { id:"text-summarizer", name:"Text Summarizer", icon:"📝", category:"text", short:"Extractive summary that picks the key sentences", component:TextSummarizer },
+  { id:"vowel-pangram", name:"Vowel & Pangram Counter", icon:"🔤", category:"text", short:"Count vowels, consonants and check for pangrams", component:VowelPangramCounter },
+  { id:"leetspeak", name:"Leetspeak Converter", icon:"1337", category:"text", short:"Convert text to l33t speak", component:LeetspeakConverter },
+  { id:"braille", name:"Braille Translator", icon:"⠿", category:"text", short:"Convert text to Braille unicode", component:BrailleTranslator },
+  { id:"reading-time", name:"Reading Time Estimator", icon:"⏱", category:"text", short:"Estimate reading time and word count", component:ReadingTime },
+  { id:"percentage-change", name:"Percentage Change Calculator", icon:"%", category:"math", short:"Calculate percentage increase or decrease", component:PercentageChange },
+  { id:"modulo-calc", name:"Modulo Calculator", icon:"mod", category:"math", short:"Compute remainders with quotient breakdown", component:ModuloCalculator },
+  { id:"prime-checker", name:"Prime Number Checker", icon:"🔢", category:"math", short:"Check primality and find next/previous primes", component:PrimeChecker },
+  { id:"factorial", name:"Factorial Calculator", icon:"n!", category:"math", short:"Exact factorial of any number up to 2000 (bigint)", component:FactorialCalc },
+  { id:"binary-calc", name:"Binary Calculator", icon:"01", category:"math", short:"Add, subtract, AND, OR, XOR binary numbers", component:BinaryCalculator },
+  { id:"golden-ratio", name:"Golden Ratio Calculator", icon:"φ", category:"math", short:"Calculate golden-ratio proportions", component:GoldenRatioCalc },
+  { id:"aspect-ratio-resize", name:"Aspect Ratio Resizer", icon:"▭", category:"math", short:"Scale dimensions while keeping the aspect ratio", component:AspectRatioResize },
+  { id:"css-clamp", name:"CSS clamp() Generator", icon:"📐", category:"css", short:"Fluid responsive typography with clamp()", component:CssClampGenerator },
+  { id:"color-mixer", name:"Color Mixer", icon:"🎨", category:"css", short:"Blend two colors at any ratio", component:ColorMixer },
+  { id:"color-blind-sim", name:"Color Blindness Simulator", icon:"👁", category:"css", short:"See how a color looks with color-vision deficiencies", component:ColorBlindSim },
+  { id:"nearest-color", name:"Nearest CSS Color Name", icon:"🎯", category:"css", short:"Find the closest named CSS color to any hex", component:NearestColorName },
+  { id:"random-date", name:"Random Date Generator", icon:"📅", category:"fun", short:"Generate a random date in a range", component:RandomDateGenerator },
+  { id:"random-gps", name:"Random GPS Coordinates", icon:"📍", category:"fun", short:"Generate random latitude/longitude with map link", component:RandomGpsGenerator },
+  { id:"random-teams", name:"Random Team Generator", icon:"👥", category:"fun", short:"Shuffle names into balanced teams", component:RandomTeamGenerator },
+  { id:"initials-avatar", name:"Initials Avatar Generator", icon:"🅰", category:"image", short:"Create a downloadable initials avatar", component:InitialsAvatar },
+  { id:"signature-pad", name:"Signature Maker", icon:"✍", category:"image", short:"Draw a signature and download as PNG", component:SignaturePad },
+  { id:"dockerfile-gen", name:"Dockerfile Generator", icon:"🐳", category:"developer", short:"Generate a Dockerfile for Node, Python, Next.js or Go", component:DockerfileGenerator },
+  { id:"redirect-gen", name:"Redirect Generator", icon:"↪", category:"developer", short:"Generate Apache .htaccess or Nginx redirects", component:RedirectGenerator },
+  { id:"sql-in-builder", name:"SQL IN() Builder", icon:"SQL", category:"developer", short:"Build a SQL IN() clause from a list", component:SqlInBuilder },
+  { id:"cron-builder", name:"Cron Expression Builder", icon:"⏰", category:"developer", short:"Visually build cron expressions with presets", component:CronBuilder },
+  { id:"api-tester", name:"API Request Tester", icon:"→", category:"network", short:"Send a GET request and see status, timing and body", component:ApiTester },
 
   ...CONVERTER_TOOLS,
 ];
