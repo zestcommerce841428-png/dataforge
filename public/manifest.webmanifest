@@ -1,0 +1,24 @@
+{
+  "name": "DataForge — Free Online Developer Tools",
+  "short_name": "DataForge",
+  "description": "200+ free privacy-first online tools: generators, converters, formatters and more — all run locally in your browser.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1e",
+  "theme_color": "#3478f6",
+  "orientation": "any",
+  "categories": ["developer tools", "utilities", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Password Generator", "short_name": "Password",  "url": "/tools/password",  "description": "Generate strong passwords" },
+    { "name": "UUID Generator",     "short_name": "UUID",      "url": "/tools/uuid",      "description": "Generate UUIDs" },
+    { "name": "JSON Mock Data",     "short_name": "JSON Mock", "url": "/tools/json-mock", "description": "Generate mock JSON" },
+    { "name": "Crypto Tracker",     "short_name": "Crypto",    "url": "/crypto",          "description": "Live crypto prices" }
+  ],
+  "screenshots": [
+    { "src": "/opengraph-image", "sizes": "1200x630", "type": "image/png", "form_factor": "wide" }
+  ]
+}

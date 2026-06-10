@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, type ToolMeta } from "@/lib/generators";
 
-const FAV_KEY = "df-favorites";
+const FAV_KEY   = "df-favorites";
+const USAGE_KEY = "df-usage";
+
+function getUsage(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(USAGE_KEY) ?? "{}"); } catch { return {}; }
+}
 
 export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
   const [query, setQuery] = useState("");
@@ -12,13 +17,29 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
   const [favs, setFavs] = useState<Set<string>>(new Set());
   const [showFavsOnly, setShowFavsOnly] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [usage, setUsage] = useState<Record<string, number>>({});
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(FAV_KEY);
       if (raw) setFavs(new Set(JSON.parse(raw)));
     } catch { /* noop */ }
+    setUsage(getUsage());
     setMounted(true);
+  }, []);
+
+  // '/' global shortcut → focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "/" ) return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
   const toggleFav = (slug: string, e: React.MouseEvent) => {
@@ -58,6 +79,7 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
             🔍
           </span>
           <input
+            ref={searchRef}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -65,6 +87,9 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
             aria-label="Search tools"
             className="surface-2 w-full rounded-xl border border-app py-3 pl-11 pr-4 text-sm outline-none"
           />
+          <kbd className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 hidden rounded border border-app bg-[var(--surface)] px-1.5 py-0.5 font-mono text-[10px] text-muted sm:block" aria-hidden>
+            /
+          </kbd>
         </div>
 
         {/* Category filter chips */}
@@ -118,9 +143,16 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
                   {isFav ? "★" : "☆"}
                 </button>
               )}
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-600">
-                {catName(t.category)}
-              </span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-600">
+                  {catName(t.category)}
+                </span>
+                {mounted && usage[t.slug] > 0 && (
+                  <span className="text-[10px] text-muted tabular-nums" title={`Used ${usage[t.slug]} times`}>
+                    {usage[t.slug]}×
+                  </span>
+                )}
+              </div>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <h3 className="font-semibold leading-tight group-hover:text-brand-600">{t.name}</h3>
                 <span aria-hidden className="text-muted transition group-hover:translate-x-0.5 group-hover:text-brand-600">→</span>
@@ -147,7 +179,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={active ? "true" : "false"}
+      aria-pressed={active}
       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
         active
           ? "border-brand-600 bg-brand-600 text-white"

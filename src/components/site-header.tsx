@@ -3,6 +3,7 @@ import { ThemeControls } from "./theme-controls";
 import { ThemeSwitcher } from "./theme-switcher";
 import { RegionSwitcher } from "./region-switcher";
 import { NavLinks } from "./nav-links";
+import { CollectionsPanel } from "./collections-panel";
 
 export function SiteHeader() {
   return (
@@ -27,6 +28,7 @@ export function SiteHeader() {
         <div className="flex min-w-0 items-center gap-1.5">
           <NavLinks />
           <div className="mx-1 hidden h-5 w-px bg-[var(--border)] sm:block" aria-hidden />
+          <CollectionsPanel />
           <ThemeSwitcher />
           <RegionSwitcher />
           <ThemeControls />

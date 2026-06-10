@@ -8,6 +8,7 @@ import { CookieConsent } from "@/components/cookie-consent";
 import { Recaptcha } from "@/components/recaptcha";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ScrollButtons } from "@/components/scroll-buttons";
+import { PwaInit } from "@/components/pwa-init";
 import { WelcomeBanner } from "@/components/welcome-banner";
 import { OnboardingOverlay } from "@/components/onboarding-overlay";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
   },
   openGraph: {
     type: "website",
@@ -131,6 +132,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="DataForge" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
@@ -148,6 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
+        <PwaInit />
         <OnboardingOverlay />
         <WelcomeBanner />
         <SiteHeader />

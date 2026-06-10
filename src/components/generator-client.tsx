@@ -5,8 +5,18 @@ import Link from "next/link";
 import { getGenerator, type GenOptions } from "@/lib/generators";
 
 const HISTORY_LIMIT = 50;
-const RECENT_KEY = "df-recent";
+const RECENT_KEY   = "df-recent";
+const USAGE_KEY    = "df-usage";
 const RECENT_LIMIT = 8;
+
+function incrementUsage(slug: string) {
+  try {
+    const raw = localStorage.getItem(USAGE_KEY);
+    const map: Record<string, number> = raw ? JSON.parse(raw) : {};
+    map[slug] = (map[slug] ?? 0) + 1;
+    localStorage.setItem(USAGE_KEY, JSON.stringify(map));
+  } catch { /* noop */ }
+}
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -176,7 +186,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
   const [opts, setOpts] = useState<GenOptions>(initial);
   const [count, setCount] = useState(1);
   const [results, setResults] = useState<string[]>([]);
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<Array<{ value: string; ts: number }>>([]);
   const [busy, setBusy] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshMs, setRefreshMs] = useState(3000);
@@ -185,9 +195,19 @@ export function GeneratorClient({ slug }: { slug: string }) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const historyKey = `df-history-${slug}`;
 
-  // Restore history & track recent
+  // Restore history & track recent — migrate legacy plain-string entries
   useEffect(() => {
-    try { const raw = localStorage.getItem(historyKey); if (raw) setHistory(JSON.parse(raw)); } catch { /* noop */ }
+    try {
+      const raw = localStorage.getItem(historyKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Migrate: old format was string[], new is {value,ts}[]
+        const migrated = (parsed as Array<string | { value: string; ts: number }>).map((e) =>
+          typeof e === "string" ? { value: e, ts: 0 } : e
+        );
+        setHistory(migrated);
+      }
+    } catch { /* noop */ }
     saveRecent(slug);
   }, [historyKey, slug]);
 
@@ -211,14 +231,17 @@ export function GeneratorClient({ slug }: { slug: string }) {
 
   const run = useCallback(async () => {
     setBusy(true);
+    incrementUsage(slug);
     try {
       const n = Math.max(1, Math.min(1000, count || 1));
       const out = await Promise.all(Array.from({ length: n }, () => Promise.resolve(gen.generate(opts))));
       setResults(out);
       const textOnly = out.filter(r => !r.startsWith("data:image/") && !r.trimStart().startsWith("<svg"));
       if (textOnly.length) {
+        const now = Date.now();
+        const newEntries = textOnly.slice().reverse().map((value) => ({ value, ts: now }));
         setHistory((prev) => {
-          const next = [...textOnly.slice().reverse(), ...prev].slice(0, HISTORY_LIMIT);
+          const next = [...newEntries, ...prev].slice(0, HISTORY_LIMIT);
           try { localStorage.setItem(historyKey, JSON.stringify(next)); } catch { /* noop */ }
           return next;
         });
@@ -253,11 +276,29 @@ export function GeneratorClient({ slug }: { slug: string }) {
 
   const clearHistory = () => { setHistory([]); try { localStorage.removeItem(historyKey); } catch { /* noop */ } };
 
-  const downloadHistory = () => {
+  const downloadHistory = (fmt: "txt" | "csv" | "json" = "txt") => {
     if (!history.length) return;
-    const blob = new Blob([history.join("\n")], { type: "text/plain" });
+    let content: string, mime: string, ext: string;
+    if (fmt === "json") {
+      content = JSON.stringify(history.map((e) => ({
+        value: e.value,
+        generated_at: e.ts ? new Date(e.ts).toISOString() : null,
+        tool: gen.name,
+        slug,
+      })), null, 2);
+      mime = "application/json"; ext = "json";
+    } else if (fmt === "csv") {
+      const rows = [["value", "generated_at", "tool"]];
+      for (const e of history) rows.push([`"${e.value.replace(/"/g, '""')}"`, e.ts ? new Date(e.ts).toISOString() : "", gen.name]);
+      content = rows.map((r) => r.join(",")).join("\n");
+      mime = "text/csv"; ext = "csv";
+    } else {
+      content = history.map((e) => e.value).join("\n");
+      mime = "text/plain"; ext = "txt";
+    }
+    const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `${slug}-history.txt`; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = `${slug}-history.${ext}`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -371,7 +412,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
                   type="button"
                   onClick={() => setAutoRefresh((v) => !v)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${autoRefresh ? "bg-brand-600" : "bg-[var(--border)]"}`}
-                  aria-pressed={autoRefresh}
+                  aria-pressed={autoRefresh === true}
                   aria-label={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                   title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                 >
@@ -483,7 +524,17 @@ export function GeneratorClient({ slug }: { slug: string }) {
               </h2>
               {history.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={downloadHistory} className="text-xs font-medium text-muted hover:text-[var(--text)]" title="Download history as .txt">↓ Export</button>
+                  <select
+                    aria-label="History export format"
+                    className="surface-2 rounded border border-app px-1.5 py-0.5 text-xs text-muted"
+                    defaultValue="txt"
+                    onChange={(e) => downloadHistory(e.target.value as "txt" | "csv" | "json")}
+                  >
+                    <option value="txt">.txt</option>
+                    <option value="csv">.csv</option>
+                    <option value="json">.json</option>
+                  </select>
+                  <button type="button" onClick={() => downloadHistory("txt")} className="text-xs font-medium text-muted hover:text-[var(--text)]" title="Export history">↓ Export</button>
                   <button type="button" onClick={clearHistory} className="text-xs font-medium text-muted hover:text-[var(--text)]">Clear</button>
                 </div>
               )}
@@ -492,10 +543,17 @@ export function GeneratorClient({ slug }: { slug: string }) {
               <p className="text-sm text-muted">Nothing yet — generated values are saved here on this device.</p>
             ) : (
               <ul className="max-h-72 space-y-1.5 overflow-auto font-mono text-sm">
-                {history.map((r, i) => (
+                {history.map((e, i) => (
                   <li key={i} className="flex items-center justify-between gap-3 border-b border-app pb-1.5 last:border-0">
-                    <span className="break-all">{r}</span>
-                    <CopyButton value={r} small />
+                    <div className="min-w-0">
+                      <span className="break-all">{e.value}</span>
+                      {e.ts > 0 && (
+                        <time dateTime={new Date(e.ts).toISOString()} className="ml-2 text-[10px] text-muted tabular-nums" title={new Date(e.ts).toLocaleString()}>
+                          {new Date(e.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </time>
+                      )}
+                    </div>
+                    <CopyButton value={e.value} small />
                   </li>
                 ))}
               </ul>

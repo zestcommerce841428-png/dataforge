@@ -18,6 +18,17 @@ export function ThemeControls() {
       if (saved) setBgId(saved);
     } catch {}
     setMounted(true);
+
+    // Follow OS colour-scheme changes — only when user hasn't manually picked
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onOsChange = (e: MediaQueryListEvent) => {
+      try { if (localStorage.getItem("df-theme")) return; } catch { /* noop */ }
+      const next = e.matches;
+      el.classList.toggle("dark", next);
+      setDark(next);
+    };
+    mq.addEventListener("change", onOsChange);
+    return () => mq.removeEventListener("change", onOsChange);
   }, []);
 
   useEffect(() => {
@@ -54,7 +65,7 @@ export function ThemeControls() {
           onClick={() => setOpen((o) => !o)}
           className="surface flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-[var(--surface-2)]"
           aria-label={`Change background. Current: ${current.label}`}
-          aria-expanded={open}
+          aria-expanded={open === true}
           title="Change background"
         >
           <span aria-hidden className="h-4 w-4 rounded-full border border-black/10" style={{ background: current.css === "none" ? "var(--surface-2)" : current.css }} />
@@ -87,7 +98,7 @@ export function ThemeControls() {
         onClick={toggleDark}
         className="surface flex h-9 w-9 items-center justify-center rounded-full border shadow-sm hover:bg-[var(--surface-2)]"
         aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-        aria-pressed={dark}
+        aria-pressed={dark === true}
         title="Toggle light / dark"
       >
         <span aria-hidden>{mounted ? (dark ? "☀️" : "🌙") : "🌓"}</span>
