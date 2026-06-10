@@ -80,6 +80,8 @@ const themeScript = `
     var el = document.documentElement;
     if (dark) el.classList.add('dark');
     el.setAttribute('data-bg', b);
+    var brand = localStorage.getItem('df-brand-css');
+    if (brand) el.style.cssText += brand;
   } catch(e){}
 })();
 `;

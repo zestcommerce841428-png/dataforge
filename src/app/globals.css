@@ -12,18 +12,32 @@
   --df-radius: 0.9rem;
 }
 
+/* Default brand palette — overridable at runtime by the theme picker. */
+:root {
+  --brand-50: #eef6ff;
+  --brand-100: #d9eaff;
+  --brand-200: #bcd9ff;
+  --brand-300: #8ec1ff;
+  --brand-400: #599dff;
+  --brand-500: #3478f6;
+  --brand-600: #1f59e0;
+  --brand-700: #1a45b4;
+  --brand-800: #1b3c8f;
+  --brand-900: #1b3672;
+}
+
 @theme inline {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --color-brand-50: #eef6ff;
-  --color-brand-100: #d9eaff;
-  --color-brand-200: #bcd9ff;
-  --color-brand-300: #8ec1ff;
-  --color-brand-400: #599dff;
-  --color-brand-500: #3478f6;
-  --color-brand-600: #1f59e0;
-  --color-brand-700: #1a45b4;
-  --color-brand-800: #1b3c8f;
-  --color-brand-900: #1b3672;
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
 }
 
 /* ---- Background themes (toggle button cycles data-bg) ---- */

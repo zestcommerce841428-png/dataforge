@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { THEMES, applyTheme, THEME_KEY } from "@/lib/themes";
 
 type Prefs = {
   fontScale: number;
@@ -35,9 +36,10 @@ function applyPrefs(p: Prefs) {
 export function AccessibilityPanel() {
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
+  const [themeId, setThemeId] = useState("blue");
   const guideRef = useRef<HTMLDivElement | null>(null);
 
-  // Restore prefs on mount
+  // Restore prefs + theme on mount
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
@@ -46,8 +48,15 @@ export function AccessibilityPanel() {
         setPrefs(p);
         applyPrefs(p);
       }
+      const tid = localStorage.getItem(THEME_KEY);
+      if (tid) setThemeId(tid);
     } catch {}
   }, []);
+
+  const chooseTheme = (id: string) => {
+    const t = THEMES.find((x) => x.id === id);
+    if (t) { applyTheme(t); setThemeId(id); }
+  };
 
   const update = useCallback((patch: Partial<Prefs>) => {
     setPrefs((prev) => {
@@ -115,6 +124,24 @@ export function AccessibilityPanel() {
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-base font-bold">Accessibility</h2>
               <button onClick={reset} className="text-xs text-brand-600 hover:underline">Reset all</button>
+            </div>
+
+            {/* Colour theme */}
+            <div className="mb-3">
+              <p className="mb-1 text-sm font-medium">Colour theme <span className="text-muted">({THEMES.length})</span></p>
+              <div className="grid max-h-32 grid-cols-8 gap-1.5 overflow-auto rounded-lg border border-[var(--border)] p-2">
+                {THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => chooseTheme(t.id)}
+                    title={t.name}
+                    aria-label={t.name}
+                    className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 ${themeId === t.id ? "border-[var(--text)] scale-110" : "border-transparent"}`}
+                    style={{ background: `hsl(${t.h} ${t.s}% 52%)` }}
+                  />
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-muted">{THEMES.find((t) => t.id === themeId)?.name ?? "Custom"}</p>
             </div>
 
             {/* Font size */}
