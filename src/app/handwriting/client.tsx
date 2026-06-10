@@ -20,7 +20,16 @@ const INKS = [
 type Paper = "ruled" | "blank" | "grid" | "dotted" | "graph" | "legal" | "dark" | "aged";
 const PAPERS: [Paper, string][] = [["ruled", "Ruled"], ["blank", "Blank"], ["grid", "Grid"], ["dotted", "Dotted"], ["graph", "Graph"], ["legal", "Legal pad"], ["dark", "Dark"], ["aged", "Aged"]];
 
-const SIZES: Record<string, [number, number]> = { A4: [794, 1123], Letter: [816, 1056], A5: [559, 794], Legal: [816, 1344] };
+// A wide range of page sizes (px @ ~96 DPI). "Custom" reads the width/height inputs.
+const SIZES: Record<string, [number, number]> = {
+  A3: [1123, 1587], A4: [794, 1123], A5: [559, 794], A6: [397, 559],
+  Letter: [816, 1056], Legal: [816, 1344], Tabloid: [1056, 1632],
+  Executive: [696, 1008], Statement: [528, 816], Folio: [816, 1248],
+  B4: [944, 1334], B5: [665, 944], B6: [469, 665],
+  Postcard: [400, 600], Index4x6: [384, 576], Index5x8: [480, 768],
+  Square: [900, 900], Notebook: [720, 960], Pocket: [340, 540],
+  Wide: [1280, 720], Portrait: [768, 1024], Landscape: [1123, 794],
+};
 
 function Slider({ label, val, set, min, max, step = 1, unit = "" }: { label: string; val: number; set: (n: number) => void; min: number; max: number; step?: number; unit?: string }) {
   return <label className="block text-sm">{label}: {val}{unit}<input type="range" min={min} max={max} step={step} value={val} onChange={(e) => set(+e.target.value)} className="w-full" /></label>;
@@ -28,12 +37,14 @@ function Slider({ label, val, set, min, max, step = 1, unit = "" }: { label: str
 
 export function HandwritingClient() {
   const [text, setText] = useState(
-    "Dear friend,\n\nThis is your text rendered as realistic handwriting. Type or paste anything — long text automatically flows across as many pages as you need.\n\nChoose from 22 fonts, any ink colour, 8 paper styles and 4 page sizes, then download as PNG, ZIP or a multi-page PDF.\n\nYours,\nNaushad"
+    "Dear friend,\n\nThis is your text rendered as realistic handwriting. Type or paste anything — long text automatically flows across as many pages as you need.\n\nChoose from 30 fonts, any ink colour, 8 paper styles and 20+ page sizes (or your own custom dimensions), then download as PNG, ZIP or a multi-page PDF.\n\nYours,\nNaushad"
   );
   const [font, setFont] = useState(FONTS[0]);
   const [ink, setInk] = useState(INKS[0].value);
   const [paper, setPaper] = useState<Paper>("ruled");
   const [size, setSize] = useState("A4");
+  const [customW, setCustomW] = useState(794);
+  const [customH, setCustomH] = useState(1123);
   const [fontSize, setFontSize] = useState(32);
   const [lineHeight, setLineHeight] = useState(46);
   const [marginX, setMarginX] = useState(70);
@@ -87,7 +98,7 @@ export function HandwritingClient() {
 
   const render = useCallback(() => {
     if (!fontsReady) return;
-    const [W, H] = SIZES[size];
+    const [W, H] = size === "Custom" ? [customW, customH] : SIZES[size];
     const ff = `'${font}'`;
     const probe = document.createElement("canvas").getContext("2d")!;
     probe.font = `${fontSize}px ${ff}`;
@@ -154,7 +165,7 @@ export function HandwritingClient() {
     }
     setPages(result);
     setPage((c) => Math.min(c, result.length - 1));
-  }, [fontsReady, font, ink, paper, size, fontSize, lineHeight, marginX, marginY, jitter, letterSpace, inkVar, penWeight, inkBleed, texture, customPaper, ruleColor, wrap]);
+  }, [fontsReady, font, ink, paper, size, customW, customH, fontSize, lineHeight, marginX, marginY, jitter, letterSpace, inkVar, penWeight, inkBleed, texture, customPaper, ruleColor, wrap]);
 
   useEffect(() => { const t = setTimeout(render, 250); return () => clearTimeout(t); }, [render]);
 
@@ -171,7 +182,7 @@ export function HandwritingClient() {
   const dlPDF = async () => {
     setBusy("Building PDF…");
     const { PDFDocument } = await import("pdf-lib");
-    const [W, H] = SIZES[size];
+    const [W, H] = size === "Custom" ? [customW, customH] : SIZES[size];
     const doc = await PDFDocument.create();
     for (const url of pages) { const png = await doc.embedPng(url); const pg = doc.addPage([W, H]); pg.drawImage(png, { x: 0, y: 0, width: W, height: H }); }
     const bytes = await doc.save();
@@ -213,8 +224,23 @@ export function HandwritingClient() {
             </label>
           </div>
           <div>
-            <p className="mb-1 text-sm">Page size</p>
-            <div className="flex gap-1.5">{Object.keys(SIZES).map((s) => <button key={s} onClick={() => setSize(s)} className={`rounded-lg border px-3 py-1 text-xs ${size === s ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{s}</button>)}</div>
+            <p className="mb-1 text-sm">Page size <span className="text-muted">({Object.keys(SIZES).length + 1})</span></p>
+            <div className="flex max-h-28 flex-wrap gap-1.5 overflow-auto">
+              {Object.keys(SIZES).map((s) => <button key={s} onClick={() => setSize(s)} className={`rounded-lg border px-2.5 py-1 text-xs ${size === s ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{s}</button>)}
+              <button onClick={() => setSize("Custom")} className={`rounded-lg border px-2.5 py-1 text-xs ${size === "Custom" ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>Custom</button>
+            </div>
+            {size === "Custom" && (
+              <div className="mt-2 flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-1">W
+                  <input type="number" min={120} max={4000} value={customW} onChange={(e) => setCustomW(Math.max(120, Math.min(4000, +e.target.value || 120)))} className="input-field w-20" />
+                </label>
+                <span className="text-muted">×</span>
+                <label className="flex items-center gap-1">H
+                  <input type="number" min={120} max={4000} value={customH} onChange={(e) => setCustomH(Math.max(120, Math.min(4000, +e.target.value || 120)))} className="input-field w-20" />
+                </label>
+                <span className="text-muted text-xs">px</span>
+              </div>
+            )}
           </div>
           <Slider label="Font size" val={fontSize} set={setFontSize} min={16} max={60} unit="px" />
           <Slider label="Line height" val={lineHeight} set={setLineHeight} min={26} max={90} unit="px" />

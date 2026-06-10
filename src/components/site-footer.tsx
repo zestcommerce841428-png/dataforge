@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORIES, TOTAL_GENERATORS } from "@/lib/generators";
+import { BUILD_VERSION, BUILD_SHA, BUILD_TIME_ISO } from "@/lib/version";
 
 export function SiteFooter() {
   return (
@@ -76,9 +77,21 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-app py-5 text-center text-xs text-muted">
-        © {new Date().getFullYear()} DataForge · Built by <span className="font-medium text-[var(--text)]">Naushad Alam</span> with Claude · India ·{" "}
-        <Link href="/privacy" className="hover:text-[var(--text)]">Privacy</Link> ·{" "}
-        <Link href="/terms" className="hover:text-[var(--text)]">Terms</Link>
+        <div>
+          © {new Date().getFullYear()} DataForge · Built by <span className="font-medium text-[var(--text)]">Naushad Alam</span> with Claude · India ·{" "}
+          <Link href="/privacy" className="hover:text-[var(--text)]">Privacy</Link> ·{" "}
+          <Link href="/terms" className="hover:text-[var(--text)]">Terms</Link>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-app bg-[var(--surface-2)] px-2.5 py-1 font-mono text-[11px] text-[var(--text)]">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+            {BUILD_VERSION}
+            {BUILD_SHA && <span className="text-muted">· {BUILD_SHA}</span>}
+          </span>
+          <time dateTime={BUILD_TIME_ISO} className="text-[11px] text-muted">
+            Last updated {new Date(BUILD_TIME_ISO).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+          </time>
+        </div>
       </div>
     </footer>
   );

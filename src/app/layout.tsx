@@ -82,6 +82,8 @@ const themeScript = `
     el.setAttribute('data-bg', b);
     var brand = localStorage.getItem('df-brand-css');
     if (brand) el.style.cssText += brand;
+    var bgc = localStorage.getItem('df-bg-css');
+    if (bgc) el.style.setProperty('--bg-grad', bgc);
   } catch(e){}
 })();
 `;

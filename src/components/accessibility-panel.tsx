@@ -1,6 +1,38 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 
+// 28 advanced options — each maps to data-a11y-<id> on <html>, styled in globals.css.
+const ADV: { id: string; label: string; icon: string }[] = [
+  { id: "bold", label: "Bold all text", icon: "𝐁" },
+  { id: "underline-links", label: "Underline links", icon: "_" },
+  { id: "highlight-headings", label: "Highlight headings", icon: "🔆" },
+  { id: "readable-font", label: "Readable font", icon: "🅰" },
+  { id: "mono-font", label: "Monospace font", icon: "⌨" },
+  { id: "serif-font", label: "Serif font", icon: "🆂" },
+  { id: "left-align", label: "Left-align text", icon: "⬅" },
+  { id: "wide-letters", label: "Wide letter spacing", icon: "↔" },
+  { id: "wide-words", label: "Wide word spacing", icon: "⎵" },
+  { id: "tall-lines", label: "Taller line height", icon: "≡" },
+  { id: "para-spacing", label: "Paragraph spacing", icon: "¶" },
+  { id: "uppercase-headings", label: "Uppercase headings", icon: "AB" },
+  { id: "grayscale", label: "Grayscale", icon: "◐" },
+  { id: "invert", label: "Invert colours", icon: "🌗" },
+  { id: "sepia", label: "Sepia tone", icon: "🟤" },
+  { id: "saturate", label: "Boost saturation", icon: "🌈" },
+  { id: "desaturate", label: "Mute colours", icon: "🎚" },
+  { id: "dim", label: "Dim brightness", icon: "🔅" },
+  { id: "contrast-soft", label: "Soft contrast", icon: "◑" },
+  { id: "hide-images", label: "Hide images", icon: "🚫" },
+  { id: "gray-images", label: "Grayscale images", icon: "🖼" },
+  { id: "big-targets", label: "Bigger click targets", icon: "⬜" },
+  { id: "focus-ring", label: "Strong focus outline", icon: "▣" },
+  { id: "hover-highlight", label: "Highlight on hover", icon: "✨" },
+  { id: "pause-animations", label: "Pause animations", icon: "⏸" },
+  { id: "hide-bg", label: "Remove backgrounds", icon: "▢" },
+  { id: "tooltip-titles", label: "Bigger buttons text", icon: "🔠" },
+  { id: "letter-box", label: "Reading width", icon: "▥" },
+];
+
 type Prefs = {
   fontScale: number;
   spacing: boolean;
@@ -10,11 +42,12 @@ type Prefs = {
   motion: boolean;
   cursor: boolean;
   guide: boolean;
+  adv: Record<string, boolean>;
 };
 
 const DEFAULTS: Prefs = {
   fontScale: 1, spacing: false, contrast: false, links: false,
-  dyslexia: false, motion: false, cursor: false, guide: false,
+  dyslexia: false, motion: false, cursor: false, guide: false, adv: {},
 };
 
 const KEY = "df-a11y";
@@ -30,6 +63,7 @@ function applyPrefs(p: Prefs) {
   set("data-a11y-dyslexia", p.dyslexia);
   set("data-a11y-motion", p.motion);
   set("data-a11y-cursor", p.cursor);
+  for (const o of ADV) set(`data-a11y-${o.id}`, !!p.adv?.[o.id]);
 }
 
 export function AccessibilityPanel() {
@@ -79,6 +113,11 @@ export function AccessibilityPanel() {
     applyPrefs(DEFAULTS);
     try { localStorage.removeItem(KEY); } catch {}
   };
+
+  const toggleAdv = (id: string) =>
+    update({ adv: { ...prefs.adv, [id]: !prefs.adv?.[id] } });
+
+  const advCount = ADV.filter((o) => prefs.adv?.[o.id]).length;
 
   const Toggle = ({ k, label, icon }: { k: keyof Prefs; label: string; icon: string }) => (
     <button
@@ -138,6 +177,32 @@ export function AccessibilityPanel() {
               <Toggle k="motion" label="Reduce motion" icon="🛑" />
               <Toggle k="cursor" label="Large cursor" icon="🖱" />
               <Toggle k="guide" label="Reading guide" icon="📏" />
+            </div>
+
+            {/* Advanced options */}
+            <div className="mt-4 border-t border-[var(--border)] pt-3">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Advanced <span className="text-muted">({ADV.length})</span></h3>
+                {advCount > 0 && <span className="text-[11px] text-brand-600">{advCount} on</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {ADV.map((o) => {
+                  const on = !!prefs.adv?.[o.id];
+                  return (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => toggleAdv(o.id)}
+                      aria-pressed={on}
+                      title={o.label}
+                      className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[11px] text-left transition-colors ${on ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface hover:border-brand-400"}`}
+                    >
+                      <span aria-hidden className="text-sm">{o.icon}</span>
+                      <span className="flex-1 leading-tight">{o.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <p className="mt-4 border-t border-[var(--border)] pt-3 text-[11px] text-muted">
