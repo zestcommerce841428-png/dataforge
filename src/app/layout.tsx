@@ -7,6 +7,7 @@ import { AccessibilityPanel } from "@/components/accessibility-panel";
 import { CookieConsent } from "@/components/cookie-consent";
 import { Recaptcha } from "@/components/recaptcha";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { ScrollButtons } from "@/components/scroll-buttons";
 import { WelcomeBanner } from "@/components/welcome-banner";
 import { OnboardingOverlay } from "@/components/onboarding-overlay";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
@@ -155,6 +156,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <SiteFooter />
         <AccessibilityPanel />
+        <ScrollButtons />
         <WhatsAppButton />
         <CookieConsent />
         <Recaptcha />

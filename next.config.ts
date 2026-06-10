@@ -13,7 +13,7 @@ const BUILD_VER   = process.env.NEXT_PUBLIC_BUILD_VERSION ?? (process.env.npm_pa
 
 // Next.js's dev runtime (HMR / React Refresh) evaluates code via eval(),
 // so 'unsafe-eval' is required in development. Production stays strict.
-const translateScripts = "https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://cdnjs.cloudflare.com";
+const translateScripts = "https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net";
 const scriptSrc = isDev
   ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com ${translateScripts}`
   : `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com ${translateScripts}`;
