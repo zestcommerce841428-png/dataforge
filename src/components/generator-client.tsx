@@ -18,7 +18,15 @@ function incrementUsage(slug: string) {
   } catch { /* noop */ }
 }
 
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
+function getRating(slug: string): "up" | "down" | null {
+  try { return (localStorage.getItem(`df-rating-${slug}`) as "up" | "down" | null) ?? null; } catch { return null; }
+}
+function setRating(slug: string, val: "up" | "down" | null) {
+  try {
+    if (val === null) localStorage.removeItem(`df-rating-${slug}`);
+    else localStorage.setItem(`df-rating-${slug}`, val);
+  } catch { /* noop */ }
+}
 
 function saveRecent(slug: string) {
   try {
@@ -34,7 +42,6 @@ function hexSwatches(value: string): string[] {
   return matches ? [...new Set(matches)] : [];
 }
 
-/* ── Result value renderer ───────────────────────────────────────────────── */
 function ResultValue({ value, slug }: { value: string; slug: string }) {
   if (value.startsWith("data:image/")) {
     return (
@@ -67,7 +74,6 @@ function ResultValue({ value, slug }: { value: string; slug: string }) {
     );
   }
 
-  // CSS gradient preview
   const trimmed = value.trim();
   if (/^(linear|radial|conic)-gradient\(/.test(trimmed)) {
     return (
@@ -80,21 +86,13 @@ function ResultValue({ value, slug }: { value: string; slug: string }) {
 
   const swatches = hexSwatches(value);
 
-  // Color palette: 4+ distinct hex codes → large colour blocks
   if (swatches.length >= 4) {
     return (
       <div className="w-full space-y-2">
         <div className="flex overflow-hidden rounded-xl border border-app">
           {swatches.map((hex) => (
-            <div
-              key={hex}
-              className="flex flex-1 flex-col items-center justify-end pb-2 pt-16"
-              style={{ background: hex } as React.CSSProperties}
-            >
-              <span
-                className="rounded px-1 font-mono text-[9px] font-bold"
-                style={{ background: "rgba(0,0,0,0.45)", color: "#fff" } as React.CSSProperties}
-              >
+            <div key={hex} className="flex flex-1 flex-col items-center justify-end pb-2 pt-16" style={{ background: hex } as React.CSSProperties}>
+              <span className="rounded px-1 font-mono text-[9px] font-bold" style={{ background: "rgba(0,0,0,0.45)", color: "#fff" } as React.CSSProperties}>
                 {hex}
               </span>
             </div>
@@ -104,7 +102,6 @@ function ResultValue({ value, slug }: { value: string; slug: string }) {
     );
   }
 
-  // Single hex color → dark/light contrast preview
   if (/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(trimmed)) {
     return (
       <div className="w-full space-y-2">
@@ -123,19 +120,13 @@ function ResultValue({ value, slug }: { value: string; slug: string }) {
     );
   }
 
-  // Default: text with mini colour circles
   return (
     <span className="break-all">
       {value}
       {swatches.length > 0 && (
         <span className="ml-2 inline-flex items-center gap-1">
           {swatches.map((hex) => (
-            <span
-              key={hex}
-              title={hex}
-              className="inline-block h-4 w-4 rounded-full border border-app shadow-sm"
-              style={{ background: hex } as React.CSSProperties}
-            />
+            <span key={hex} title={hex} className="inline-block h-4 w-4 rounded-full border border-app shadow-sm" style={{ background: hex } as React.CSSProperties} />
           ))}
         </span>
       )}
@@ -155,26 +146,14 @@ function CopyButton({ value, small }: { value: string; small?: boolean }) {
       aria-label={copied ? "Copied!" : `Copy: ${value.slice(0, 24)}`}
     >
       {copied ? (
-        <>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          Copied
-        </>
+        <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="20 6 9 17 4 12" /></svg>Copied</>
       ) : (
-        <>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-          Copy
-        </>
+        <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>Copy</>
       )}
     </button>
   );
 }
 
-/* ── Main component ──────────────────────────────────────────────────────── */
 export function GeneratorClient({ slug }: { slug: string }) {
   const gen = getGenerator(slug)!;
   const initial = useMemo<GenOptions>(() => {
@@ -183,25 +162,25 @@ export function GeneratorClient({ slug }: { slug: string }) {
     return o;
   }, [gen]);
 
-  const [opts, setOpts] = useState<GenOptions>(initial);
-  const [count, setCount] = useState(1);
-  const [results, setResults] = useState<string[]>([]);
-  const [history, setHistory] = useState<Array<{ value: string; ts: number }>>([]);
-  const [busy, setBusy] = useState(false);
+  const [opts, setOpts]           = useState<GenOptions>(initial);
+  const [count, setCount]         = useState(1);
+  const [results, setResults]     = useState<string[]>([]);
+  const [history, setHistory]     = useState<Array<{ value: string; ts: number }>>([]);
+  const [busy, setBusy]           = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshMs, setRefreshMs] = useState(3000);
-  const [dlFormat, setDlFormat] = useState<"txt" | "csv" | "json">("txt");
-  const [shareMsg, setShareMsg] = useState("");
+  const [dlFormat, setDlFormat]   = useState<"txt" | "csv" | "json">("txt");
+  const [shareMsg, setShareMsg]   = useState("");
+  const [rating, setRatingState]  = useState<"up" | "down" | null>(null);
+  const [showApiUsage, setShowApiUsage] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const historyKey = `df-history-${slug}`;
 
-  // Restore history & track recent — migrate legacy plain-string entries
   useEffect(() => {
     try {
       const raw = localStorage.getItem(historyKey);
       if (raw) {
         const parsed = JSON.parse(raw);
-        // Migrate: old format was string[], new is {value,ts}[]
         const migrated = (parsed as Array<string | { value: string; ts: number }>).map((e) =>
           typeof e === "string" ? { value: e, ts: 0 } : e
         );
@@ -209,9 +188,10 @@ export function GeneratorClient({ slug }: { slug: string }) {
       }
     } catch { /* noop */ }
     saveRecent(slug);
+    setRatingState(getRating(slug));
   }, [historyKey, slug]);
 
-  // Restore opts from URL search params
+  // Restore opts from URL search params (also pre-fill result if ?result= present)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const restored: GenOptions = { ...initial };
@@ -224,6 +204,8 @@ export function GeneratorClient({ slug }: { slug: string }) {
       }
     }
     if (found) setOpts(restored);
+    const preResult = params.get("result");
+    if (preResult) setResults([preResult]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
@@ -251,9 +233,8 @@ export function GeneratorClient({ slug }: { slug: string }) {
     } finally {
       setBusy(false);
     }
-  }, [gen, opts, count, historyKey]);
+  }, [gen, opts, count, historyKey, slug]);
 
-  // Auto-refresh interval
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (autoRefresh) {
@@ -262,11 +243,10 @@ export function GeneratorClient({ slug }: { slug: string }) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [autoRefresh, refreshMs, run]);
 
-  // Keyboard shortcut: R = generate, Escape = stop auto-refresh
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
-      if (["INPUT","TEXTAREA","SELECT"].includes(tag)) return;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
       if (e.key === "r" || e.key === "R") { e.preventDefault(); run(); }
       if (e.key === "Escape") setAutoRefresh(false);
     };
@@ -280,12 +260,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
     if (!history.length) return;
     let content: string, mime: string, ext: string;
     if (fmt === "json") {
-      content = JSON.stringify(history.map((e) => ({
-        value: e.value,
-        generated_at: e.ts ? new Date(e.ts).toISOString() : null,
-        tool: gen.name,
-        slug,
-      })), null, 2);
+      content = JSON.stringify(history.map((e) => ({ value: e.value, generated_at: e.ts ? new Date(e.ts).toISOString() : null, tool: gen.name, slug })), null, 2);
       mime = "application/json"; ext = "json";
     } else if (fmt === "csv") {
       const rows = [["value", "generated_at", "tool"]];
@@ -307,14 +282,11 @@ export function GeneratorClient({ slug }: { slug: string }) {
     if (!textRows.length) return;
     let content: string, mime: string, ext: string;
     if (dlFormat === "json") {
-      content = JSON.stringify(textRows, null, 2);
-      mime = "application/json"; ext = "json";
+      content = JSON.stringify(textRows, null, 2); mime = "application/json"; ext = "json";
     } else if (dlFormat === "csv") {
-      content = textRows.map(r => `"${r.replace(/"/g, '""')}"`).join("\n");
-      mime = "text/csv"; ext = "csv";
+      content = textRows.map(r => `"${r.replace(/"/g, '""')}"`).join("\n"); mime = "text/csv"; ext = "csv";
     } else {
-      content = textRows.join("\n");
-      mime = "text/plain"; ext = "txt";
+      content = textRows.join("\n"); mime = "text/plain"; ext = "txt";
     }
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -333,6 +305,21 @@ export function GeneratorClient({ slug }: { slug: string }) {
     setTimeout(() => setShareMsg(""), 2000);
   };
 
+  const shareResult = async () => {
+    const textRows = results.filter(r => !r.startsWith("data:image/") && !r.trimStart().startsWith("<svg"));
+    if (!textRows.length) return;
+    const value = textRows.length === 1 ? textRows[0] : textRows.join("\n");
+    const params = new URLSearchParams();
+    if (textRows.length === 1) params.set("result", value);
+    for (const f of gen.fields) {
+      if (opts[f.key] !== f.default) params.set(f.key, String(opts[f.key]));
+    }
+    const url = `${window.location.origin}${window.location.pathname}?${params}`;
+    await navigator.clipboard.writeText(url);
+    setShareMsg("Result link copied!");
+    setTimeout(() => setShareMsg(""), 2000);
+  };
+
   const copyAll = async () => {
     const textRows = results.filter(r => !r.startsWith("data:image/") && !r.trimStart().startsWith("<svg"));
     if (!textRows.length) return;
@@ -341,9 +328,30 @@ export function GeneratorClient({ slug }: { slug: string }) {
     setTimeout(() => setShareMsg(""), 2000);
   };
 
-  const isVisualGen = gen.slug === "qr-code" || gen.slug === "barcode";
+  const handlePrint = () => window.print();
+
+  const handleRating = (val: "up" | "down") => {
+    const next = rating === val ? null : val;
+    setRatingState(next);
+    setRating(slug, next);
+  };
+
+  const isVisualGen  = gen.slug === "qr-code" || gen.slug === "barcode";
   const hasTextResults = results.some(r => !r.startsWith("data:image/") && !r.trimStart().startsWith("<svg"));
-  const isBulk = results.length > 1;
+  const isBulk       = results.length > 1;
+  const origin       = typeof window !== "undefined" ? window.location.origin : "https://dataforge-omega.vercel.app";
+
+  const apiExample = `# cURL
+curl "${origin}/api/generate?tool=${slug}&count=5"
+
+# JavaScript (fetch)
+const res = await fetch("${origin}/api/generate?tool=${slug}&count=5");
+const { results } = await res.json();
+
+# Python
+import requests
+data = requests.get("${origin}/api/generate", params={"tool": "${slug}", "count": 5}).json()
+print(data["results"])`;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -394,12 +402,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white shadow-md transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-60"
           >
             {busy ? (
-              <>
-                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                Generating…
-              </>
+              <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>Generating…</>
             ) : "Generate"}
           </button>
 
@@ -412,16 +415,15 @@ export function GeneratorClient({ slug }: { slug: string }) {
                   type="button"
                   onClick={() => setAutoRefresh((v) => !v)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${autoRefresh ? "bg-brand-600" : "bg-[var(--border)]"}`}
-                  aria-pressed={autoRefresh === true}
+                  aria-pressed={autoRefresh ? "true" : "false"}
                   aria-label={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
-                  title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                 >
                   <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${autoRefresh ? "translate-x-4" : "translate-x-1"}`} />
                 </button>
               </div>
               {autoRefresh && (
                 <div className="mt-2">
-                  <select value={refreshMs} onChange={(e) => setRefreshMs(Number(e.target.value))} aria-label="Auto-refresh interval" title="Auto-refresh interval" className="surface-2 w-full rounded-lg border border-app px-2 py-1 text-xs">
+                  <select value={refreshMs} onChange={(e) => setRefreshMs(Number(e.target.value))} aria-label="Auto-refresh interval" className="surface-2 w-full rounded-lg border border-app px-2 py-1 text-xs">
                     <option value={1000}>Every 1 second</option>
                     <option value={2000}>Every 2 seconds</option>
                     <option value={3000}>Every 3 seconds</option>
@@ -435,42 +437,69 @@ export function GeneratorClient({ slug }: { slug: string }) {
             </div>
           )}
 
-          {/* Share URL + Compare */}
-          <div className="flex gap-2">
+          {/* Action buttons row */}
+          <div className="flex flex-wrap gap-2">
             <button type="button" onClick={shareURL} className="surface-2 flex-1 rounded-lg border border-app px-2 py-1.5 text-xs font-medium hover:bg-[var(--surface-2)]">
               🔗 Share URL
             </button>
-            <Link href={`/compare?a=${slug}`} className="surface-2 rounded-lg border border-app px-2 py-1.5 text-xs font-medium hover:bg-[var(--surface-2)]" title="Compare this generator side-by-side with another">
+            <Link href={`/compare?a=${slug}`} className="surface-2 rounded-lg border border-app px-2 py-1.5 text-xs font-medium hover:bg-[var(--surface-2)]" title="Compare side-by-side">
               ⇄ Compare
             </Link>
-            {shareMsg && <span className="self-center text-xs text-brand-600">{shareMsg}</span>}
+            {shareMsg && <span className="w-full text-center text-xs text-brand-600">{shareMsg}</span>}
           </div>
+
+          {/* API usage toggle */}
+          <button
+            type="button"
+            onClick={() => setShowApiUsage((v) => !v)}
+            className="surface-2 flex w-full items-center justify-between rounded-lg border border-app px-3 py-2 text-xs font-medium text-muted hover:text-[var(--text)]"
+          >
+            <span>{"{ }"} API Usage</span>
+            <span aria-hidden>{showApiUsage ? "▲" : "▼"}</span>
+          </button>
+          {showApiUsage && (
+            <pre className="surface-2 overflow-x-auto rounded-xl border border-app p-3 text-[10px] leading-relaxed text-muted">
+              {apiExample}
+            </pre>
+          )}
         </div>
       </section>
 
       {/* Output + history */}
-      <div className="space-y-6">
+      <div className="space-y-6 print-output">
         <section className="surface rounded-2xl border p-5 shadow-sm" aria-label="Results">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">
               {isBulk ? `Results (${results.length})` : "Result"}
               {autoRefresh && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden />}
             </h2>
-            {isBulk && hasTextResults && (
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={copyAll} className="surface-2 rounded-lg border border-app px-2 py-1 text-xs font-medium hover:bg-[var(--surface-2)]">
-                  Copy all
+            <div className="flex flex-wrap items-center gap-2">
+              {isBulk && hasTextResults && (
+                <>
+                  <button type="button" onClick={copyAll} className="surface-2 rounded-lg border border-app px-2 py-1 text-xs font-medium hover:bg-[var(--surface-2)]">
+                    Copy all
+                  </button>
+                  <select value={dlFormat} onChange={(e) => setDlFormat(e.target.value as "txt"|"csv"|"json")} aria-label="Download format" className="surface-2 rounded-lg border border-app px-2 py-1 text-xs">
+                    <option value="txt">.txt</option>
+                    <option value="csv">.csv</option>
+                    <option value="json">.json</option>
+                  </select>
+                  <button type="button" onClick={download} className="surface-2 rounded-lg border border-app px-2 py-1 text-xs font-medium hover:bg-[var(--surface-2)]">
+                    ↓ Download
+                  </button>
+                </>
+              )}
+              {hasTextResults && (
+                <button type="button" onClick={shareResult} title="Copy sharable link with this result" className="surface-2 rounded-lg border border-app px-2 py-1 text-xs font-medium hover:bg-[var(--surface-2)]">
+                  🔗 Share result
                 </button>
-                <select value={dlFormat} onChange={(e) => setDlFormat(e.target.value as "txt"|"csv"|"json")} aria-label="Download format" title="Download format" className="surface-2 rounded-lg border border-app px-2 py-1 text-xs">
-                  <option value="txt">.txt</option>
-                  <option value="csv">.csv</option>
-                  <option value="json">.json</option>
-                </select>
-                <button type="button" onClick={download} className="surface-2 rounded-lg border border-app px-2 py-1 text-xs font-medium hover:bg-[var(--surface-2)]">
-                  ↓ Download
+              )}
+              {results.length > 0 && (
+                <button type="button" onClick={handlePrint} title="Print results" className="surface-2 rounded-lg border border-app px-2 py-1 text-xs font-medium hover:bg-[var(--surface-2)] print:hidden">
+                  🖨 Print
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div aria-live="polite">
@@ -513,6 +542,30 @@ export function GeneratorClient({ slug }: { slug: string }) {
               </div>
             )}
           </div>
+
+          {/* Rating */}
+          {results.length > 0 && (
+            <div className="mt-4 flex items-center gap-3 border-t border-app pt-3">
+              <span className="text-xs text-muted">Was this useful?</span>
+              <button
+                type="button"
+                onClick={() => handleRating("up")}
+                aria-pressed={rating === "up" ? "true" : "false"}
+                className={`rounded-lg border px-2.5 py-1 text-sm transition ${rating === "up" ? "border-green-500 bg-green-50 text-green-600 dark:bg-green-950" : "border-app text-muted hover:border-green-400"}`}
+              >
+                👍
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRating("down")}
+                aria-pressed={rating === "down" ? "true" : "false"}
+                className={`rounded-lg border px-2.5 py-1 text-sm transition ${rating === "down" ? "border-red-400 bg-red-50 text-red-600 dark:bg-red-950" : "border-app text-muted hover:border-red-400"}`}
+              >
+                👎
+              </button>
+              {rating && <span className="text-xs text-muted">{rating === "up" ? "Thanks for the feedback!" : "We'll keep improving."}</span>}
+            </div>
+          )}
         </section>
 
         {/* History */}
@@ -534,7 +587,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
                     <option value="csv">.csv</option>
                     <option value="json">.json</option>
                   </select>
-                  <button type="button" onClick={() => downloadHistory("txt")} className="text-xs font-medium text-muted hover:text-[var(--text)]" title="Export history">↓ Export</button>
+                  <button type="button" onClick={() => downloadHistory("txt")} className="text-xs font-medium text-muted hover:text-[var(--text)]">↓ Export</button>
                   <button type="button" onClick={clearHistory} className="text-xs font-medium text-muted hover:text-[var(--text)]">Clear</button>
                 </div>
               )}

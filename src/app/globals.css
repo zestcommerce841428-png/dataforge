@@ -519,3 +519,37 @@ html { scroll-behavior: smooth; }
 }
 .btn-secondary:hover { border-color: var(--color-brand-400); color: var(--color-brand-600); }
 .btn-secondary:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
+
+@media print {
+  header, footer, nav,
+  [data-no-print],
+  .print\:hidden { display: none !important; }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  body::before { display: none !important; }
+
+  .print-output {
+    display: block !important;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Hide controls panel in print, show only results column */
+  .lg\:grid-cols-\[320px_1fr\] {
+    display: block !important;
+  }
+
+  section[aria-label="Options"] { display: none !important; }
+
+  .surface, .surface-2 {
+    background: transparent !important;
+    border-color: #ccc !important;
+  }
+
+  a { color: #000 !important; text-decoration: none !important; }
+}

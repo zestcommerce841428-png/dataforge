@@ -24,6 +24,8 @@ const NAV: {
   { href: "/typing",          label: "⌨ Typing",      show: "lg" },
   { href: "/compare",         label: "⇄ Compare",     show: "lg" },
   { href: "/shortcuts",       label: "⚡ Shortcuts",   show: "lg" },
+  { href: "/changelog",      label: "📋 Changelog",   show: "lg" },
+  { href: "/api-docs",       label: "{ } API",        show: "lg" },
   { href: "/about",           label: "About",         show: "lg" },
 ];
 
@@ -78,7 +80,7 @@ export function NavLinks() {
       <button
         type="button"
         aria-label={open ? "Close menu" : "Open navigation menu"}
-        aria-expanded={open}
+        aria-expanded={open ? "true" : "false"}
         aria-controls="mobile-nav-menu"
         onClick={() => setOpen((v) => !v)}
         className="surface-2 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-app text-muted transition-colors hover:text-[var(--text)] sm:hidden"
