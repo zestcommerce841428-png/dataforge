@@ -92,9 +92,192 @@ html.dark[data-bg="mesh"] {
   --bg-overlay: 0.4;
 }
 
-html[data-bg="plain"] {
-  --bg-grad: none;
-}
+html[data-bg="plain"] { --bg-grad: none; }
+
+/* NOTE: runtime backgrounds are set via --bg-grad inline style from @/lib/backgrounds.ts */
+/* The data-bg selectors below are legacy fallbacks for the first 4 original presets */
+html[data-bg="ocean"] { --bg-grad: radial-gradient(60rem 50rem at 100% 0%,#bae6fd 0%,transparent 55%),radial-gradient(50rem 60rem at 0% 100%,#a5f3fc 0%,transparent 55%); }
+html.dark[data-bg="ocean"] { --bg-grad: radial-gradient(60rem 50rem at 100% 0%,#0c4a6e 0%,transparent 55%),radial-gradient(50rem 60rem at 0% 100%,#083344 0%,transparent 55%); }
+
+html[data-bg="forest"] { --bg-grad: radial-gradient(55rem 45rem at 80% 10%,#bbf7d0 0%,transparent 55%),radial-gradient(50rem 50rem at 10% 90%,#a7f3d0 0%,transparent 55%); }
+html.dark[data-bg="forest"] { --bg-grad: radial-gradient(55rem 45rem at 80% 10%,#064e3b 0%,transparent 55%),radial-gradient(50rem 50rem at 10% 90%,#052e16 0%,transparent 55%); }
+
+html[data-bg="rose"] { --bg-grad: radial-gradient(55rem 45rem at 90% 0%,#fecdd3 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#fbcfe8 0%,transparent 55%); }
+html.dark[data-bg="rose"] { --bg-grad: radial-gradient(55rem 45rem at 90% 0%,#4c0519 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#500724 0%,transparent 55%); }
+
+html[data-bg="candy"] { --bg-grad: radial-gradient(40rem 40rem at 20% 20%,#f9a8d4 0%,transparent 50%),radial-gradient(40rem 40rem at 80% 80%,#a5b4fc 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 10%,#6ee7b7 0%,transparent 50%); }
+html.dark[data-bg="candy"] { --bg-grad: radial-gradient(40rem 40rem at 20% 20%,#831843 0%,transparent 50%),radial-gradient(40rem 40rem at 80% 80%,#312e81 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 10%,#064e3b 0%,transparent 50%); }
+
+html[data-bg="volcano"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#fde68a 0%,transparent 50%),radial-gradient(55rem 50rem at 0% 100%,#fca5a5 0%,transparent 55%); }
+html.dark[data-bg="volcano"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#78350f 0%,transparent 50%),radial-gradient(55rem 50rem at 0% 100%,#7f1d1d 0%,transparent 55%); }
+
+html[data-bg="cosmic"] { --bg-grad: radial-gradient(50rem 50rem at 50% 0%,#818cf8 0%,transparent 55%),radial-gradient(40rem 40rem at 100% 100%,#c084fc 0%,transparent 50%),radial-gradient(30rem 30rem at 0% 50%,#38bdf8 0%,transparent 50%); }
+html.dark[data-bg="cosmic"] { --bg-grad: radial-gradient(50rem 50rem at 50% 0%,#1e1b4b 0%,transparent 55%),radial-gradient(40rem 40rem at 100% 100%,#3b0764 0%,transparent 50%),radial-gradient(30rem 30rem at 0% 50%,#082f49 0%,transparent 50%); }
+
+html[data-bg="nordic"] { --bg-grad: radial-gradient(55rem 45rem at 0% 0%,#bfdbfe 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#ddd6fe 0%,transparent 55%); }
+html.dark[data-bg="nordic"] { --bg-grad: radial-gradient(55rem 45rem at 0% 0%,#1e3a5f 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#2e1065 0%,transparent 55%); }
+
+html[data-bg="desert"] { --bg-grad: radial-gradient(60rem 50rem at 100% 0%,#fde68a 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#fcd34d 0%,transparent 55%); }
+html.dark[data-bg="desert"] { --bg-grad: radial-gradient(60rem 50rem at 100% 0%,#713f12 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#78350f 0%,transparent 55%); }
+
+html[data-bg="arctic"] { --bg-grad: radial-gradient(60rem 50rem at 50% 0%,#e0f2fe 0%,transparent 55%),radial-gradient(40rem 40rem at 0% 100%,#f0f9ff 0%,transparent 55%); }
+html.dark[data-bg="arctic"] { --bg-grad: radial-gradient(60rem 50rem at 50% 0%,#0c2d4e 0%,transparent 55%),radial-gradient(40rem 40rem at 0% 100%,#082f49 0%,transparent 55%); }
+
+html[data-bg="spring"] { --bg-grad: radial-gradient(50rem 50rem at 80% 20%,#d9f99d 0%,transparent 55%),radial-gradient(40rem 40rem at 20% 80%,#fbcfe8 0%,transparent 55%); }
+html.dark[data-bg="spring"] { --bg-grad: radial-gradient(50rem 50rem at 80% 20%,#1a2e05 0%,transparent 55%),radial-gradient(40rem 40rem at 20% 80%,#500724 0%,transparent 55%); }
+
+html[data-bg="autumn"] { --bg-grad: radial-gradient(55rem 45rem at 90% 5%,#fde68a 0%,transparent 50%),radial-gradient(50rem 50rem at 5% 95%,#fca5a5 0%,transparent 55%),radial-gradient(35rem 35rem at 50% 50%,#fed7aa 0%,transparent 60%); }
+html.dark[data-bg="autumn"] { --bg-grad: radial-gradient(55rem 45rem at 90% 5%,#78350f 0%,transparent 50%),radial-gradient(50rem 50rem at 5% 95%,#7f1d1d 0%,transparent 55%),radial-gradient(35rem 35rem at 50% 50%,#431407 0%,transparent 60%); }
+
+html[data-bg="winter"] { --bg-grad: radial-gradient(55rem 45rem at 60% 0%,#e0f2fe 0%,transparent 50%),radial-gradient(50rem 50rem at 0% 100%,#c7d2fe 0%,transparent 55%); }
+html.dark[data-bg="winter"] { --bg-grad: radial-gradient(55rem 45rem at 60% 0%,#082f49 0%,transparent 50%),radial-gradient(50rem 50rem at 0% 100%,#1e1b4b 0%,transparent 55%); }
+
+html[data-bg="summer"] { --bg-grad: radial-gradient(60rem 50rem at 100% 0%,#fef08a 0%,transparent 50%),radial-gradient(50rem 50rem at 0% 100%,#fed7aa 0%,transparent 55%); }
+html.dark[data-bg="summer"] { --bg-grad: radial-gradient(60rem 50rem at 100% 0%,#713f12 0%,transparent 50%),radial-gradient(50rem 50rem at 0% 100%,#422006 0%,transparent 55%); }
+
+html[data-bg="galaxy"] { --bg-grad: radial-gradient(60rem 60rem at 30% 30%,#312e81 0%,transparent 60%),radial-gradient(50rem 50rem at 70% 70%,#1e1b4b 0%,transparent 60%),radial-gradient(30rem 30rem at 80% 10%,#4c1d95 0%,transparent 50%); }
+html.dark[data-bg="galaxy"] { --bg-grad: radial-gradient(60rem 60rem at 30% 30%,#0f0a2a 0%,transparent 60%),radial-gradient(50rem 50rem at 70% 70%,#13103d 0%,transparent 60%),radial-gradient(30rem 30rem at 80% 10%,#200d40 0%,transparent 50%); }
+
+html[data-bg="neon"] { --bg-grad: radial-gradient(40rem 40rem at 20% 30%,#86efac 0%,transparent 50%),radial-gradient(40rem 40rem at 80% 70%,#f9a8d4 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 10%,#67e8f9 0%,transparent 50%); }
+html.dark[data-bg="neon"] { --bg-grad: radial-gradient(40rem 40rem at 20% 30%,#052e16 0%,transparent 50%),radial-gradient(40rem 40rem at 80% 70%,#4c0519 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 10%,#083344 0%,transparent 50%); }
+
+html[data-bg="pastel"] { --bg-grad: radial-gradient(40rem 40rem at 25% 25%,#fde68a 0%,transparent 50%),radial-gradient(40rem 40rem at 75% 75%,#c7d2fe 0%,transparent 50%),radial-gradient(40rem 40rem at 75% 25%,#bbf7d0 0%,transparent 50%); }
+html.dark[data-bg="pastel"] { --bg-grad: radial-gradient(40rem 40rem at 25% 25%,#78350f 0%,transparent 50%),radial-gradient(40rem 40rem at 75% 75%,#1e1b4b 0%,transparent 50%),radial-gradient(40rem 40rem at 75% 25%,#052e16 0%,transparent 50%); }
+
+html[data-bg="midnight"] { --bg-grad: radial-gradient(60rem 50rem at 50% 0%,#1e3a8a 0%,transparent 55%),radial-gradient(40rem 40rem at 100% 100%,#312e81 0%,transparent 50%); }
+html.dark[data-bg="midnight"] { --bg-grad: radial-gradient(60rem 50rem at 50% 0%,#0a1628 0%,transparent 55%),radial-gradient(40rem 40rem at 100% 100%,#0f0a28 0%,transparent 50%); }
+
+html[data-bg="fire"] { --bg-grad: radial-gradient(60rem 50rem at 50% 100%,#fca5a5 0%,transparent 55%),radial-gradient(40rem 50rem at 100% 0%,#fde68a 0%,transparent 55%); }
+html.dark[data-bg="fire"] { --bg-grad: radial-gradient(60rem 50rem at 50% 100%,#7f1d1d 0%,transparent 55%),radial-gradient(40rem 50rem at 100% 0%,#78350f 0%,transparent 55%); }
+
+html[data-bg="ice"] { --bg-grad: radial-gradient(60rem 50rem at 0% 0%,#e0f2fe 0%,transparent 55%),radial-gradient(50rem 60rem at 100% 100%,#f0fdf4 0%,transparent 55%); }
+html.dark[data-bg="ice"] { --bg-grad: radial-gradient(60rem 50rem at 0% 0%,#082f49 0%,transparent 55%),radial-gradient(50rem 60rem at 100% 100%,#042f1a 0%,transparent 55%); }
+
+html[data-bg="earth"] { --bg-grad: radial-gradient(55rem 45rem at 80% 20%,#d6b896 0%,transparent 55%),radial-gradient(50rem 50rem at 20% 80%,#a3c9a8 0%,transparent 55%); }
+html.dark[data-bg="earth"] { --bg-grad: radial-gradient(55rem 45rem at 80% 20%,#3d2b1f 0%,transparent 55%),radial-gradient(50rem 50rem at 20% 80%,#1a3022 0%,transparent 55%); }
+
+html[data-bg="vapor"] { --bg-grad: radial-gradient(50rem 50rem at 0% 50%,#fce7f3 0%,transparent 50%),radial-gradient(50rem 50rem at 100% 50%,#ede9fe 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 0%,#e0f2fe 0%,transparent 50%); }
+html.dark[data-bg="vapor"] { --bg-grad: radial-gradient(50rem 50rem at 0% 50%,#4a0530 0%,transparent 50%),radial-gradient(50rem 50rem at 100% 50%,#2e1065 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 0%,#082f49 0%,transparent 50%); }
+
+html[data-bg="emerald"] { --bg-grad: radial-gradient(55rem 45rem at 100% 0%,#6ee7b7 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#a7f3d0 0%,transparent 55%); }
+html.dark[data-bg="emerald"] { --bg-grad: radial-gradient(55rem 45rem at 100% 0%,#022c22 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#052e16 0%,transparent 55%); }
+
+html[data-bg="sapphire"] { --bg-grad: radial-gradient(55rem 45rem at 0% 0%,#93c5fd 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#6366f1 0%,transparent 55%); }
+html.dark[data-bg="sapphire"] { --bg-grad: radial-gradient(55rem 45rem at 0% 0%,#1e3a5f 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#1e1b4b 0%,transparent 55%); }
+
+html[data-bg="ruby"] { --bg-grad: radial-gradient(55rem 45rem at 100% 0%,#fda4af 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#fb7185 0%,transparent 55%); }
+html.dark[data-bg="ruby"] { --bg-grad: radial-gradient(55rem 45rem at 100% 0%,#881337 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#4c0519 0%,transparent 55%); }
+
+html[data-bg="topaz"] { --bg-grad: radial-gradient(55rem 45rem at 50% 0%,#fde68a 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#fed7aa 0%,transparent 55%); }
+html.dark[data-bg="topaz"] { --bg-grad: radial-gradient(55rem 45rem at 50% 0%,#78350f 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#7c2d12 0%,transparent 55%); }
+
+html[data-bg="amethyst"] { --bg-grad: radial-gradient(55rem 50rem at 60% 0%,#e9d5ff 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#ddd6fe 0%,transparent 55%); }
+html.dark[data-bg="amethyst"] { --bg-grad: radial-gradient(55rem 50rem at 60% 0%,#4a1d96 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#2e1065 0%,transparent 55%); }
+
+html[data-bg="opal"] { --bg-grad: radial-gradient(40rem 40rem at 30% 30%,#e0f2fe 0%,transparent 50%),radial-gradient(40rem 40rem at 70% 70%,#fce7f3 0%,transparent 50%),radial-gradient(40rem 40rem at 70% 30%,#d1fae5 0%,transparent 50%); }
+html.dark[data-bg="opal"] { --bg-grad: radial-gradient(40rem 40rem at 30% 30%,#0c2d48 0%,transparent 50%),radial-gradient(40rem 40rem at 70% 70%,#3f0520 0%,transparent 50%),radial-gradient(40rem 40rem at 70% 30%,#022c22 0%,transparent 50%); }
+
+html[data-bg="pearl"] { --bg-grad: radial-gradient(60rem 55rem at 50% 0%,#f8fafc 0%,transparent 60%),radial-gradient(50rem 50rem at 50% 100%,#f1f5f9 0%,transparent 60%); }
+html.dark[data-bg="pearl"] { --bg-grad: radial-gradient(60rem 55rem at 50% 0%,#1a2236 0%,transparent 60%),radial-gradient(50rem 50rem at 50% 100%,#111827 0%,transparent 60%); }
+
+html[data-bg="obsidian"] { --bg-grad: radial-gradient(60rem 55rem at 30% 30%,#1f2937 0%,transparent 60%),radial-gradient(50rem 50rem at 70% 70%,#111827 0%,transparent 60%); }
+html.dark[data-bg="obsidian"] { --bg-grad: radial-gradient(60rem 55rem at 30% 30%,#0a0f1a 0%,transparent 60%),radial-gradient(50rem 50rem at 70% 70%,#050a12 0%,transparent 60%); }
+
+html[data-bg="bronze"] { --bg-grad: radial-gradient(55rem 45rem at 80% 10%,#d97706 0%,transparent 55%),radial-gradient(50rem 50rem at 20% 90%,#b45309 0%,transparent 55%); }
+html.dark[data-bg="bronze"] { --bg-grad: radial-gradient(55rem 45rem at 80% 10%,#3d1c00 0%,transparent 55%),radial-gradient(50rem 50rem at 20% 90%,#2a1000 0%,transparent 55%); }
+
+html[data-bg="silver"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#f1f5f9 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#e2e8f0 0%,transparent 55%); }
+html.dark[data-bg="silver"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#1e2533 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#141c28 0%,transparent 55%); }
+
+html[data-bg="gold"] { --bg-grad: radial-gradient(55rem 50rem at 50% 0%,#fef3c7 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#fde68a 0%,transparent 55%); }
+html.dark[data-bg="gold"] { --bg-grad: radial-gradient(55rem 50rem at 50% 0%,#3f2a00 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#4a3200 0%,transparent 55%); }
+
+html[data-bg="cyan"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#a5f3fc 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#67e8f9 0%,transparent 55%); }
+html.dark[data-bg="cyan"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#083344 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#0c4a6e 0%,transparent 55%); }
+
+html[data-bg="lime"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#d9f99d 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#bbf7d0 0%,transparent 55%); }
+html.dark[data-bg="lime"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#1a2e05 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#052e16 0%,transparent 55%); }
+
+html[data-bg="indigo"] { --bg-grad: radial-gradient(55rem 50rem at 0% 100%,#a5b4fc 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 0%,#818cf8 0%,transparent 55%); }
+html.dark[data-bg="indigo"] { --bg-grad: radial-gradient(55rem 50rem at 0% 100%,#1e1b4b 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 0%,#1e1b4b 0%,transparent 55%); }
+
+html[data-bg="teal"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#99f6e4 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#5eead4 0%,transparent 55%); }
+html.dark[data-bg="teal"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#042f2e 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#022c2c 0%,transparent 55%); }
+
+html[data-bg="crimson"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#fca5a5 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#f87171 0%,transparent 55%); }
+html.dark[data-bg="crimson"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#7f1d1d 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#450a0a 0%,transparent 55%); }
+
+html[data-bg="olive"] { --bg-grad: radial-gradient(55rem 50rem at 80% 0%,#d4f0a0 0%,transparent 55%),radial-gradient(50rem 50rem at 20% 100%,#bef264 0%,transparent 55%); }
+html.dark[data-bg="olive"] { --bg-grad: radial-gradient(55rem 50rem at 80% 0%,#1a2e00 0%,transparent 55%),radial-gradient(50rem 50rem at 20% 100%,#132200 0%,transparent 55%); }
+
+html[data-bg="amber"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#fcd34d 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#fbbf24 0%,transparent 55%); }
+html.dark[data-bg="amber"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#78350f 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#713f12 0%,transparent 55%); }
+
+html[data-bg="slate"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#cbd5e1 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#94a3b8 0%,transparent 55%); }
+html.dark[data-bg="slate"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#1e293b 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#0f172a 0%,transparent 55%); }
+
+html[data-bg="blush"] { --bg-grad: radial-gradient(55rem 50rem at 50% 0%,#fce7f3 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#fbcfe8 0%,transparent 55%); }
+html.dark[data-bg="blush"] { --bg-grad: radial-gradient(55rem 50rem at 50% 0%,#500724 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#4c0519 0%,transparent 55%); }
+
+html[data-bg="moss"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#a3e635 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#4ade80 0%,transparent 55%); }
+html.dark[data-bg="moss"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#1a3a00 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#052e16 0%,transparent 55%); }
+
+html[data-bg="dusk"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#c4b5fd 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#f9a8d4 0%,transparent 55%); }
+html.dark[data-bg="dusk"] { --bg-grad: radial-gradient(55rem 50rem at 0% 0%,#2e1065 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 100%,#4c0519 0%,transparent 55%); }
+
+html[data-bg="dawn"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#fed7aa 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#fde68a 0%,transparent 55%),radial-gradient(40rem 40rem at 50% 50%,#fce7f3 0%,transparent 60%); }
+html.dark[data-bg="dawn"] { --bg-grad: radial-gradient(55rem 50rem at 100% 0%,#7c2d12 0%,transparent 55%),radial-gradient(50rem 50rem at 0% 100%,#78350f 0%,transparent 55%),radial-gradient(40rem 40rem at 50% 50%,#500724 0%,transparent 60%); }
+
+html[data-bg="storm"] { --bg-grad: radial-gradient(60rem 50rem at 50% 0%,#6b7280 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#9ca3af 0%,transparent 55%); }
+html.dark[data-bg="storm"] { --bg-grad: radial-gradient(60rem 50rem at 50% 0%,#1f2937 0%,transparent 55%),radial-gradient(50rem 50rem at 50% 100%,#111827 0%,transparent 55%); }
+
+html[data-bg="tropical"] { --bg-grad: radial-gradient(50rem 50rem at 100% 0%,#34d399 0%,transparent 50%),radial-gradient(50rem 50rem at 0% 100%,#60a5fa 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 50%,#fcd34d 0%,transparent 60%); }
+html.dark[data-bg="tropical"] { --bg-grad: radial-gradient(50rem 50rem at 100% 0%,#022c22 0%,transparent 50%),radial-gradient(50rem 50rem at 0% 100%,#1e3a5f 0%,transparent 50%),radial-gradient(40rem 40rem at 50% 50%,#422006 0%,transparent 60%); }
+
+html[data-bg="retro"] { --bg-grad: radial-gradient(50rem 50rem at 0% 0%,#fb923c 0%,transparent 50%),radial-gradient(50rem 50rem at 100% 100%,#a78bfa 0%,transparent 50%),radial-gradient(40rem 40rem at 100% 0%,#4ade80 0%,transparent 50%); }
+html.dark[data-bg="retro"] { --bg-grad: radial-gradient(50rem 50rem at 0% 0%,#431407 0%,transparent 50%),radial-gradient(50rem 50rem at 100% 100%,#2e1065 0%,transparent 50%),radial-gradient(40rem 40rem at 100% 0%,#052e16 0%,transparent 50%); }
+
+html[data-bg="cinema"] { --bg-grad: radial-gradient(60rem 55rem at 50% 0%,#1f2937 0%,transparent 60%); }
+html.dark[data-bg="cinema"] { --bg-grad: radial-gradient(60rem 55rem at 50% 0%,#0a0a0a 0%,transparent 60%); }
+
+html[data-bg="spring2"] { --bg-grad: radial-gradient(50rem 50rem at 0% 50%,#fde68a 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 50%,#c7d2fe 0%,transparent 55%),radial-gradient(40rem 40rem at 50% 0%,#d9f99d 0%,transparent 55%); }
+html.dark[data-bg="spring2"] { --bg-grad: radial-gradient(50rem 50rem at 0% 50%,#422006 0%,transparent 55%),radial-gradient(50rem 50rem at 100% 50%,#1e1b4b 0%,transparent 55%),radial-gradient(40rem 40rem at 50% 0%,#1a2e05 0%,transparent 55%); }
+
+html[data-bg="misty"] { --bg-grad: radial-gradient(70rem 60rem at 50% 50%,#f1f5f9 0%,transparent 70%); }
+html.dark[data-bg="misty"] { --bg-grad: radial-gradient(70rem 60rem at 50% 50%,#1e293b 0%,transparent 70%); }
+
+html[data-bg="prism"] { --bg-grad: conic-gradient(from 0deg at 50% 0%,#f9a8d4,#c7d2fe,#a5f3fc,#bbf7d0,#fde68a,#fed7aa,#fca5a5,#f9a8d4); --bg-overlay: 0.12; }
+html.dark[data-bg="prism"] { --bg-grad: conic-gradient(from 0deg at 50% 0%,#831843,#1e1b4b,#083344,#052e16,#78350f,#7c2d12,#7f1d1d,#831843); --bg-overlay: 0.4; }
+
+html[data-bg="rainbow"] { --bg-grad: linear-gradient(135deg,#fca5a5 0%,#fcd34d 20%,#86efac 40%,#67e8f9 60%,#a5b4fc 80%,#f9a8d4 100%); --bg-overlay: 0.10; }
+html.dark[data-bg="rainbow"] { --bg-grad: linear-gradient(135deg,#7f1d1d 0%,#78350f 20%,#052e16 40%,#083344 60%,#1e1b4b 80%,#4c0519 100%); --bg-overlay: 0.5; }
+
+html[data-bg="gradient-x"] { --bg-grad: linear-gradient(90deg,#bae6fd 0%,#e9d5ff 50%,#fce7f3 100%); --bg-overlay: 0.25; }
+html.dark[data-bg="gradient-x"] { --bg-grad: linear-gradient(90deg,#082f49 0%,#2e1065 50%,#4c0519 100%); --bg-overlay: 0.6; }
+
+html[data-bg="gradient-y"] { --bg-grad: linear-gradient(180deg,#ddd6fe 0%,#bae6fd 100%); --bg-overlay: 0.2; }
+html.dark[data-bg="gradient-y"] { --bg-grad: linear-gradient(180deg,#2e1065 0%,#082f49 100%); --bg-overlay: 0.6; }
+
+html[data-bg="gradient-d"] { --bg-grad: linear-gradient(135deg,#a7f3d0 0%,#bae6fd 50%,#ddd6fe 100%); --bg-overlay: 0.2; }
+html.dark[data-bg="gradient-d"] { --bg-grad: linear-gradient(135deg,#064e3b 0%,#0c4a6e 50%,#2e1065 100%); --bg-overlay: 0.6; }
+
+html[data-bg="grid-pattern"] { --bg-grad: none; background-image: linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px) !important; background-size: 40px 40px !important; }
+
+html[data-bg="dot-pattern"] { --bg-grad: none; background-image: radial-gradient(circle,var(--text-muted) 1px,transparent 1px) !important; background-size: 28px 28px !important; }
+
+html[data-bg="diagonal"] { --bg-grad: none; background-image: repeating-linear-gradient(45deg,var(--border) 0,var(--border) 1px,transparent 0,transparent 50%) !important; background-size: 20px 20px !important; }
+
+html[data-bg="topography"] { --bg-grad: radial-gradient(ellipse 80rem 60rem at 30% 60%,#a5f3fc 0%,transparent 60%),radial-gradient(ellipse 60rem 80rem at 70% 40%,#ddd6fe 0%,transparent 60%); }
+html.dark[data-bg="topography"] { --bg-grad: radial-gradient(ellipse 80rem 60rem at 30% 60%,#083344 0%,transparent 60%),radial-gradient(ellipse 60rem 80rem at 70% 40%,#2e1065 0%,transparent 60%); }
+
+html[data-bg="aurora2"] { --bg-grad: radial-gradient(60rem 30rem at 0% 40%,#34d399 0%,transparent 55%),radial-gradient(60rem 30rem at 100% 60%,#818cf8 0%,transparent 55%),radial-gradient(40rem 40rem at 50% 0%,#a78bfa 0%,transparent 55%); }
+html.dark[data-bg="aurora2"] { --bg-grad: radial-gradient(60rem 30rem at 0% 40%,#022c22 0%,transparent 55%),radial-gradient(60rem 30rem at 100% 60%,#1e1b4b 0%,transparent 55%),radial-gradient(40rem 40rem at 50% 0%,#2e1065 0%,transparent 55%); }
+
+html[data-bg="northern"] { --bg-grad: radial-gradient(80rem 40rem at 50% 0%,#10b981 0%,transparent 50%),radial-gradient(60rem 40rem at 20% 80%,#6366f1 0%,transparent 55%),radial-gradient(60rem 40rem at 80% 80%,#06b6d4 0%,transparent 55%); }
+html.dark[data-bg="northern"] { --bg-grad: radial-gradient(80rem 40rem at 50% 0%,#022c22 0%,transparent 50%),radial-gradient(60rem 40rem at 20% 80%,#1e1b4b 0%,transparent 55%),radial-gradient(60rem 40rem at 80% 80%,#083344 0%,transparent 55%); }
+
+html[data-bg="borealis"] { --bg-grad: radial-gradient(70rem 35rem at 10% 20%,#4ade80 0%,transparent 50%),radial-gradient(70rem 35rem at 90% 80%,#818cf8 0%,transparent 50%),radial-gradient(50rem 50rem at 50% 100%,#06b6d4 0%,transparent 60%); }
+html.dark[data-bg="borealis"] { --bg-grad: radial-gradient(70rem 35rem at 10% 20%,#012a14 0%,transparent 50%),radial-gradient(70rem 35rem at 90% 80%,#1e1b4b 0%,transparent 50%),radial-gradient(50rem 50rem at 50% 100%,#042f3d 0%,transparent 60%); }
 
 body {
   background-color: var(--bg-base);

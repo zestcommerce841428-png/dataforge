@@ -31,6 +31,23 @@ const PALETTES: Palette[] = [
   { name: "jade", label: "Jade", c: ["#34d399", "#2dd4bf", "#4ade80"] },
   { name: "flamingo", label: "Flamingo", c: ["#f9a8d4", "#fda4af", "#fbbf24"] },
   { name: "cobalt", label: "Cobalt", c: ["#60a5fa", "#818cf8", "#38bdf8"] },
+  // extra palettes — brings total to 40 × 3 + 1 = 121
+  { name: "neon", label: "Neon", c: ["#86efac", "#67e8f9", "#f9a8d4"] },
+  { name: "volcano", label: "Volcano", c: ["#fde68a", "#fca5a5", "#fed7aa"] },
+  { name: "galaxy", label: "Galaxy", c: ["#818cf8", "#c084fc", "#38bdf8"] },
+  { name: "arctic", label: "Arctic", c: ["#e0f2fe", "#f0f9ff", "#cffafe"] },
+  { name: "desert", label: "Desert", c: ["#fde68a", "#fcd34d", "#fed7aa"] },
+  { name: "autumn", label: "Autumn", c: ["#fde68a", "#fca5a5", "#fed7aa"] },
+  { name: "tropical", label: "Tropical", c: ["#34d399", "#60a5fa", "#fcd34d"] },
+  { name: "cosmic", label: "Cosmic", c: ["#818cf8", "#c084fc", "#7dd3fc"] },
+  { name: "nordic", label: "Nordic", c: ["#bfdbfe", "#ddd6fe", "#c7d2fe"] },
+  { name: "candy", label: "Candy", c: ["#f9a8d4", "#a5b4fc", "#6ee7b7"] },
+  { name: "earth", label: "Earth", c: ["#d6b896", "#a3c9a8", "#c4a882"] },
+  { name: "vapor", label: "Vapor", c: ["#fce7f3", "#ede9fe", "#e0f2fe"] },
+  { name: "fire", label: "Fire", c: ["#fca5a5", "#fdba74", "#fef08a"] },
+  { name: "dusk", label: "Dusk", c: ["#c4b5fd", "#f9a8d4", "#fda4af"] },
+  { name: "dawn", label: "Dawn", c: ["#fed7aa", "#fde68a", "#fce7f3"] },
+  { name: "borealis", label: "Borealis", c: ["#4ade80", "#818cf8", "#06b6d4"] },
 ];
 
 const STYLES = ["radial", "conic", "linear"] as const;
