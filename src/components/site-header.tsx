@@ -2,13 +2,20 @@ import Link from "next/link";
 import { ThemeControls } from "./theme-controls";
 import { ThemeSwitcher } from "./theme-switcher";
 import { RegionSwitcher } from "./region-switcher";
+import { NavLinks } from "./nav-links";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-app backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--bg-base)_75%,transparent)]">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5" aria-label="DataForge home">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 font-black text-white shadow-md">
+    <header className="sticky top-0 z-40 border-b border-app backdrop-blur-md supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--bg-base)_80%,transparent)]">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+
+        {/* Logo */}
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          aria-label="DataForge home"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 font-black text-white shadow-sm">
             ⚡
           </span>
           <span className="text-lg font-extrabold tracking-tight">
@@ -16,56 +23,15 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-4" aria-label="Primary">
-          <Link href="/#tools" className="hidden text-sm font-medium text-muted hover:text-[var(--text)] sm:inline">
-            All tools
-          </Link>
-          <Link href="/crypto" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
-            <span aria-hidden>₿</span> Crypto
-          </Link>
-          <Link href="/dev-tools" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
-            <span aria-hidden>🛠</span> Dev Tools
-          </Link>
-          <Link href="/ocr" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
-            <span aria-hidden>🔍</span> OCR
-          </Link>
-          <Link href="/file-converter" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
-            <span aria-hidden>🔄</span> Convert
-          </Link>
-          <Link href="/image-tools" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] md:inline-flex">
-            <span aria-hidden>🖼️</span> Image
-          </Link>
-          <Link href="/pdf-tools" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] md:inline-flex">
-            <span aria-hidden>📄</span> PDF
-          </Link>
-          <Link href="/handwriting" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
-            <span aria-hidden>✍️</span> Handwriting
-          </Link>
-          <Link href="/code-formatter" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
-            <span aria-hidden>{"{ }"}</span> Formatter
-          </Link>
-          <Link href="/workbook" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] sm:inline-flex">
-            <span aria-hidden>⊞</span> Workbook
-          </Link>
-          <Link href="/formula-manager" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
-            <span aria-hidden>ƒ</span> Formulas
-          </Link>
-          <Link href="/typing" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
-            <span aria-hidden>⌨</span> Typing
-          </Link>
-          <Link href="/compare" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
-            <span aria-hidden>⇄</span> Compare
-          </Link>
-          <Link href="/shortcuts" className="hidden items-center gap-1 text-sm font-medium text-muted hover:text-[var(--text)] lg:inline-flex">
-            <span aria-hidden>⚡</span> Shortcuts
-          </Link>
-          <Link href="/about" className="hidden text-sm font-medium text-muted hover:text-[var(--text)] lg:inline">
-            About
-          </Link>
+        {/* Right side: nav + controls */}
+        <div className="flex min-w-0 items-center gap-1.5">
+          <NavLinks />
+          <div className="mx-1 hidden h-5 w-px bg-[var(--border)] sm:block" aria-hidden />
           <ThemeSwitcher />
           <RegionSwitcher />
           <ThemeControls />
-        </nav>
+        </div>
+
       </div>
     </header>
   );

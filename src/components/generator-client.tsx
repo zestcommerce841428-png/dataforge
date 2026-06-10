@@ -141,10 +141,25 @@ function CopyButton({ value, small }: { value: string; small?: boolean }) {
     <button
       type="button"
       onClick={async () => { await navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 1400); }}
-      className={`surface-2 shrink-0 rounded-md border border-app font-medium hover:bg-[var(--surface-2)] ${small ? "px-2 py-0.5 text-xs" : "px-3 py-1.5 text-sm"}`}
-      aria-label={`Copy: ${value.slice(0, 24)}`}
+      className={`surface-2 inline-flex shrink-0 items-center gap-1.5 rounded-md border border-app font-medium transition-colors hover:bg-[var(--surface-2)] ${small ? "px-2 py-0.5 text-xs" : "px-3 py-1.5 text-sm"} ${copied ? "border-green-500/40 text-green-600" : ""}`}
+      aria-label={copied ? "Copied!" : `Copy: ${value.slice(0, 24)}`}
     >
-      {copied ? "Copied!" : "Copy"}
+      {copied ? (
+        <>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Copied
+        </>
+      ) : (
+        <>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          Copy
+        </>
+      )}
     </button>
   );
 }
@@ -293,7 +308,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       {/* Controls */}
       <section className="surface h-fit rounded-2xl border p-5 shadow-sm" aria-label="Options">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">Options</h2>
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted">Options</h2>
         <div className="space-y-4">
           {gen.fields.map((f) => (
             <div key={f.key}>
@@ -331,8 +346,20 @@ export function GeneratorClient({ slug }: { slug: string }) {
             </label>
           )}
 
-          <button type="button" onClick={run} disabled={busy} className="w-full rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:opacity-60">
-            {busy ? "Generating…" : "Generate"}
+          <button
+            type="button"
+            onClick={run}
+            disabled={busy}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 font-semibold text-white shadow-md transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-60"
+          >
+            {busy ? (
+              <>
+                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                Generating…
+              </>
+            ) : "Generate"}
           </button>
 
           {/* Auto-refresh */}
@@ -344,7 +371,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
                   type="button"
                   onClick={() => setAutoRefresh((v) => !v)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${autoRefresh ? "bg-brand-600" : "bg-[var(--border)]"}`}
-                  aria-pressed={autoRefresh ? "true" : "false"}
+                  aria-pressed={autoRefresh}
                   aria-label={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                   title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                 >
@@ -384,7 +411,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
       <div className="space-y-6">
         <section className="surface rounded-2xl border p-5 shadow-sm" aria-label="Results">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">
               {isBulk ? `Results (${results.length})` : "Result"}
               {autoRefresh && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" aria-hidden />}
             </h2>
@@ -407,8 +434,17 @@ export function GeneratorClient({ slug }: { slug: string }) {
 
           <div aria-live="polite">
             {results.length === 0 ? (
-              <div className="surface-2 grid min-h-32 place-items-center rounded-xl border border-app p-4">
-                <p className="text-muted">Press "Generate" or <kbd className="rounded border border-app px-1.5 py-0.5 font-mono text-xs">R</kbd> to create your data.</p>
+              <div className="surface-2 flex min-h-44 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-app p-8 text-center">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted opacity-30" aria-hidden>
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-muted">No output yet</p>
+                  <p className="mt-1 text-xs text-muted">
+                    Click <strong className="font-semibold">Generate</strong> or press{" "}
+                    <kbd className="rounded border border-app bg-[var(--surface)] px-1.5 py-0.5 font-mono text-[10px]">R</kbd>
+                  </p>
+                </div>
               </div>
             ) : isVisualGen ? (
               <div className={`grid gap-4 ${isBulk ? "sm:grid-cols-2" : ""}`}>
@@ -442,8 +478,8 @@ export function GeneratorClient({ slug }: { slug: string }) {
         {!isVisualGen && (
           <section className="surface rounded-2xl border p-5 shadow-sm" aria-label="History">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-                History <span className="text-muted font-normal">({history.length}/{HISTORY_LIMIT})</span>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">
+                History <span className="font-normal">({history.length}/{HISTORY_LIMIT})</span>
               </h2>
               {history.length > 0 && (
                 <div className="flex items-center gap-2">

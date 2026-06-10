@@ -32,23 +32,38 @@ const features = [
 ];
 
 const highlights = [
-  { slug: "password",   label: "Password" },
-  { slug: "uuid",       label: "UUID" },
-  { slug: "json-mock",  label: "JSON Mock" },
-  { slug: "credit-card",label: "Test Cards" },
-  { slug: "mnemonic",   label: "Mnemonic" },
-  { slug: "my-ip",      label: "My IP" },
+  { slug: "password",    label: "Password" },
+  { slug: "uuid",        label: "UUID" },
+  { slug: "json-mock",   label: "JSON Mock" },
+  { slug: "credit-card", label: "Test Cards" },
+  { slug: "mnemonic",    label: "Mnemonic" },
+  { slug: "my-ip",       label: "My IP" },
+];
+
+const featured = [
+  { href: "/dev-tools",       icon: "🛠",  title: "397+ Developer Tools",        desc: "JSON, regex, hashing, converters, finance, health & more" },
+  { href: "/handwriting",     icon: "✍️",  title: "Text to Handwriting",         desc: "30 fonts, inks & papers, unlimited pages, PNG/PDF export" },
+  { href: "/image-tools",     icon: "🖼️",  title: "Image Resizer & Compressor",  desc: "Resize, crop, compress to target KB, convert formats" },
+  { href: "/pdf-tools",       icon: "📄",  title: "PDF Tools",                   desc: "Merge, split, compress, rotate, images ↔ PDF" },
+  { href: "/format-converter",icon: "⇄",  title: "Format Converter",            desc: "JSON / YAML / XML / CSV — convert between any formats" },
+  { href: "/code-formatter",  icon: "{}",  title: "Code Formatter",              desc: "Beautify or minify JSON, CSS, SQL, HTML, JS" },
+  { href: "/workbook",        icon: "⊞",  title: "Spreadsheet Workbook",        desc: "Excel-style grid with 360+ built-in formulas" },
+  { href: "/crypto",          icon: "₿",  title: "Live Crypto Tracker",         desc: "Real-time prices, charts, order book, WebSocket data" },
 ];
 
 export default function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <section className="py-12 text-center sm:py-20">
-        <span className="surface inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium text-muted">
-          <span className="inline-block h-2 w-2 rounded-full bg-green-500" aria-hidden />
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section className="py-14 text-center sm:py-24">
+        <Link
+          href="#tools"
+          className="surface inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium text-muted transition-colors hover:border-brand-400 hover:text-brand-600"
+        >
+          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-green-500" aria-hidden />
           {TOTAL_GENERATORS} free generators · 100% in-browser · no sign-up
-        </span>
+        </Link>
+
         <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
           Generate{" "}
           <span className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent">
@@ -56,7 +71,8 @@ export default function HomePage() {
           </span>{" "}
           in seconds
         </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">
+
+        <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted">
           DataForge is a fast, secure, privacy-first toolkit for developers, testers and
           creators. Passwords, UUIDs, JSON, IBAN, BIP39 phrases, colors, countries and
           more — all generated locally, instantly, for free.
@@ -65,13 +81,13 @@ export default function HomePage() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href="#tools"
-            className="rounded-xl bg-brand-600 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-brand-700"
+            className="rounded-xl bg-brand-600 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-brand-700 active:scale-[0.97]"
           >
             Browse all {TOTAL_GENERATORS} tools
           </Link>
           <Link
             href="/tools/password"
-            className="surface rounded-xl border px-6 py-3 font-semibold shadow-sm hover:bg-[var(--surface-2)]"
+            className="surface rounded-xl border px-6 py-3 font-semibold shadow-sm transition hover:bg-[var(--surface-2)] active:scale-[0.97]"
           >
             Try password generator →
           </Link>
@@ -83,7 +99,7 @@ export default function HomePage() {
             <Link
               key={h.slug}
               href={`/tools/${h.slug}`}
-              className="surface rounded-full border px-3 py-1 text-sm text-muted transition hover:text-brand-600"
+              className="surface rounded-full border px-3 py-1 text-sm text-muted transition-colors hover:border-brand-400 hover:text-brand-600"
             >
               {h.label}
             </Link>
@@ -91,62 +107,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* ── Feature cards ─────────────────────────────────────────────────── */}
       <section
-        className="grid gap-4 pb-6 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 pb-8 sm:grid-cols-2 lg:grid-cols-4"
         aria-label="Why DataForge"
       >
         {features.map((f) => (
           <div key={f.title} className="surface rounded-2xl border p-5 shadow-sm">
-            <div className="text-2xl" aria-hidden>
-              {f.icon}
-            </div>
+            <div className="text-2xl" aria-hidden>{f.icon}</div>
             <h2 className="mt-3 font-semibold">{f.title}</h2>
-            <p className="mt-1 text-sm text-muted">{f.text}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted">{f.text}</p>
           </div>
         ))}
       </section>
 
-      {/* Category chips strip */}
+      {/* ── Category chips ────────────────────────────────────────────────── */}
       <section className="mb-2 flex flex-wrap gap-2 pb-4" aria-label="Browse by category">
         {CATEGORIES.map((c) => (
-          <span
+          <Link
             key={c.id}
-            className="surface rounded-full border px-3 py-1.5 text-xs font-medium text-muted"
+            href="#tools"
+            className="surface rounded-full border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-brand-400 hover:text-brand-600"
           >
             {c.icon} {c.name}
-          </span>
+          </Link>
         ))}
       </section>
 
-      {/* Featured apps */}
+      {/* ── Featured apps ─────────────────────────────────────────────────── */}
       <section className="py-4" aria-label="Featured tools">
-        <h2 className="mb-3 text-2xl font-bold tracking-tight">Explore our tools</h2>
+        <h2 className="mb-4 text-2xl font-bold tracking-tight">Explore our tools</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { href: "/dev-tools", icon: "🛠", title: "397+ Developer Tools", desc: "JSON, regex, hashing, converters, finance, health, fun & more" },
-            { href: "/handwriting", icon: "✍️", title: "Text to Handwriting", desc: "10 fonts, inks & papers, unlimited pages, PNG/PDF" },
-            { href: "/image-tools", icon: "🖼️", title: "Image Resizer & Compressor", desc: "Resize, crop, compress to KB, convert, DPI presets" },
-            { href: "/pdf-tools", icon: "📄", title: "PDF Tools", desc: "Merge, split, compress, rotate, images↔PDF" },
-            { href: "/format-converter", icon: "⇄", title: "JSON / YAML / XML / CSV", desc: "Convert any data format to any other" },
-            { href: "/code-formatter", icon: "{ }", title: "Code Formatter & Minifier", desc: "Beautify or minify JSON, CSS, SQL, HTML, JS" },
-            { href: "/workbook", icon: "⊞", title: "Spreadsheet Workbook", desc: "Excel-style grid with 360+ formulas" },
-            { href: "/formula-manager", icon: "ƒ", title: "Excel Formula Manager", desc: "All 360+ Excel 365 functions, live" },
-            { href: "/typing", icon: "⌨", title: "Typing Practice", desc: "WPM & accuracy test with live feedback" },
-            { href: "/crypto", icon: "₿", title: "Live Crypto Tracker", desc: "Real-time prices, charts & order book" },
-          ].map((a) => (
-            <Link key={a.href} href={a.href} className="surface rounded-2xl border p-5 shadow-sm transition-colors hover:border-brand-400">
+          {featured.map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="surface group rounded-2xl border p-5 shadow-sm transition-colors hover:border-brand-400"
+            >
               <div className="text-2xl" aria-hidden>{a.icon}</div>
-              <h3 className="mt-2 font-bold">{a.title}</h3>
-              <p className="mt-1 text-sm text-muted">{a.desc}</p>
+              <h3 className="mt-2 font-bold group-hover:text-brand-600">{a.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted">{a.desc}</p>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Crypto banner */}
-      <section className="surface mb-4 overflow-hidden rounded-2xl border">
-        <div className="flex flex-col items-start justify-between gap-4 bg-gradient-to-r from-brand-600/10 to-transparent p-6 sm:flex-row sm:items-center">
+      {/* ── Crypto banner ─────────────────────────────────────────────────── */}
+      <section className="surface my-6 overflow-hidden rounded-2xl border shadow-sm">
+        <div className="flex flex-col items-start justify-between gap-4 bg-gradient-to-r from-brand-600/10 via-brand-500/5 to-transparent p-6 sm:flex-row sm:items-center">
           <div>
             <span className="text-2xl" aria-hidden>₿</span>
             <h2 className="mt-1 text-lg font-bold">Live Crypto Tracker</h2>
@@ -154,15 +162,18 @@ export default function HomePage() {
               Real-time market prices · Binance order book · Trade feed · Candlestick charts · WebSocket live data
             </p>
           </div>
-          <Link href="/crypto" className="shrink-0 rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white shadow-md hover:bg-brand-700">
+          <Link
+            href="/crypto"
+            className="shrink-0 rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-brand-700 active:scale-[0.97]"
+          >
             Open Tracker →
           </Link>
         </div>
       </section>
 
-      {/* Tools — searchable grid */}
+      {/* ── Tools explorer ────────────────────────────────────────────────── */}
       <section id="tools" className="scroll-mt-20 py-4">
-        <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">All generators</h2>
             <p className="mt-1 text-muted">

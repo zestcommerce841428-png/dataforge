@@ -428,15 +428,35 @@ body::before {
   }
 }
 
-* {
-  transition-property: background-color, border-color, color;
+/* Smooth theme transitions — scoped to properties that actually change between themes */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
   transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+/* Exclude elements where transitions cause jank */
+svg, canvas, img, video, [data-no-transition] {
+  transition: none !important;
+}
+
+html { scroll-behavior: smooth; }
+
+/* Custom thin scrollbars */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Text selection */
+::selection {
+  background: color-mix(in srgb, var(--brand-500) 22%, transparent);
+  color: var(--text);
 }
 
 :focus-visible {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -483,6 +503,7 @@ body::before {
   transition: background-color 150ms;
 }
 .btn-primary:hover { background: var(--color-brand-700); }
+.btn-primary:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-secondary {
@@ -496,4 +517,5 @@ body::before {
   border: 1px solid var(--border);
   transition: border-color 150ms;
 }
-.btn-secondary:hover { border-color: var(--color-brand-400); }
+.btn-secondary:hover { border-color: var(--color-brand-400); color: var(--color-brand-600); }
+.btn-secondary:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
