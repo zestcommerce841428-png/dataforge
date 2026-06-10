@@ -17,8 +17,37 @@ const INKS = [
   { name: "Teal", value: "#00695c" }, { name: "Brown", value: "#5d4037" },
 ];
 
-type Paper = "ruled" | "blank" | "grid" | "dotted" | "graph" | "legal" | "dark" | "aged";
-const PAPERS: [Paper, string][] = [["ruled", "Ruled"], ["blank", "Blank"], ["grid", "Grid"], ["dotted", "Dotted"], ["graph", "Graph"], ["legal", "Legal pad"], ["dark", "Dark"], ["aged", "Aged"]];
+type Paper =
+  // original 8
+  | "ruled" | "blank" | "grid" | "dotted" | "graph" | "legal" | "dark" | "aged"
+  // ruled variants
+  | "wide-ruled" | "narrow-ruled" | "college" | "french-ruled" | "steno" | "cornell"
+  // grid variants
+  | "isometric" | "hex" | "small-grid" | "large-grid" | "cross-hatch" | "blueprint"
+  // dot variants
+  | "dot-large" | "dot-cross" | "bullet-journal"
+  // specialty lined
+  | "music" | "tablature" | "handwriting-practice" | "comic" | "storyboard"
+  // colour papers
+  | "yellow" | "pink" | "green" | "blue-paper" | "lavender" | "peach" | "gray"
+  // textured / vintage
+  | "kraft" | "newspaper" | "parchment" | "vellum" | "watercolor" | "canvas" | "leather" | "marble"
+  // themed
+  | "chalkboard" | "whiteboard" | "sticky-note" | "index-card" | "receipt" | "blueprint2"
+  | "engineering" | "calligraphy" | "crossword" | "sudoku" | "origami" | "millimeter";
+
+type PaperGroup = { group: string; items: [Paper, string][] };
+const PAPER_GROUPS: PaperGroup[] = [
+  { group: "Classic", items: [["ruled","Ruled"],["blank","Blank"],["wide-ruled","Wide ruled"],["narrow-ruled","Narrow ruled"],["college","College ruled"],["steno","Steno"]] },
+  { group: "Lined", items: [["legal","Legal pad"],["french-ruled","French ruled"],["cornell","Cornell notes"],["handwriting-practice","Practice lines"],["calligraphy","Calligraphy"],["music","Music staff"]] },
+  { group: "Grid", items: [["grid","Grid"],["graph","Graph"],["small-grid","Small grid"],["large-grid","Large grid"],["millimeter","Millimeter"],["engineering","Engineering"],["cross-hatch","Cross hatch"],["isometric","Isometric"],["blueprint","Blueprint"],["blueprint2","Blueprint 2"]] },
+  { group: "Dot", items: [["dotted","Dotted"],["dot-large","Dot large"],["dot-cross","Dot cross"],["bullet-journal","Bullet journal"]] },
+  { group: "Specialty", items: [["tablature","Guitar tab"],["comic","Comic strips"],["storyboard","Storyboard"],["crossword","Crossword"],["sudoku","Sudoku"],["origami","Origami"],["hex","Hexagonal"]] },
+  { group: "Colour", items: [["yellow","Yellow"],["pink","Pink"],["green","Green"],["blue-paper","Blue"],["lavender","Lavender"],["peach","Peach"],["gray","Gray"]] },
+  { group: "Vintage", items: [["aged","Aged"],["kraft","Kraft"],["newspaper","Newspaper"],["parchment","Parchment"],["vellum","Vellum"],["watercolor","Watercolour"],["leather","Leather"]] },
+  { group: "Special", items: [["dark","Dark"],["chalkboard","Chalkboard"],["whiteboard","Whiteboard"],["canvas","Canvas"],["marble","Marble"],["sticky-note","Sticky note"],["index-card","Index card"],["receipt","Receipt"]] },
+];
+const PAPERS = PAPER_GROUPS.flatMap((g) => g.items);
 
 // A wide range of page sizes (px @ ~96 DPI). "Custom" reads the width/height inputs.
 const SIZES: Record<string, [number, number]> = {
@@ -111,34 +140,341 @@ export function HandwritingClient() {
       const canvas = document.createElement("canvas");
       canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext("2d")!;
-      // paper bg (custom colour overrides the preset)
-      ctx.fillStyle = customPaper || (paper === "dark" ? "#1a1f2b" : paper === "aged" ? "#f3e9d2" : paper === "legal" ? "#fffdf0" : "#ffffff");
+      // ── Paper background ───────────────────────────────────────────────
+      const BG: Partial<Record<Paper, string>> = {
+        "dark": "#1a1f2b", "chalkboard": "#1a2a1a", "aged": "#f3e9d2",
+        "legal": "#fffdf0", "yellow": "#fffde7", "pink": "#fce4ec",
+        "green": "#f1f8e9", "blue-paper": "#e3f2fd", "lavender": "#f3e5f5",
+        "peach": "#fff3e0", "gray": "#f5f5f5", "kraft": "#c8a96e",
+        "newspaper": "#e8e0d0", "parchment": "#f0e6c8", "vellum": "#f8f4e8",
+        "watercolor": "#eef4fa", "leather": "#6b3a2a", "canvas": "#f5f0e8",
+        "marble": "#f0f0f0", "whiteboard": "#fafafa", "sticky-note": "#fff9c4",
+        "index-card": "#fffef5", "receipt": "#f9f5ed", "blueprint": "#0a2a5a",
+        "blueprint2": "#0d3b6e", "engineering": "#f4f1e8",
+      };
+      ctx.fillStyle = customPaper || BG[paper] || "#ffffff";
       ctx.fillRect(0, 0, W, H);
-      if (paper === "aged") { ctx.fillStyle = "rgba(140,110,60,0.05)"; for (let i = 0; i < 400; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
-      // paper grain / fibre texture
-      if (texture) {
-        const dark = paper === "dark";
+
+      // ── Paper surface effects ───────────────────────────────────────────
+      if (paper === "aged" || paper === "parchment") {
+        ctx.fillStyle = "rgba(140,110,60,0.05)";
+        for (let i = 0; i < 400; i++) ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+      }
+      if (paper === "kraft") {
+        for (let i = 0; i < 1200; i++) {
+          ctx.fillStyle = `rgba(${Math.random()>0.5?180:100},${Math.random()>0.5?120:80},40,${Math.random()*0.07})`;
+          ctx.fillRect(Math.random() * W, Math.random() * H, 1 + Math.random() * 2, 1);
+        }
+      }
+      if (paper === "newspaper") {
+        for (let i = 0; i < 600; i++) { ctx.fillStyle = `rgba(80,70,50,${Math.random()*0.04})`; ctx.fillRect(Math.random()*W, Math.random()*H, 1, 1); }
+      }
+      if (paper === "watercolor") {
+        const wc = ctx.createRadialGradient(W*0.3,H*0.3,0,W*0.5,H*0.5,W*0.6);
+        wc.addColorStop(0,"rgba(180,210,240,0.18)"); wc.addColorStop(1,"rgba(200,230,250,0.05)");
+        ctx.fillStyle = wc; ctx.fillRect(0,0,W,H);
+      }
+      if (paper === "canvas") {
+        for (let i = 0; i < W * H / 600; i++) { ctx.fillStyle = `rgba(90,70,40,${Math.random()*0.04})`; ctx.fillRect(Math.random()*W, Math.random()*H, 1+(Math.random()<0.5?1:0), 1+(Math.random()<0.5?1:0)); }
+      }
+      if (paper === "marble") {
+        for (let i = 0; i < 12; i++) {
+          ctx.beginPath(); ctx.moveTo(Math.random()*W, 0);
+          ctx.bezierCurveTo(Math.random()*W,H*0.3,Math.random()*W,H*0.7,Math.random()*W,H);
+          ctx.strokeStyle = `rgba(180,180,180,${0.05+Math.random()*0.08})`; ctx.lineWidth = 1+Math.random()*3; ctx.stroke();
+        }
+      }
+      if (paper === "leather") {
+        for (let i = 0; i < 800; i++) { ctx.fillStyle = `rgba(255,200,150,${Math.random()*0.05})`; ctx.fillRect(Math.random()*W,Math.random()*H,1,1); }
+      }
+      // paper grain (most paper types)
+      const skipGrain: Paper[] = ["dark","chalkboard","marble","blueprint","blueprint2"];
+      if (texture && !skipGrain.includes(paper)) {
+        const isDark = paper === "leather";
         for (let i = 0; i < W * H / 900; i++) {
-          ctx.fillStyle = dark ? `rgba(255,255,255,${Math.random() * 0.03})` : `rgba(0,0,0,${Math.random() * 0.025})`;
+          ctx.fillStyle = isDark ? `rgba(255,255,255,${Math.random()*0.03})` : `rgba(0,0,0,${Math.random()*0.025})`;
           ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
         }
       }
-      // guide lines
-      const lineCol = ruleColor || (paper === "dark" ? "#33405a" : "#cfe0f5");
-      ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
-      if (paper === "ruled" || paper === "legal" || paper === "aged") {
-        for (let y = marginY + lineHeight; y < H - 20; y += lineHeight) { ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke(); }
-      } else if (paper === "grid" || paper === "graph") {
-        const step = paper === "graph" ? 20 : 26;
-        for (let x = 0; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-        for (let y = 0; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-      } else if (paper === "dotted") {
-        ctx.fillStyle = lineCol;
-        for (let x = 24; x < W; x += 26) for (let y = 24; y < H; y += 26) { ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 6.3); ctx.fill(); }
+      if ((paper === "dark" || paper === "chalkboard") && texture) {
+        for (let i = 0; i < W * H / 900; i++) { ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.025})`; ctx.fillRect(Math.random()*W, Math.random()*H, 1, 1); }
       }
+
+      // ── Guide lines / patterns ──────────────────────────────────────────
+      const defaultLineCol = ["dark","chalkboard","blueprint","blueprint2","leather"].includes(paper)
+        ? (paper === "chalkboard" ? "#5a7a5a" : paper.startsWith("blueprint") ? "#2060c0" : "#44607a")
+        : "#cfe0f5";
+      const lineCol = ruleColor || defaultLineCol;
+      ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
+
+      // Ruled family
+      const ruledStep: Partial<Record<Paper, number>> = {
+        "ruled": lineHeight, "wide-ruled": 36, "narrow-ruled": 24,
+        "college": 29, "steno": lineHeight, "aged": lineHeight,
+        "french-ruled": lineHeight, "cornell": lineHeight, "legal": lineHeight,
+        "handwriting-practice": lineHeight, "calligraphy": lineHeight,
+        "yellow": lineHeight, "pink": lineHeight, "green": lineHeight,
+        "blue-paper": lineHeight, "lavender": lineHeight, "peach": lineHeight,
+        "gray": lineHeight, "sticky-note": lineHeight, "index-card": lineHeight,
+        "receipt": 22,
+      };
+      if (ruledStep[paper]) {
+        const step = ruledStep[paper]!;
+        for (let y = marginY + step; y < H - 20; y += step) {
+          ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke();
+        }
+      }
+      // French ruled: vertical margin line
+      if (paper === "french-ruled") {
+        ctx.strokeStyle = "#f2c0c0"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(marginX, 0); ctx.lineTo(marginX, H); ctx.stroke();
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
+      }
+      // Cornell: right-side notes column + bottom summary box
+      if (paper === "cornell") {
+        ctx.strokeStyle = "#f2a9a9"; ctx.lineWidth = 1.5;
+        const cue = Math.round(W * 0.28);
+        ctx.beginPath(); ctx.moveTo(cue, 0); ctx.lineTo(cue, H - 120); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, H - 120); ctx.lineTo(W, H - 120); ctx.stroke();
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
+      }
+      // Legal: red margin + punched holes
       if (paper === "legal") {
-        ctx.strokeStyle = "#f2a9a9"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(marginX - 16, 0); ctx.lineTo(marginX - 16, H); ctx.stroke();
-        ctx.fillStyle = "#dfe3ea"; for (let y = 90; y < H; y += 150) { ctx.beginPath(); ctx.arc(22, y, 8, 0, 6.3); ctx.fill(); }
+        ctx.strokeStyle = "#f2a9a9"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(marginX - 16, 0); ctx.lineTo(marginX - 16, H); ctx.stroke();
+        ctx.fillStyle = "#dfe3ea";
+        for (let y = 90; y < H; y += 150) { ctx.beginPath(); ctx.arc(22, y, 8, 0, 6.3); ctx.fill(); }
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
+      }
+      // Steno: center vertical line
+      if (paper === "steno") {
+        ctx.strokeStyle = "#f2a9a9"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
+      }
+      // Calligraphy: ascender + baseline + descender triplet
+      if (paper === "calligraphy") {
+        const band = lineHeight;
+        for (let y = marginY + band; y < H - 20; y += band) {
+          ctx.strokeStyle = "rgba(100,140,200,0.25)"; ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(30, y - band * 0.6); ctx.lineTo(W - 30, y - band * 0.6); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(30, y - band * 0.35); ctx.lineTo(W - 30, y - band * 0.35); ctx.stroke();
+          ctx.setLineDash([]); ctx.strokeStyle = lineCol;
+          ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke();
+          ctx.strokeStyle = "rgba(200,150,150,0.3)"; ctx.setLineDash([2, 6]);
+          ctx.beginPath(); ctx.moveTo(30, y + band * 0.25); ctx.lineTo(W - 30, y + band * 0.25); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+      // Handwriting practice: dashed midline
+      if (paper === "handwriting-practice") {
+        for (let y = marginY + lineHeight; y < H - 20; y += lineHeight) {
+          ctx.setLineDash([4, 4]); ctx.strokeStyle = "rgba(100,140,200,0.3)";
+          ctx.beginPath(); ctx.moveTo(30, y - lineHeight / 2); ctx.lineTo(W - 30, y - lineHeight / 2); ctx.stroke();
+          ctx.setLineDash([]); ctx.strokeStyle = lineCol;
+        }
+      }
+      // Music staff: 5 lines per system
+      if (paper === "music") {
+        const gap = 10, systemH = gap * 4 + 60;
+        for (let sy = marginY; sy < H - systemH; sy += systemH) {
+          for (let i = 0; i < 5; i++) {
+            ctx.beginPath(); ctx.moveTo(30, sy + i * gap); ctx.lineTo(W - 30, sy + i * gap); ctx.stroke();
+          }
+          // treble clef placeholder bar
+          ctx.strokeStyle = lineCol; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(30, sy); ctx.lineTo(30, sy + gap * 4); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(W - 30, sy); ctx.lineTo(W - 30, sy + gap * 4); ctx.stroke();
+          ctx.lineWidth = 1;
+        }
+      }
+      // Guitar tablature: 6 strings
+      if (paper === "tablature") {
+        const gap = 12, systemH = gap * 5 + 60;
+        for (let sy = marginY; sy < H - systemH; sy += systemH) {
+          for (let i = 0; i < 6; i++) {
+            ctx.beginPath(); ctx.moveTo(40, sy + i * gap); ctx.lineTo(W - 40, sy + i * gap); ctx.stroke();
+          }
+          ctx.font = "9px sans-serif"; ctx.fillStyle = lineCol;
+          ["e","B","G","D","A","E"].forEach((n,i) => ctx.fillText(n, 16, sy + i * gap + 3));
+        }
+      }
+      // Grid family
+      const gridStep: Partial<Record<Paper,number>> = {
+        "grid": 26, "graph": 20, "small-grid": 14, "large-grid": 40,
+        "millimeter": 6, "engineering": 10, "cross-hatch": 20,
+        "blueprint": 26, "blueprint2": 20,
+      };
+      if (gridStep[paper]) {
+        const step = gridStep[paper]!;
+        const col = paper.startsWith("blueprint") ? "rgba(70,120,220,0.4)" : lineCol;
+        // minor lines
+        for (let x = 0; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.strokeStyle = col; ctx.lineWidth=0.5; ctx.stroke(); }
+        for (let y = 0; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.strokeStyle = col; ctx.lineWidth=0.5; ctx.stroke(); }
+        // major lines every 5 minor
+        if (["graph","millimeter","engineering","blueprint","blueprint2"].includes(paper)) {
+          const major = step * 5;
+          ctx.lineWidth = 1;
+          const majCol = paper.startsWith("blueprint") ? "rgba(100,160,255,0.7)" : ruleColor || "#a0b4c8";
+          for (let x = 0; x < W; x += major) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.strokeStyle = majCol; ctx.stroke(); }
+          for (let y = 0; y < H; y += major) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.strokeStyle = majCol; ctx.stroke(); }
+        }
+        ctx.lineWidth = 1;
+      }
+      // Cross-hatch diagonal overlay
+      if (paper === "cross-hatch") {
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 0.4;
+        const s = 20;
+        for (let i = -H; i < W + H; i += s) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+H,H); ctx.stroke(); }
+        for (let i = 0; i < W + H; i += s) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i-H,H); ctx.stroke(); }
+      }
+      // Dot family
+      if (paper === "dotted" || paper === "dot-large" || paper === "dot-cross" || paper === "bullet-journal") {
+        const dotStep = paper === "dot-large" ? 36 : 26;
+        const dotR = paper === "dot-large" ? 2 : 1.3;
+        ctx.fillStyle = lineCol;
+        for (let x = 24; x < W; x += dotStep) {
+          for (let y = 24; y < H; y += dotStep) {
+            if (paper === "dot-cross") {
+              ctx.lineWidth = 0.8; ctx.strokeStyle = lineCol;
+              ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke();
+            } else {
+              ctx.beginPath(); ctx.arc(x, y, dotR, 0, 6.3); ctx.fill();
+            }
+          }
+        }
+        // bullet journal: monthly divider at top
+        if (paper === "bullet-journal") {
+          ctx.strokeStyle = lineCol; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(30, marginY); ctx.lineTo(W - 30, marginY); ctx.stroke();
+          ctx.lineWidth = 1;
+        }
+      }
+      // Isometric grid (60° triangles)
+      if (paper === "hex" || paper === "isometric") {
+        const s = 30;
+        const h = s * Math.sqrt(3) / 2;
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 0.5;
+        if (paper === "isometric") {
+          for (let y = 0; y < H + s; y += h) {
+            for (let x = -s; x < W + s; x += s) {
+              const off = Math.round(y / h) % 2 === 0 ? 0 : s / 2;
+              ctx.beginPath(); ctx.moveTo(x + off, y); ctx.lineTo(x + off + s, y); ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(x + off, y); ctx.lineTo(x + off - s/2, y + h); ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(x + off, y); ctx.lineTo(x + off + s/2, y + h); ctx.stroke();
+            }
+          }
+        } else {
+          // flat-top hex grid
+          const cols = Math.ceil(W / (s * 1.5)) + 1;
+          const rows = Math.ceil(H / (h * 2)) + 1;
+          const hex = (cx: number, cy: number) => {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const a = Math.PI / 180 * (60 * i - 30);
+              const px = cx + s * Math.cos(a), py = cy + s * Math.sin(a);
+              i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            }
+            ctx.closePath(); ctx.stroke();
+          };
+          for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+            const cx = c * s * 1.5 + s;
+            const cy = r * h * 2 + (c % 2 === 0 ? h : 0);
+            hex(cx, cy);
+          }
+        }
+      }
+      // Comic: 4 panels
+      if (paper === "comic") {
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 2;
+        const pw = (W - marginX * 2) / 2, ph = (H - marginY * 2) / 2, gap = 8;
+        for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) {
+          ctx.strokeRect(marginX + c * (pw + gap), marginY + r * (ph + gap), pw, ph);
+        }
+      }
+      // Storyboard: 3×2 panels with caption bars
+      if (paper === "storyboard") {
+        const cols = 3, rows = 2;
+        const pw = (W - marginX * 2) / cols - 6, ph = (H - marginY * 2) / rows * 0.75;
+        const capH = (H - marginY * 2) / rows * 0.22;
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 1.5;
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          const bx = marginX + c * (pw + 8), by = marginY + r * (ph + capH + 10);
+          ctx.strokeRect(bx, by, pw, ph);
+          ctx.fillStyle = "rgba(0,0,0,0.04)"; ctx.fillRect(bx, by + ph, pw, capH);
+          ctx.strokeRect(bx, by + ph, pw, capH);
+        }
+      }
+      // Crossword grid
+      if (paper === "crossword") {
+        const cell = 28, cols = Math.floor((W - marginX * 2) / cell), rows = Math.floor((H - marginY * 2) / cell);
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 1;
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          if ((r + c) % 7 === 0 || (r * c) % 11 === 0) {
+            ctx.fillStyle = "#222";
+          } else {
+            ctx.fillStyle = "transparent";
+          }
+          ctx.fillRect(marginX + c * cell, marginY + r * cell, cell, cell);
+          ctx.strokeRect(marginX + c * cell, marginY + r * cell, cell, cell);
+        }
+      }
+      // Sudoku grid (9×9 + 3×3 bold boxes)
+      if (paper === "sudoku") {
+        const cell = Math.min(40, Math.floor((Math.min(W, H) - marginX * 2) / 9));
+        const ox = marginX, oy = marginY;
+        for (let i = 0; i <= 9; i++) {
+          ctx.lineWidth = i % 3 === 0 ? 2 : 0.5;
+          ctx.strokeStyle = lineCol;
+          ctx.beginPath(); ctx.moveTo(ox + i * cell, oy); ctx.lineTo(ox + i * cell, oy + 9 * cell); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(ox, oy + i * cell); ctx.lineTo(ox + 9 * cell, oy + i * cell); ctx.stroke();
+        }
+      }
+      // Origami: diagonal fold lines
+      if (paper === "origami") {
+        ctx.strokeStyle = lineCol; ctx.lineWidth = 0.5; ctx.setLineDash([6, 6]);
+        const s = 60;
+        for (let i = -H; i < W + H; i += s) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+H,H); ctx.stroke(); }
+        for (let i = 0; i < W + H; i += s) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i-H,H); ctx.stroke(); }
+        ctx.setLineDash([]); ctx.lineWidth = 1;
+        for (let x = 0; x < W; x += s) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+        for (let y = 0; y < H; y += s) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+      }
+      // Sticky note: top colour bar
+      if (paper === "sticky-note") {
+        ctx.fillStyle = "#f9a825"; ctx.fillRect(0, 0, W, 36);
+        ctx.strokeStyle = "#e65100"; ctx.lineWidth = 1;
+        for (let y = 60; y < H - 20; y += lineHeight) { ctx.beginPath(); ctx.moveTo(20, y); ctx.lineTo(W - 20, y); ctx.stroke(); }
+      }
+      // Index card: top red line + ruled
+      if (paper === "index-card") {
+        ctx.strokeStyle = "#e57373"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, marginY); ctx.lineTo(W, marginY); ctx.stroke();
+        ctx.strokeStyle = "#90caf9"; ctx.lineWidth = 1;
+        for (let y = marginY + lineHeight; y < H - 10; y += lineHeight) { ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(W - 10, y); ctx.stroke(); }
+      }
+      // Receipt: narrow ruled, dotted edges
+      if (paper === "receipt") {
+        ctx.setLineDash([2, 4]); ctx.strokeStyle = lineCol;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(W, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(W, H); ctx.stroke();
+        ctx.setLineDash([]);
+        for (let y = marginY; y < H - 10; y += 22) { ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(W - 10, y); ctx.stroke(); }
+      }
+      // Whiteboard: subtle shadow border
+      if (paper === "whiteboard") {
+        ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 12;
+        ctx.strokeStyle = "#ddd"; ctx.lineWidth = 4;
+        ctx.strokeRect(4, 4, W - 8, H - 8);
+        ctx.shadowBlur = 0; ctx.lineWidth = 1;
+        ctx.strokeStyle = lineCol;
+        for (let y = marginY + lineHeight; y < H - 20; y += lineHeight) { ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke(); }
+      }
+      // Chalkboard: chalk line style
+      if (paper === "chalkboard") {
+        ctx.strokeStyle = "rgba(200,230,200,0.25)"; ctx.lineWidth = 1.5;
+        for (let y = marginY + lineHeight; y < H - 20; y += lineHeight) { ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W - 30, y); ctx.stroke(); }
       }
       // text
       ctx.textBaseline = "alphabetic";
@@ -210,8 +546,19 @@ export function HandwritingClient() {
             </div>
           </div>
           <div>
-            <p className="mb-1 text-sm">Paper</p>
-            <div className="flex flex-wrap gap-1.5">{PAPERS.map(([p, l]) => <button key={p} onClick={() => setPaper(p)} className={`rounded-lg border px-2.5 py-1 text-xs ${paper === p ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface"}`}>{l}</button>)}</div>
+            <p className="mb-1 text-sm font-medium">Paper <span className="text-muted font-normal">({PAPERS.length})</span></p>
+            <div className="max-h-52 overflow-auto rounded-xl border surface p-2 space-y-2">
+              {PAPER_GROUPS.map((g) => (
+                <div key={g.group}>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted">{g.group}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {g.items.map(([p, l]) => (
+                      <button key={p} onClick={() => setPaper(p)} className={`rounded-md border px-2 py-0.5 text-[11px] ${paper === p ? "border-brand-500 bg-brand-500/10 text-brand-600" : "surface hover:border-brand-400"}`}>{l}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-1 text-sm">Paper colour
