@@ -11,6 +11,23 @@ const BUILD_SHA   = process.env.NEXT_PUBLIC_BUILD_SHA   ?? getBuildSha();
 const BUILD_TIME  = process.env.NEXT_PUBLIC_BUILD_TIME  ?? new Date().toISOString();
 const BUILD_VER   = process.env.NEXT_PUBLIC_BUILD_VERSION ?? (process.env.npm_package_version ?? "1.0.0");
 
+function getBuildBranch(): string {
+  try { return execSync("git rev-parse --abbrev-ref HEAD").toString().trim(); } catch { return ""; }
+}
+function getCommitMessage(): string {
+  try { return execSync("git log -1 --pretty=%s").toString().trim(); } catch { return ""; }
+}
+function getCommitAuthor(): string {
+  try { return execSync("git log -1 --pretty=%an").toString().trim(); } catch { return ""; }
+}
+
+const BUILD_BRANCH  = process.env.NEXT_PUBLIC_BUILD_BRANCH  ?? process.env.VERCEL_GIT_COMMIT_REF     ?? getBuildBranch();
+const BUILD_ENV     = process.env.NEXT_PUBLIC_BUILD_ENV     ?? process.env.VERCEL_ENV                ?? process.env.NODE_ENV ?? "development";
+const BUILD_REGION  = process.env.NEXT_PUBLIC_BUILD_REGION  ?? process.env.VERCEL_REGION             ?? "";
+const BUILD_AUTHOR  = process.env.NEXT_PUBLIC_BUILD_AUTHOR  ?? process.env.VERCEL_GIT_COMMIT_AUTHOR_NAME ?? getCommitAuthor();
+const BUILD_MESSAGE = process.env.NEXT_PUBLIC_BUILD_MESSAGE ?? process.env.VERCEL_GIT_COMMIT_MESSAGE  ?? getCommitMessage();
+const BUILD_NODE    = process.env.NEXT_PUBLIC_BUILD_NODE    ?? process.versions?.node ?? "";
+
 // Next.js's dev runtime (HMR / React Refresh) evaluates code via eval(),
 // so 'unsafe-eval' is required in development. Production stays strict.
 const translateScripts = "https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net";
@@ -42,6 +59,13 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_SHA:     BUILD_SHA,
     NEXT_PUBLIC_BUILD_TIME:    BUILD_TIME,
     NEXT_PUBLIC_BUILD_VERSION: BUILD_VER,
+    NEXT_PUBLIC_BUILD_BRANCH:  BUILD_BRANCH,
+    NEXT_PUBLIC_BUILD_ENV:     BUILD_ENV,
+    NEXT_PUBLIC_BUILD_REGION:  BUILD_REGION,
+    NEXT_PUBLIC_BUILD_AUTHOR:  BUILD_AUTHOR,
+    NEXT_PUBLIC_BUILD_MESSAGE: BUILD_MESSAGE,
+    NEXT_PUBLIC_BUILD_NODE:    BUILD_NODE,
+    NEXT_PUBLIC_BUILD_NEXT:    process.env.npm_package_dependencies_next ?? "",
   },
   async headers() {
     return [

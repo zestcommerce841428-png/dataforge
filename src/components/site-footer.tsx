@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { CATEGORIES, TOTAL_GENERATORS } from "@/lib/generators";
-import { BUILD_VERSION, BUILD_SHA, BUILD_TIME_ISO } from "@/lib/version";
+import {
+  BUILD_VERSION, BUILD_SHA, BUILD_TIME_ISO,
+  BUILD_BRANCH, BUILD_ENV, BUILD_REGION,
+  BUILD_AUTHOR, BUILD_MESSAGE, BUILD_NODE, BUILD_NEXT,
+} from "@/lib/version";
+import { BuildInfo } from "./build-info";
 
 export function SiteFooter() {
   return (
@@ -86,45 +91,19 @@ export function SiteFooter() {
         </p>
 
         {/* Build-info row */}
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-          {/* Version badge */}
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
-            {BUILD_VERSION}
-          </span>
-
-          {/* Commit SHA */}
-          {BUILD_SHA && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-app bg-[var(--surface-2)] px-3 py-1 font-mono text-[11px] text-muted">
-              <span aria-hidden className="text-[9px]">⎇</span>
-              {BUILD_SHA}
-            </span>
-          )}
-
-          {/* Build datetime — date + time, UTC */}
-          <time
-            dateTime={BUILD_TIME_ISO}
-            title={`Full build timestamp: ${BUILD_TIME_ISO}`}
-            className="inline-flex items-center gap-1 rounded-full border border-app bg-[var(--surface-2)] px-3 py-1 text-[11px] text-muted"
-          >
-            <span aria-hidden className="text-[10px]">🕐</span>
-            Built{" "}
-            {new Date(BUILD_TIME_ISO).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-              timeZone: "UTC",
-            })}
-            {" at "}
-            {new Date(BUILD_TIME_ISO).toLocaleTimeString("en-GB", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              timeZone: "UTC",
-              hour12: false,
-            })}{" "}
-            UTC
-          </time>
+        <div className="mt-3">
+          <BuildInfo
+            sha={BUILD_SHA}
+            version={BUILD_VERSION}
+            timeIso={BUILD_TIME_ISO}
+            branch={BUILD_BRANCH}
+            env={BUILD_ENV}
+            region={BUILD_REGION}
+            author={BUILD_AUTHOR}
+            message={BUILD_MESSAGE}
+            nodeVersion={BUILD_NODE}
+            nextVersion={BUILD_NEXT}
+          />
         </div>
       </div>
     </footer>
