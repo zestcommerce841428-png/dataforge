@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
+import { execSync } from "child_process";
 
 const isDev = process.env.NODE_ENV !== "production";
+
+// Capture build-time metadata once, at config evaluation time
+function getBuildSha(): string {
+  try { return execSync("git rev-parse --short HEAD").toString().trim(); } catch { return ""; }
+}
+const BUILD_SHA   = process.env.NEXT_PUBLIC_BUILD_SHA   ?? getBuildSha();
+const BUILD_TIME  = process.env.NEXT_PUBLIC_BUILD_TIME  ?? new Date().toISOString();
+const BUILD_VER   = process.env.NEXT_PUBLIC_BUILD_VERSION ?? (process.env.npm_package_version ?? "1.0.0");
 
 // Next.js's dev runtime (HMR / React Refresh) evaluates code via eval(),
 // so 'unsafe-eval' is required in development. Production stays strict.
@@ -29,6 +38,11 @@ const csp = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  env: {
+    NEXT_PUBLIC_BUILD_SHA:     BUILD_SHA,
+    NEXT_PUBLIC_BUILD_TIME:    BUILD_TIME,
+    NEXT_PUBLIC_BUILD_VERSION: BUILD_VER,
+  },
   async headers() {
     return [
       {

@@ -76,20 +76,54 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-app py-5 text-center text-xs text-muted">
-        <div>
-          © {new Date().getFullYear()} DataForge · Built by <span className="font-medium text-[var(--text)]">Naushad Alam</span> with Claude · India ·{" "}
+      <div className="border-t border-app py-6 text-center text-xs text-muted">
+        {/* Copyright line */}
+        <p>
+          © {new Date(BUILD_TIME_ISO).getFullYear()} DataForge · Built by{" "}
+          <span className="font-medium text-[var(--text)]">Naushad Alam</span> with Claude · India ·{" "}
           <Link href="/privacy" className="hover:text-[var(--text)]">Privacy</Link> ·{" "}
           <Link href="/terms" className="hover:text-[var(--text)]">Terms</Link>
-        </div>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-app bg-[var(--surface-2)] px-2.5 py-1 font-mono text-[11px] text-[var(--text)]">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+        </p>
+
+        {/* Build-info row */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+          {/* Version badge */}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
             {BUILD_VERSION}
-            {BUILD_SHA && <span className="text-muted">· {BUILD_SHA}</span>}
           </span>
-          <time dateTime={BUILD_TIME_ISO} className="text-[11px] text-muted">
-            Last updated {new Date(BUILD_TIME_ISO).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+
+          {/* Commit SHA */}
+          {BUILD_SHA && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-app bg-[var(--surface-2)] px-3 py-1 font-mono text-[11px] text-muted">
+              <span aria-hidden className="text-[9px]">⎇</span>
+              {BUILD_SHA}
+            </span>
+          )}
+
+          {/* Build datetime — date + time, UTC */}
+          <time
+            dateTime={BUILD_TIME_ISO}
+            title={`Full build timestamp: ${BUILD_TIME_ISO}`}
+            className="inline-flex items-center gap-1 rounded-full border border-app bg-[var(--surface-2)] px-3 py-1 text-[11px] text-muted"
+          >
+            <span aria-hidden className="text-[10px]">🕐</span>
+            Built{" "}
+            {new Date(BUILD_TIME_ISO).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              timeZone: "UTC",
+            })}
+            {" at "}
+            {new Date(BUILD_TIME_ISO).toLocaleTimeString("en-GB", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              timeZone: "UTC",
+              hour12: false,
+            })}{" "}
+            UTC
           </time>
         </div>
       </div>
