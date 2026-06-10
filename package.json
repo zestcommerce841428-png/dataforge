@@ -10,33 +10,31 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.56.0",
-    "@types/jszip": "^3.4.0",
-    "@types/marked": "^5.0.2",
+    "@sentry/nextjs": "^10.57.0",
     "js-yaml": "^4.2.0",
     "jsbarcode": "^3.12.3",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",
-    "marked": "^18.0.4",
-    "next": "^15.1.0",
-    "nodemailer": "^8.0.10",
+    "marked": "^18.0.5",
+    "next": "^16.2.9",
+    "nodemailer": "^8.0.11",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.0.227",
     "qrcode": "^1.5.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.3.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.10.0",
+    "@types/node": "^25.9.2",
     "@types/nodemailer": "^8.0.0",
     "@types/qrcode": "^1.5.6",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "playwright": "^1.60.0",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.0"
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
   }
 }
