@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const NAV: {
   href: string;
   label: string;
-  show: "sm" | "md" | "lg";
+  show: "sm" | "md" | "lg" | "xl";
   exact?: boolean;
 }[] = [
   { href: "/",                label: "All tools",    show: "sm", exact: true },
@@ -24,17 +24,17 @@ const NAV: {
   { href: "/typing",          label: "⌨ Typing",      show: "lg" },
   { href: "/compare",         label: "⇄ Compare",     show: "lg" },
   { href: "/shortcuts",       label: "⚡ Shortcuts",   show: "lg" },
-  { href: "/regex",          label: "⋅* Regex",       show: "lg" },
-  { href: "/jwt",            label: "🔑 JWT",          show: "lg" },
-  { href: "/diff",           label: "⇄ Diff",          show: "lg" },
-  { href: "/base-converter", label: "01 Base",         show: "lg" },
-  { href: "/color-toolkit",  label: "🎨 Color",        show: "lg" },
-  { href: "/cron-builder",   label: "⏱ Cron",          show: "lg" },
-  { href: "/json-path",      label: "$ JSONPath",      show: "lg" },
-  { href: "/bulk-template",  label: "⚡ Bulk Gen",     show: "lg" },
+  { href: "/regex",          label: "⋅* Regex",       show: "xl" },
+  { href: "/jwt",            label: "🔑 JWT",          show: "xl" },
+  { href: "/diff",           label: "⇄ Diff",          show: "xl" },
+  { href: "/base-converter", label: "01 Base",         show: "xl" },
+  { href: "/color-toolkit",  label: "🎨 Color",        show: "xl" },
+  { href: "/cron-builder",   label: "⏱ Cron",          show: "xl" },
+  { href: "/json-path",      label: "$ JSONPath",      show: "xl" },
+  { href: "/bulk-template",  label: "⚡ Bulk Gen",     show: "xl" },
   { href: "/changelog",      label: "📋 Changelog",   show: "lg" },
-  { href: "/api-docs",       label: "{ } API",        show: "lg" },
-  { href: "/sitemap-page",   label: "🗺 Site Map",    show: "lg" },
+  { href: "/api-docs",       label: "{ } API",        show: "xl" },
+  { href: "/sitemap-page",   label: "🗺 Site Map",    show: "xl" },
   { href: "/about",           label: "About",         show: "lg" },
 ];
 
@@ -43,10 +43,11 @@ function isActive(pathname: string, href: string, exact?: boolean) {
   return pathname === href || pathname.startsWith(href + "/") || pathname.startsWith(href + "?");
 }
 
-const SHOW_CLASS: Record<"sm" | "md" | "lg", string> = {
+const SHOW_CLASS: Record<"sm" | "md" | "lg" | "xl", string> = {
   sm: "hidden sm:inline-flex",
   md: "hidden md:inline-flex",
   lg: "hidden lg:inline-flex",
+  xl: "hidden xl:inline-flex",
 };
 
 export function NavLinks() {

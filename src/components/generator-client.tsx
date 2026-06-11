@@ -364,7 +364,7 @@ print(data["results"])`;
   return (
     <>
     {showHistoryPanel && <HistoryPanel onClose={() => setShowHistoryPanel(false)} />}
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+    <div className="grid gap-6 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr]">
       {/* Controls */}
       <section className="surface h-fit rounded-2xl border p-5 shadow-sm" aria-label="Options">
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted">Options</h2>

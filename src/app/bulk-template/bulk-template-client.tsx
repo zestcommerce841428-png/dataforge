@@ -79,7 +79,7 @@ export function BulkTemplateGenerator() {
     <div className="space-y-5">
       {/* Config */}
       <div className="surface rounded-2xl border p-5 shadow-sm">
-        <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto] lg:grid-cols-[1fr_auto_auto]">
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted">Generator</label>
             <select value={slug} onChange={(e) => setSlug(e.target.value)} aria-label="Select generator"
@@ -101,9 +101,9 @@ export function BulkTemplateGenerator() {
               ))}
             </div>
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end sm:col-span-2 lg:col-span-1">
             <button type="button" onClick={generate} disabled={loading}
-              className="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60">
+              className="w-full rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60 sm:w-auto">
               {loading ? "Generating…" : "Generate"}
             </button>
           </div>

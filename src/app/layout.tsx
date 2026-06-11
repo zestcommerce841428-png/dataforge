@@ -1,18 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import dynamic from "next/dynamic";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { GoogleAnalytics } from "@/components/analytics";
-import { AccessibilityPanel } from "@/components/accessibility-panel";
-import { CookieConsent } from "@/components/cookie-consent";
-import { Recaptcha } from "@/components/recaptcha";
-import { WhatsAppButton } from "@/components/whatsapp-button";
-import { ScrollButtons } from "@/components/scroll-buttons";
 import { PwaInit } from "@/components/pwa-init";
-import { WelcomeBanner } from "@/components/welcome-banner";
-import { OnboardingOverlay } from "@/components/onboarding-overlay";
-import { OfflineIndicator } from "@/components/offline-indicator";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
+
+// Lazy-load non-critical UI — deferred until after hydration so they don't
+// block the initial paint or increase the critical JS bundle.
+const GoogleAnalytics    = dynamic(() => import("@/components/analytics").then((m) => ({ default: m.GoogleAnalytics })),    { ssr: false });
+const AccessibilityPanel = dynamic(() => import("@/components/accessibility-panel").then((m) => ({ default: m.AccessibilityPanel })), { ssr: false });
+const CookieConsent      = dynamic(() => import("@/components/cookie-consent").then((m) => ({ default: m.CookieConsent })),      { ssr: false });
+const Recaptcha          = dynamic(() => import("@/components/recaptcha").then((m) => ({ default: m.Recaptcha })),          { ssr: false });
+const WhatsAppButton     = dynamic(() => import("@/components/whatsapp-button").then((m) => ({ default: m.WhatsAppButton })),     { ssr: false });
+const ScrollButtons      = dynamic(() => import("@/components/scroll-buttons").then((m) => ({ default: m.ScrollButtons })),      { ssr: false });
+const WelcomeBanner      = dynamic(() => import("@/components/welcome-banner").then((m) => ({ default: m.WelcomeBanner })),      { ssr: false });
+const OnboardingOverlay  = dynamic(() => import("@/components/onboarding-overlay").then((m) => ({ default: m.OnboardingOverlay })), { ssr: false });
+const OfflineIndicator   = dynamic(() => import("@/components/offline-indicator").then((m) => ({ default: m.OfflineIndicator })),   { ssr: false });
 
 const SITE_DESC =
   "DataForge is a free suite of privacy-first online tools — 200+ developer utilities, 170+ data generators, an Excel-style spreadsheet with 360+ formulas, a live crypto tracker, file converter and OCR. Everything runs locally in your browser.";
@@ -134,6 +138,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
+        {/* DNS prefetch / preconnect for external services */}
+        <link rel="preconnect" href="https://coin-images.coingecko.com" />
+        <link rel="preconnect" href="https://api.coingecko.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

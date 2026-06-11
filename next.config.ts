@@ -67,19 +67,58 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_NODE:    BUILD_NODE,
     NEXT_PUBLIC_BUILD_NEXT:    process.env.npm_package_dependencies_next ?? "",
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "coin-images.coingecko.com" },
+      { protocol: "https", hostname: "assets.coingecko.com" },
+    ],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+  },
+  compress: true,
   async headers() {
+    const securityHeaders = [
+      { key: "X-Content-Type-Options",          value: "nosniff" },
+      { key: "X-Frame-Options",                  value: "DENY" },
+      { key: "X-DNS-Prefetch-Control",           value: "on" },
+      { key: "Referrer-Policy",                  value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy",               value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), battery=()" },
+      { key: "Content-Security-Policy",          value: csp },
+      // Enforce HTTPS for 2 years, include subdomains
+      { key: "Strict-Transport-Security",        value: "max-age=63072000; includeSubDomains; preload" },
+      // Cross-origin isolation
+      { key: "Cross-Origin-Opener-Policy",       value: "same-origin-allow-popups" },
+      { key: "Cross-Origin-Resource-Policy",     value: "cross-origin" },
+      { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+    ];
+
     return [
+      // Security headers on every response
+      { source: "/(.*)", headers: securityHeaders },
+      // Long-lived cache for immutable Next.js static chunks
       {
-        source: "/(.*)",
+        source: "/_next/static/(.*)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      // Cache optimised images for 1 day
+      {
+        source: "/_next/image(.*)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+      // Cache public assets (favicon, manifest, sw) for 1 week
+      {
+        source: "/(favicon\\.svg|manifest\\.webmanifest|logo\\.svg|sw\\.js)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }],
+      },
+      // API routes: no store, set CORS
+      {
+        source: "/api/(.*)",
         headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          { key: "Content-Security-Policy", value: csp },
+          { key: "Cache-Control",               value: "no-store, no-cache, must-revalidate" },
+          { key: "Access-Control-Allow-Origin",  value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
         ],
       },
     ];

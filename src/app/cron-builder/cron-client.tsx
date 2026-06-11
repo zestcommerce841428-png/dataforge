@@ -182,7 +182,7 @@ export function CronBuilder() {
           <p className="mt-2 text-[10px] text-muted">Format: minute hour day-of-month month day-of-week</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-5">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
           <FieldEditor label="Minute"  value={minute}  onChange={setMinute}  max={59} />
           <FieldEditor label="Hour"    value={hour}    onChange={setHour}    max={23} />
           <FieldEditor label="Day"     value={day}     onChange={setDay}     max={31} min={1} />

@@ -410,6 +410,9 @@ body::before {
   opacity: var(--bg-overlay, 1);
   transition: background 0.5s ease, opacity 0.5s ease;
   pointer-events: none;
+  /* Promote to GPU layer to prevent repaints on scroll */
+  transform: translateZ(0);
+  will-change: background, opacity;
 }
 
 @layer utilities {
@@ -439,13 +442,15 @@ svg, canvas, img, video, [data-no-transition] {
   transition: none !important;
 }
 
-html { scroll-behavior: smooth; }
-
-/* Custom thin scrollbars */
+/* Custom thin scrollbars — WebKit */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* Firefox scrollbar (progressive enhancement — ignored by Safari/older Chrome) */
+@supports (scrollbar-width: thin) {
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+}
 
 /* Text selection */
 ::selection {
@@ -453,17 +458,43 @@ html { scroll-behavior: smooth; }
   color: var(--text);
 }
 
+/* Consistent, high-visibility focus ring */
 :focus-visible {
   outline: 2px solid var(--color-brand-500);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 6px;
 }
+
+/* Remove focus ring on mouse click, keep for keyboard */
+:focus:not(:focus-visible) { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   body::before {
     transition: none !important;
+    animation: none !important;
   }
+}
+
+/* ── Mobile touch targets: minimum 44×44px per WCAG 2.5.5 ── */
+@media (hover: none) and (pointer: coarse) {
+  button, [role="button"], a, select, input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ── Performance: content-visibility on off-screen sections ── */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 200px;
+}
+
+/* ── Smooth scroll (respects reduced-motion via media query above) ── */
+html {
+  scroll-behavior: smooth;
+  /* Offset anchor links to clear the sticky header (~57px) */
+  scroll-padding-top: 4.5rem;
 }
 
 /* ── Dev-tools shared utility classes ───────────────────────── */
