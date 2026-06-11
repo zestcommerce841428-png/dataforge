@@ -11,6 +11,7 @@ import { ScrollButtons } from "@/components/scroll-buttons";
 import { PwaInit } from "@/components/pwa-init";
 import { WelcomeBanner } from "@/components/welcome-banner";
 import { OnboardingOverlay } from "@/components/onboarding-overlay";
+import { OfflineIndicator } from "@/components/offline-indicator";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 const SITE_DESC =
@@ -167,6 +168,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <WhatsAppButton />
         <CookieConsent />
         <Recaptcha />
+        <OfflineIndicator />
         <GoogleAnalytics />
       </body>
     </html>

@@ -5,7 +5,7 @@ import { SITE_URL as BASE } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const staticRoutes = ["", "/about", "/privacy", "/terms", "/cookies", "/disclaimer", "/contact", "/crypto", "/ocr", "/file-converter", "/dev-tools", "/formula-manager", "/workbook", "/shortcuts", "/typing", "/image-tools", "/pdf-tools", "/handwriting", "/format-converter", "/code-formatter", "/blog", "/changelog", "/api-docs", "/sitemap-page"].map((p) => ({
+  const staticRoutes = ["", "/about", "/privacy", "/terms", "/cookies", "/disclaimer", "/contact", "/crypto", "/ocr", "/file-converter", "/dev-tools", "/formula-manager", "/workbook", "/shortcuts", "/typing", "/image-tools", "/pdf-tools", "/handwriting", "/format-converter", "/code-formatter", "/blog", "/changelog", "/api-docs", "/sitemap-page", "/regex", "/jwt", "/diff", "/base-converter", "/color-toolkit", "/cron-builder", "/json-path", "/bulk-template"].map((p) => ({
     url: `${BASE}${p}`,
     lastModified: now,
     changeFrequency: "monthly" as const,

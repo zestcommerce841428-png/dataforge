@@ -48,6 +48,23 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // 'G' shortcut on focused card → quick-generate
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "g" && e.key !== "G") return;
+      const el = document.activeElement as HTMLElement;
+      if (!el?.hasAttribute("data-card")) return;
+      const slug = el.getAttribute("href")?.replace("/tools/", "");
+      if (!slug) return;
+      e.preventDefault();
+      // Simulate click on the ⚡ button inside the focused card
+      const btn = el.querySelector<HTMLButtonElement>("[data-quickgen]");
+      btn?.click();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
   // Arrow-key navigation within the tool grid
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -235,9 +252,10 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
               {mounted && !isVisual && (
                 <button
                   type="button"
+                  data-quickgen
                   onClick={(e) => quickGenerate(t.slug, e)}
                   aria-label={`Quick-generate ${t.name} and copy to clipboard`}
-                  title={isCopied ? "Copied!" : "Generate & copy"}
+                  title={isCopied ? "Copied!" : "Generate & copy (G)"}
                   className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded text-xs transition-opacity ${
                     isCopied
                       ? "text-green-500 opacity-100"

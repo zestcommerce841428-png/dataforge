@@ -4021,6 +4021,145 @@ export const GENERATORS: Generator[] = [
       return `${name} ${shade}  →  ${hex}`;
     },
   },
+
+  {
+    slug: "opengraph-snippet",
+    name: "OpenGraph / Social Preview Snippet",
+    category: "code",
+    short: "Generate <meta> OpenGraph and Twitter Card tags.",
+    description: "Generate a ready-to-paste HTML block of OpenGraph and Twitter Card meta tags for social media link previews.",
+    keywords: ["opengraph", "og", "twitter card", "meta tags", "social", "seo", "preview"],
+    fields: [
+      { key: "title",       label: "Title",       type: "text",   placeholder: "My Awesome Page", default: "My Awesome Page" },
+      { key: "description", label: "Description", type: "text",   placeholder: "A brief description of the page", default: "A brief description of the page." },
+      { key: "url",         label: "Page URL",    type: "text",   placeholder: "https://example.com/page", default: "https://example.com/page" },
+      { key: "image",       label: "Image URL",   type: "text",   placeholder: "https://example.com/og.png", default: "https://example.com/og.png" },
+      { key: "site",        label: "Site Name",   type: "text",   placeholder: "Example Site", default: "Example Site" },
+    ],
+    generate: (opts) => {
+      const title       = (opts?.title       as string) || "My Awesome Page";
+      const description = (opts?.description as string) || "A brief description of the page.";
+      const url         = (opts?.url         as string) || "https://example.com/page";
+      const image       = (opts?.image       as string) || "https://example.com/og.png";
+      const site        = (opts?.site        as string) || "Example Site";
+      return `<!-- OpenGraph / Social Preview -->
+<meta property="og:type"        content="website" />
+<meta property="og:url"         content="${url}" />
+<meta property="og:title"       content="${title}" />
+<meta property="og:description" content="${description}" />
+<meta property="og:image"       content="${image}" />
+<meta property="og:site_name"   content="${site}" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image" />
+<meta name="twitter:url"         content="${url}" />
+<meta name="twitter:title"       content="${title}" />
+<meta name="twitter:description" content="${description}" />
+<meta name="twitter:image"       content="${image}" />`;
+    },
+  },
+
+  {
+    slug: "fake-markdown-doc",
+    name: "Fake Markdown Document",
+    category: "text",
+    short: "Generate a realistic-looking Markdown document.",
+    description: "Create a realistic multi-section Markdown document with headings, paragraphs, lists, code blocks, and tables. Great for design mockups and testing.",
+    keywords: ["markdown", "document", "lorem ipsum", "mock", "placeholder", "content"],
+    fields: [
+      { key: "topic",    label: "Topic",    type: "text",   placeholder: "API Documentation", default: "API Documentation" },
+      { key: "sections", label: "Sections", type: "number", placeholder: "4", default: "4" },
+    ],
+    generate: (opts) => {
+      const topic    = (opts?.topic as string) || "API Documentation";
+      const sections = Math.min(8, Math.max(1, parseInt((opts?.sections as string) || "4")));
+      const verbs    = ["handles", "manages", "processes", "validates", "transforms", "generates", "resolves", "exposes"];
+      const nouns    = ["requests", "responses", "payloads", "tokens", "records", "events", "schemas", "endpoints"];
+      const rw = () => verbs[Math.floor(Math.random() * verbs.length)];
+      const rn = () => nouns[Math.floor(Math.random() * nouns.length)];
+      const para = () => `This component ${rw()} ${rn()} and ${rw()} ${rn()}. The system ${rw()} ${rn()} according to the configured rules and returns an appropriate result to the caller.`;
+      const headings = ["Overview", "Installation", "Configuration", "Usage", "Authentication", "Rate Limiting", "Errors", "Examples", "FAQ", "Changelog"];
+
+      let md = `# ${topic}\n\n> Auto-generated documentation placeholder.\n\n`;
+      for (let i = 0; i < sections; i++) {
+        const h = headings[i % headings.length];
+        md += `## ${h}\n\n${para()}\n\n`;
+        if (i % 2 === 0) {
+          md += `- Item one: ${rn()}\n- Item two: ${rn()}\n- Item three: ${rn()}\n\n`;
+        }
+        if (i % 3 === 0) {
+          md += "```bash\ncurl -X GET https://api.example.com/v1/resource \\\n  -H 'Authorization: Bearer <token>'\n```\n\n";
+        }
+      }
+      md += `| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| id | string | Yes | Unique identifier |\n| name | string | No | Display name |\n| created_at | ISO 8601 | Yes | Creation timestamp |\n`;
+      return md;
+    },
+  },
+
+  {
+    slug: "data-uri-placeholder",
+    name: "Data URI Placeholder Image",
+    category: "code",
+    short: "Generate an inline SVG data URI placeholder image.",
+    description: "Generate a data URI for an inline SVG placeholder image with configurable size, background color, text color, and label. Paste directly into <img src>.",
+    keywords: ["data uri", "placeholder", "image", "svg", "inline", "base64", "img src"],
+    fields: [
+      { key: "width",  label: "Width",  type: "number", placeholder: "400", default: "400" },
+      { key: "height", label: "Height", type: "number", placeholder: "300", default: "300" },
+      { key: "bg",     label: "Background Color", type: "text", placeholder: "#cccccc", default: "#cccccc" },
+      { key: "color",  label: "Text Color",       type: "text", placeholder: "#555555", default: "#555555" },
+      { key: "text",   label: "Label",             type: "text", placeholder: "400×300", default: "" },
+    ],
+    generate: (opts) => {
+      const w     = Math.max(1, parseInt((opts?.width  as string) || "400"));
+      const h     = Math.max(1, parseInt((opts?.height as string) || "300"));
+      const bg    = (opts?.bg    as string) || "#cccccc";
+      const color = (opts?.color as string) || "#555555";
+      const label = (opts?.text  as string) || `${w}×${h}`;
+      const fs    = Math.max(10, Math.min(48, Math.round(Math.min(w, h) / 8)));
+      const svg   = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${bg}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="${fs}" fill="${color}">${label}</text></svg>`;
+      const encoded = "data:image/svg+xml," + encodeURIComponent(svg);
+      return `<!-- Inline placeholder -->\n<img src="${encoded}" width="${w}" height="${h}" alt="${label}" />\n\n<!-- Data URI only -->\n${encoded}`;
+    },
+  },
+
+  {
+    slug: "semver-bump",
+    name: "Semantic Version Bumper",
+    category: "dev",
+    short: "Bump a semver version — major, minor, or patch.",
+    description: "Enter a semantic version (e.g. 1.4.2) and choose whether to bump major, minor, or patch. Get the bumped version with git tag and npm publish commands.",
+    keywords: ["semver", "semantic version", "version bump", "npm", "release", "git tag"],
+    fields: [
+      { key: "version", label: "Current Version", type: "text",   placeholder: "1.4.2",  default: "1.4.2" },
+      { key: "bump",    label: "Bump Type",       type: "select", options: ["patch", "minor", "major"], default: "patch" },
+      { key: "prerelease", label: "Pre-release tag (optional)", type: "text", placeholder: "beta.1", default: "" },
+    ],
+    generate: (opts) => {
+      const raw  = ((opts?.version as string) || "1.4.2").replace(/^v/, "");
+      const bump = (opts?.bump as string) || "patch";
+      const pre  = (opts?.prerelease as string) || "";
+      const parts = raw.split(".").map((p) => parseInt(p) || 0);
+      let [major, minor, patch] = [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
+      if (bump === "major")      { major++; minor = 0; patch = 0; }
+      else if (bump === "minor") { minor++; patch = 0; }
+      else                       { patch++; }
+      const next = pre ? `${major}.${minor}.${patch}-${pre}` : `${major}.${minor}.${patch}`;
+      return `Current:  v${raw}
+Bumped:   v${next}  (${bump})
+
+# Git tag
+git tag -a v${next} -m "Release v${next}"
+git push origin v${next}
+
+# npm
+npm version ${next}
+npm publish
+
+# CHANGELOG heading
+## [${next}] - ${new Date().toISOString().slice(0, 10)}`;
+    },
+  },
 ];
 
 function isPrime(n: number): boolean {

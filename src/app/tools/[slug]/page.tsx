@@ -13,18 +13,31 @@ export function generateStaticParams() {
   return GENERATORS.map((g) => ({ slug: g.slug }));
 }
 
+function seoTitle(name: string, category: string): string {
+  const actionMap: Record<string, string> = {
+    name: "Generate", address: "Generate", text: "Generate", id: "Generate",
+    date: "Generate", number: "Generate", code: "Generate", color: "Generate",
+    finance: "Generate", internet: "Generate", science: "Generate", misc: "Generate",
+    geo: "Generate", dev: "Generate", media: "Generate",
+  };
+  const verb = actionMap[category] ?? "Generate";
+  return `${verb} ${name} — Free Online Tool`;
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params;
   const gen = getGenerator(slug);
   if (!gen) return { title: "Tool not found" };
+  const title = seoTitle(gen.name, gen.category);
   return {
-    title: gen.name,
+    title,
     description: gen.description,
-    keywords: gen.keywords,
+    keywords: [...gen.keywords, "free", "online", "generator", "tool", "DataForge"],
     alternates: { canonical: `/tools/${gen.slug}` },
-    openGraph: { title: `${gen.name} · DataForge`, description: gen.description },
+    openGraph: { title: `${title} · DataForge`, description: gen.description },
+    twitter: { card: "summary", title: `${gen.name} — DataForge`, description: gen.short },
   };
 }
 
@@ -36,7 +49,17 @@ export default async function ToolPage(
   if (!gen) notFound();
 
   const category = CATEGORIES.find((c) => c.id === gen.category);
-  const related = generatorsByCategory(gen.category).filter((g) => g.slug !== gen.slug).slice(0, 4);
+
+  // Same-category related (up to 4)
+  const sameCategory = generatorsByCategory(gen.category).filter((g) => g.slug !== gen.slug).slice(0, 4);
+
+  // Cross-category: pick 1 from each of up to 4 different categories
+  const crossCategory = CATEGORIES
+    .filter((c) => c.id !== gen.category)
+    .slice(0, 4)
+    .flatMap((c) => generatorsByCategory(c.id).slice(0, 1));
+
+  const related = sameCategory.length >= 4 ? sameCategory : [...sameCategory, ...crossCategory].slice(0, 6);
 
   return (
     <article>
@@ -59,18 +82,27 @@ export default async function ToolPage(
 
       {related.length > 0 && (
         <section className="mt-12" aria-label="Related tools">
-          <h2 className="mb-4 text-lg font-bold">Related generators</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((g) => (
-              <Link
-                key={g.slug}
-                href={`/tools/${g.slug}`}
-                className="surface rounded-xl border p-4 shadow-sm transition hover:border-brand-400 hover:shadow-md"
-              >
-                <h3 className="font-semibold">{g.name}</h3>
-                <p className="mt-1 text-sm text-muted">{g.short}</p>
-              </Link>
-            ))}
+          <h2 className="mb-4 text-lg font-bold">You might also like</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {related.map((g) => {
+              const cat = CATEGORIES.find((c) => c.id === g.category);
+              const isCross = g.category !== gen.category;
+              return (
+                <Link
+                  key={g.slug}
+                  href={`/tools/${g.slug}`}
+                  className="surface rounded-xl border p-4 shadow-sm transition hover:border-brand-400 hover:shadow-md"
+                >
+                  <div className="mb-1.5 flex items-center gap-2">
+                    <h3 className="font-semibold leading-tight">{g.name}</h3>
+                    {isCross && cat && (
+                      <span className="ml-auto shrink-0 rounded-full border border-app px-2 py-0.5 text-[10px] text-muted">{cat.name}</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted">{g.short}</p>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}

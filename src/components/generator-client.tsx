@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getGenerator, type GenOptions } from "@/lib/generators";
+import { HistoryPanel } from "@/components/history-panel";
 
 const HISTORY_LIMIT = 50;
 const RECENT_KEY   = "df-recent";
@@ -173,6 +174,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
   const [shareMsg, setShareMsg]   = useState("");
   const [rating, setRatingState]  = useState<"up" | "down" | null>(null);
   const [showApiUsage, setShowApiUsage] = useState(false);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const historyKey = `df-history-${slug}`;
 
@@ -341,19 +343,27 @@ export function GeneratorClient({ slug }: { slug: string }) {
   const isBulk       = results.length > 1;
   const origin       = typeof window !== "undefined" ? window.location.origin : "https://dataforge-omega.vercel.app";
 
-  const apiExample = `# cURL
-curl "${origin}/api/generate?tool=${slug}&count=5"
+  // Build live API URL with current field values
+  const fieldParams = gen.fields
+    .map((f) => `${encodeURIComponent(f.key)}=${encodeURIComponent(String(opts[f.key] ?? f.default))}`)
+    .join("&");
+  const liveApiUrl = `${origin}/api/generate?tool=${slug}&count=5${fieldParams ? "&" + fieldParams : ""}`;
+
+  const apiExample = `# cURL (with current field values)
+curl "${liveApiUrl}"
 
 # JavaScript (fetch)
-const res = await fetch("${origin}/api/generate?tool=${slug}&count=5");
+const res = await fetch("${liveApiUrl}");
 const { results } = await res.json();
 
 # Python
 import requests
-data = requests.get("${origin}/api/generate", params={"tool": "${slug}", "count": 5}).json()
+data = requests.get("${origin}/api/generate", params={"tool": "${slug}", "count": 5${gen.fields.length > 0 ? ", " + gen.fields.map((f) => `"${f.key}": "${String(opts[f.key] ?? f.default)}"`).join(", ") : ""}}).json()
 print(data["results"])`;
 
   return (
+    <>
+    {showHistoryPanel && <HistoryPanel onClose={() => setShowHistoryPanel(false)} />}
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       {/* Controls */}
       <section className="surface h-fit rounded-2xl border p-5 shadow-sm" aria-label="Options">
@@ -458,9 +468,19 @@ print(data["results"])`;
             <span aria-hidden>{showApiUsage ? "▲" : "▼"}</span>
           </button>
           {showApiUsage && (
-            <pre className="surface-2 overflow-x-auto rounded-xl border border-app p-3 text-[10px] leading-relaxed text-muted">
-              {apiExample}
-            </pre>
+            <div className="space-y-2">
+              <div className="surface-2 flex items-center gap-2 overflow-hidden rounded-lg border border-app px-3 py-2">
+                <span className="shrink-0 text-[10px] font-semibold text-brand-600">GET</span>
+                <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-muted">{liveApiUrl}</span>
+                <button type="button" onClick={async () => { await navigator.clipboard.writeText(liveApiUrl); }}
+                  className="shrink-0 rounded border border-app px-1.5 py-0.5 text-[10px] text-muted hover:text-brand-600">
+                  Copy URL
+                </button>
+              </div>
+              <pre className="surface-2 overflow-x-auto rounded-xl border border-app p-3 text-[10px] leading-relaxed text-muted">
+                {apiExample}
+              </pre>
+            </div>
           )}
         </div>
       </section>
@@ -615,5 +635,6 @@ print(data["results"])`;
         )}
       </div>
     </div>
+    </>
   );
 }
