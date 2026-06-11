@@ -26,6 +26,7 @@ const NAV: {
   { href: "/shortcuts",       label: "⚡ Shortcuts",   show: "lg" },
   { href: "/changelog",      label: "📋 Changelog",   show: "lg" },
   { href: "/api-docs",       label: "{ } API",        show: "lg" },
+  { href: "/sitemap-page",   label: "🗺 Site Map",    show: "lg" },
   { href: "/about",           label: "About",         show: "lg" },
 ];
 

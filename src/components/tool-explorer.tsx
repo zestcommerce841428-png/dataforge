@@ -96,7 +96,7 @@ export function ToolExplorer({ tools }: { tools: ToolMeta[] }) {
       if (!gen) return;
       const opts: Record<string, string | number | boolean> = {};
       for (const f of gen.fields) opts[f.key] = f.default;
-      const result = gen.generate(opts);
+      const result = await Promise.resolve(gen.generate(opts));
       if (!result.startsWith("data:image/") && !result.trimStart().startsWith("<svg")) {
         await navigator.clipboard.writeText(result);
         setQuickCopied(slug);
@@ -286,7 +286,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={active === true}
+      aria-pressed={active ? "true" : "false"}
       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
         active
           ? "border-brand-600 bg-brand-600 text-white"
