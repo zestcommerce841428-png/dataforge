@@ -69,7 +69,7 @@ export function ThemeControls() {
           title="Change background"
         >
           <span aria-hidden className="h-4 w-4 rounded-full border border-black/10" style={{ background: current.css === "none" ? "var(--surface-2)" : current.css }} />
-          <span className="hidden sm:inline">{mounted ? current.label : "Background"}</span>
+          <span className="hidden lg:inline">{mounted ? current.label : "Background"}</span>
         </button>
 
         {open && (
