@@ -154,7 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <PwaInit />
         <SiteHeader />
-        <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6">
+        <main id="main" className="mx-auto w-full max-w-6xl px-3 pb-20 pt-6 sm:px-6 sm:pt-8">
           {children}
         </main>
         <SiteFooter />
