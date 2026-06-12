@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SitemapEntry } from "./page";
 
 type Section = "all" | "static" | "tools" | "blog" | "api";
 type ViewMode = "grid" | "tree" | "table";
+type SortKey  = "priority" | "alpha" | "date";
 
 interface Stats {
   total: number;
@@ -17,157 +18,130 @@ interface Stats {
   buildDate: string;
 }
 
-const SECTION_META: Record<Section, { label: string; icon: string; color: string; dot: string }> = {
-  all:    { label: "All Pages",    icon: "🗺",  color: "border-brand-500 bg-brand-500 text-white",                   dot: "bg-brand-500" },
-  static: { label: "Site Pages",  icon: "📄",  color: "border-sky-500 bg-sky-500 text-white",                       dot: "bg-sky-500" },
-  tools:  { label: "Generators",  icon: "⚡",  color: "border-purple-500 bg-purple-500 text-white",                 dot: "bg-purple-500" },
-  blog:   { label: "Blog",        icon: "📝",  color: "border-emerald-500 bg-emerald-500 text-white",               dot: "bg-emerald-500" },
-  api:    { label: "API Routes",  icon: "{ }", color: "border-amber-500 bg-amber-500 text-white",                   dot: "bg-amber-500" },
+const SECTION_META: Record<Section, { label: string; icon: string; accent: string; dot: string; ring: string }> = {
+  all:    { label: "All Pages",   icon: "🗺",  accent: "bg-brand-500 text-white border-brand-500",   dot: "bg-brand-500",   ring: "ring-brand-300" },
+  static: { label: "Pages",      icon: "📄",  accent: "bg-sky-500 text-white border-sky-500",        dot: "bg-sky-500",     ring: "ring-sky-300" },
+  tools:  { label: "Generators", icon: "⚡",  accent: "bg-purple-500 text-white border-purple-500",  dot: "bg-purple-500",  ring: "ring-purple-300" },
+  blog:   { label: "Blog",       icon: "📝",  accent: "bg-emerald-500 text-white border-emerald-500",dot: "bg-emerald-500", ring: "ring-emerald-300" },
+  api:    { label: "API",        icon: "{ }", accent: "bg-amber-500 text-white border-amber-500",    dot: "bg-amber-500",   ring: "ring-amber-300" },
 };
 
-const PRIORITY_STYLE: Record<number, string> = {
-  1.0: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  0.9: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  0.8: "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300",
-  0.7: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300",
-  0.6: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-  0.5: "bg-[var(--surface-2)] text-muted",
-  0.4: "bg-[var(--surface-2)] text-muted",
-  0.3: "bg-[var(--surface-2)] text-muted",
-  0.2: "bg-[var(--surface-2)] text-muted",
+const PRIORITY_BADGE: Record<string, string> = {
+  "1.0": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  "0.9": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  "0.8": "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300",
+  "0.7": "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300",
+  "0.6": "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
 };
-
-function priorityStyle(p: number) {
-  return PRIORITY_STYLE[Math.round(p * 10) / 10] ?? "bg-[var(--surface-2)] text-muted";
+function priorityBadge(p: number) {
+  return PRIORITY_BADGE[(p).toFixed(1)] ?? "bg-[var(--surface-2)] text-muted";
 }
 
-function CopyUrlButton({ url }: { url: string }) {
-  const [copied, setCopied] = useState(false);
+/* ── Helpers ── */
+function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
+  const [ok, setOk] = useState(false);
   return (
     <button
       type="button"
-      onClick={async (e) => {
-        e.preventDefault();
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1400);
-      }}
-      title="Copy URL"
-      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium transition-all ${
-        copied ? "bg-green-100 text-green-700" : "bg-[var(--surface-2)] text-muted hover:text-brand-600"
-      }`}
+      onClick={async (e) => { e.preventDefault(); await navigator.clipboard.writeText(text); setOk(true); setTimeout(() => setOk(false), 1400); }}
+      title={label}
+      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium transition-all ${ok ? "bg-green-100 text-green-700" : "bg-[var(--surface-2)] text-muted hover:text-brand-600"}`}
     >
-      {copied ? "✓" : "⧉"}
+      {ok ? "✓ copied" : "⧉"}
     </button>
   );
+}
+
+function NewBadge() {
+  return <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[9px] font-bold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">NEW</span>;
 }
 
 function SectionDot({ section }: { section: Section }) {
   return <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${SECTION_META[section].dot}`} />;
 }
 
-// ── Grid card view ────────────────────────────────────────────────────────────
-function GridEntry({ entry, siteUrl }: { entry: SitemapEntry; siteUrl: string }) {
-  const meta = SECTION_META[entry.section];
+/* ── Grid card ── */
+function GridEntry({ entry, siteUrl, onVisit }: { entry: SitemapEntry; siteUrl: string; onVisit: (path: string) => void }) {
   return (
     <Link
       href={entry.path}
-      className="surface group relative flex flex-col rounded-xl border p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-md"
+      onClick={() => onVisit(entry.path)}
+      className="surface group relative flex flex-col rounded-2xl border p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400 hover:shadow-lg"
     >
-      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
-        <CopyUrlButton url={`${siteUrl}${entry.path}`} />
+      <div className="absolute right-2.5 top-2.5 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <CopyBtn text={`${siteUrl}${entry.path}`} label="Copy URL" />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="mb-2 flex items-center gap-2">
         <SectionDot section={entry.section} />
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">{entry.category}</span>
-        {entry.isNew && (
-          <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[9px] font-bold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">NEW</span>
-        )}
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{entry.category}</span>
+        {entry.isNew && <NewBadge />}
       </div>
-      <p className="mt-1.5 text-sm font-semibold leading-tight group-hover:text-brand-600">{entry.title}</p>
-      <p className="mt-1 line-clamp-2 text-xs text-muted">{entry.description}</p>
-      <div className="mt-2 flex items-center gap-2">
-        <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${priorityStyle(entry.priority)}`}>
-          P{entry.priority.toFixed(1)}
-        </span>
-        <span className="text-[10px] text-muted tabular-nums">{entry.lastModified}</span>
-        <span aria-hidden className="ml-auto text-muted transition group-hover:translate-x-0.5 group-hover:text-brand-600 text-xs">→</span>
+      <p className="flex-1 text-sm font-semibold leading-snug group-hover:text-brand-600 transition-colors">{entry.title}</p>
+      <p className="mt-1.5 line-clamp-2 text-xs text-muted leading-relaxed">{entry.description}</p>
+      <div className="mt-3 flex items-center gap-2 border-t border-app pt-2.5">
+        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${priorityBadge(entry.priority)}`}>P{entry.priority.toFixed(1)}</span>
+        <span className="truncate font-mono text-[10px] text-muted">{entry.path}</span>
+        <span aria-hidden className="ml-auto shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-600 text-sm">→</span>
       </div>
     </Link>
   );
 }
 
-// ── Tree row view ─────────────────────────────────────────────────────────────
-function TreeEntry({ entry, siteUrl }: { entry: SitemapEntry; siteUrl: string }) {
-  const meta = SECTION_META[entry.section];
+/* ── Tree row ── */
+function TreeEntry({ entry, siteUrl, onVisit }: { entry: SitemapEntry; siteUrl: string; onVisit: (path: string) => void }) {
   return (
-    <div className="group flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-[var(--surface-2)]">
+    <div className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-[var(--surface-2)]">
       <SectionDot section={entry.section} />
-      <Link href={entry.path} className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-sm group-hover:text-brand-600 transition truncate">{entry.title}</span>
-          {entry.isNew && (
-            <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[9px] font-bold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">NEW</span>
-          )}
+      <Link href={entry.path} onClick={() => onVisit(entry.path)} className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-sm font-medium group-hover:text-brand-600 transition">{entry.title}</span>
+          {entry.isNew && <NewBadge />}
         </div>
-        <div className="mt-0.5 font-mono text-[10px] text-muted truncate">{entry.path}</div>
+        <div className="mt-0.5 font-mono text-[10px] text-muted">{entry.path}</div>
       </Link>
-      <span className={`hidden shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium sm:block ${priorityStyle(entry.priority)}`}>
-        {entry.priority.toFixed(1)}
-      </span>
-      <span className="hidden shrink-0 text-[10px] text-muted md:block">{entry.lastModified}</span>
-      <CopyUrlButton url={`${siteUrl}${entry.path}`} />
+      <span className={`hidden shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold sm:block ${priorityBadge(entry.priority)}`}>{entry.priority.toFixed(1)}</span>
+      <span className="hidden shrink-0 text-[10px] tabular-nums text-muted md:block">{entry.lastModified}</span>
+      <CopyBtn text={`${siteUrl}${entry.path}`} label="Copy URL" />
     </div>
   );
 }
 
-// ── Table row view ────────────────────────────────────────────────────────────
-function TableView({ entries, siteUrl }: { entries: SitemapEntry[]; siteUrl: string }) {
+/* ── Table ── */
+function TableView({ entries, siteUrl, onVisit }: { entries: SitemapEntry[]; siteUrl: string; onVisit: (path: string) => void }) {
   return (
     <div className="surface overflow-hidden rounded-2xl border shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-app text-left text-[11px] font-semibold uppercase tracking-wide text-muted">
+            <tr className="border-b border-app text-left text-[11px] font-bold uppercase tracking-widest text-muted">
               <th className="px-4 py-3">Page</th>
               <th className="px-4 py-3 hidden sm:table-cell">Path</th>
-              <th className="px-4 py-3 hidden md:table-cell">Section</th>
+              <th className="px-4 py-3 hidden md:table-cell">Type</th>
               <th className="px-4 py-3 hidden lg:table-cell">Category</th>
-              <th className="px-4 py-3">Priority</th>
+              <th className="px-4 py-3">Pri</th>
               <th className="px-4 py-3 hidden lg:table-cell">Updated</th>
-              <th className="px-4 py-3 w-16"></th>
+              <th className="px-4 py-3 w-16" scope="col"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-app">
             {entries.map((e, i) => (
               <tr key={i} className="group transition hover:bg-[var(--surface-2)]">
-                <td className="px-4 py-2.5">
-                  <Link href={e.path} className="font-medium group-hover:text-brand-600 transition block max-w-[200px] truncate">
+                <td className="px-4 py-2.5 max-w-[180px]">
+                  <Link href={e.path} onClick={() => onVisit(e.path)} className="flex items-center gap-1.5 font-medium group-hover:text-brand-600 transition truncate">
                     {e.title}
+                    {e.isNew && <NewBadge />}
                   </Link>
-                  {e.isNew && (
-                    <span className="ml-1 rounded-full bg-brand-100 px-1.5 py-0.5 text-[9px] font-bold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">NEW</span>
-                  )}
                 </td>
-                <td className="px-4 py-2.5 hidden sm:table-cell">
-                  <span className="font-mono text-[11px] text-muted">{e.path}</span>
-                </td>
+                <td className="px-4 py-2.5 hidden sm:table-cell font-mono text-[11px] text-muted max-w-[160px] truncate">{e.path}</td>
                 <td className="px-4 py-2.5 hidden md:table-cell">
-                  <div className="flex items-center gap-1.5">
-                    <SectionDot section={e.section} />
-                    <span className="text-xs capitalize">{e.section}</span>
-                  </div>
+                  <div className="flex items-center gap-1.5"><SectionDot section={e.section} /><span className="text-xs capitalize">{e.section}</span></div>
                 </td>
                 <td className="px-4 py-2.5 hidden lg:table-cell text-xs text-muted">{e.category}</td>
                 <td className="px-4 py-2.5">
-                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${priorityStyle(e.priority)}`}>
-                    {e.priority.toFixed(1)}
-                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${priorityBadge(e.priority)}`}>{e.priority.toFixed(1)}</span>
                 </td>
-                <td className="px-4 py-2.5 hidden lg:table-cell text-xs text-muted tabular-nums">{e.lastModified}</td>
-                <td className="px-4 py-2.5">
-                  <CopyUrlButton url={`${siteUrl}${e.path}`} />
-                </td>
+                <td className="px-4 py-2.5 hidden lg:table-cell text-xs tabular-nums text-muted">{e.lastModified}</td>
+                <td className="px-4 py-2.5"><CopyBtn text={`${siteUrl}${e.path}`} /></td>
               </tr>
             ))}
           </tbody>
@@ -177,18 +151,98 @@ function TableView({ entries, siteUrl }: { entries: SitemapEntry[]; siteUrl: str
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+/* ── Stats mini-bar chart (SVG to avoid inline style) ── */
+function StatsBar({ stats }: { stats: Stats }) {
+  const bars = [
+    { key: "static" as Section, count: stats.static, fill: "#38bdf8" },
+    { key: "tools"  as Section, count: stats.tools,  fill: "#a855f7" },
+    { key: "blog"   as Section, count: stats.blog,   fill: "#34d399" },
+    { key: "api"    as Section, count: stats.api,    fill: "#fbbf24" },
+  ];
+  let x = 0;
+  return (
+    <svg className="mt-4 h-2 w-full rounded-full overflow-hidden" aria-hidden>
+      {bars.map((b) => {
+        const pct = (b.count / stats.total) * 100;
+        const rect = <rect key={b.key} x={`${x}%`} y="0" width={`${pct}%`} height="100%" fill={b.fill}><title>{`${SECTION_META[b.key].label}: ${b.count}`}</title></rect>;
+        x += pct;
+        return rect;
+      })}
+    </svg>
+  );
+}
+
+/* ── Export helpers ── */
+function exportJSON(entries: SitemapEntry[], siteUrl: string) {
+  const data = entries.map((e) => ({ ...e, url: `${siteUrl}${e.path}` }));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sitemap.json"; a.click();
+}
+function exportCSV(entries: SitemapEntry[], siteUrl: string) {
+  const header = ["url", "title", "section", "category", "priority", "lastModified", "isNew"];
+  const rows = entries.map((e) => [
+    `${siteUrl}${e.path}`, e.title, e.section, e.category,
+    e.priority, e.lastModified, e.isNew ? "true" : "false",
+  ]);
+  const csv = [header, ...rows].map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sitemap.csv"; a.click();
+}
+function copyAllUrls(entries: SitemapEntry[], siteUrl: string) {
+  navigator.clipboard.writeText(entries.map((e) => `${siteUrl}${e.path}`).join("\n"));
+}
+
+const VISITED_KEY = "df-sitemap-visited";
+function loadVisited(): string[] {
+  try { return JSON.parse(localStorage.getItem(VISITED_KEY) ?? "[]"); } catch { return []; }
+}
+function saveVisited(paths: string[]) {
+  try { localStorage.setItem(VISITED_KEY, JSON.stringify(paths.slice(0, 30))); } catch { /* noop */ }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Main component
+═══════════════════════════════════════════════════════════════════════════════ */
 export function SitemapUI({ entries, stats }: { entries: SitemapEntry[]; stats: Stats }) {
-  const [query, setQuery]     = useState("");
-  const [section, setSection] = useState<Section>("all");
-  const [view, setView]       = useState<ViewMode>("grid");
-  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set(["all"]));
+  const [query, setQuery]         = useState("");
+  const [section, setSection]     = useState<Section>("all");
+  const [view, setView]           = useState<ViewMode>("grid");
+  const [sort, setSort]           = useState<SortKey>("priority");
+  const [newOnly, setNewOnly]     = useState(false);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set(["__all__"]));
+  const [visited, setVisited]     = useState<string[]>([]);
+  const [copiedAll, setCopiedAll] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  /* Load recently-visited from localStorage */
+  useEffect(() => { setVisited(loadVisited()); }, []);
+
+  /* Keyboard shortcut: / → focus search */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  const onVisit = (path: string) => {
+    setVisited((prev) => {
+      const next = [path, ...prev.filter((p) => p !== path)];
+      saveVisited(next);
+      return next;
+    });
+  };
+
+  /* Filter + sort */
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return entries.filter((e) => {
+    let list = entries.filter((e) => {
       if (section !== "all" && e.section !== section) return false;
+      if (newOnly && !e.isNew) return false;
       if (!q) return true;
       return (
         e.title.toLowerCase().includes(q) ||
@@ -197,9 +251,13 @@ export function SitemapUI({ entries, stats }: { entries: SitemapEntry[]; stats: 
         e.category.toLowerCase().includes(q)
       );
     });
-  }, [entries, section, query]);
+    if (sort === "priority") list = [...list].sort((a, b) => b.priority - a.priority);
+    else if (sort === "alpha") list = [...list].sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === "date")  list = [...list].sort((a, b) => b.lastModified.localeCompare(a.lastModified));
+    return list;
+  }, [entries, section, query, newOnly, sort]);
 
-  // Group by category for tree/grid views
+  /* Group by category */
   const grouped = useMemo(() => {
     const map = new Map<string, SitemapEntry[]>();
     for (const e of filtered) {
@@ -217,173 +275,245 @@ export function SitemapUI({ entries, stats }: { entries: SitemapEntry[]; stats: 
       return next;
     });
   };
+  const allExpanded = expandedCats.has("__all__") || expandedCats.size >= grouped.size;
+  const toggleAll   = () => allExpanded
+    ? setExpandedCats(new Set())
+    : setExpandedCats(new Set(["__all__", ...grouped.keys()]));
 
-  const allExpanded = expandedCats.size >= grouped.size;
-  const toggleAll = () => {
-    if (allExpanded) setExpandedCats(new Set());
-    else setExpandedCats(new Set(["all", ...grouped.keys()]));
-  };
+  const recentEntries = visited
+    .map((p) => entries.find((e) => e.path === p))
+    .filter(Boolean) as SitemapEntry[];
 
+  const newCount = entries.filter((e) => e.isNew).length;
+
+  /* ── Render ── */
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight">Site Map</h1>
-        <p className="mt-1.5 text-muted">
-          Every page, tool and API route on DataForge — searchable, filterable, copy-to-clipboard.
-        </p>
 
-        {/* Stats row */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {(
-            [
-              { label: "Total pages", value: stats.total,  color: "text-brand-600" },
-              { label: "Site pages",  value: stats.static, color: "text-sky-600" },
-              { label: "Generators",  value: stats.tools,  color: "text-purple-600" },
-              { label: "Blog posts",  value: stats.blog,   color: "text-emerald-600" },
-              { label: "API routes",  value: stats.api,    color: "text-amber-600" },
-            ] as const
-          ).map((s) => (
-            <div key={s.label} className="surface rounded-xl border border-app p-3.5 shadow-sm">
-              <p className={`text-2xl font-extrabold tabular-nums ${s.color}`}>{s.value}</p>
-              <p className="mt-0.5 text-xs text-muted">{s.label}</p>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div className="mb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+              🗺 Site Map
+            </h1>
+            <p className="mt-2 max-w-2xl text-muted">
+              Every page, generator and API route on DataForge — searchable, filterable, sortable, exportable.
+            </p>
+          </div>
+          {/* Export buttons */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => { copyAllUrls(filtered, stats.siteUrl); setCopiedAll(true); setTimeout(() => setCopiedAll(false), 1500); }}
+              className="surface-2 flex items-center gap-1.5 rounded-xl border border-app px-3 py-1.5 text-xs font-medium hover:border-brand-400 transition"
+            >
+              {copiedAll ? "✓ Copied!" : "⧉ Copy all URLs"}
+            </button>
+            <button type="button" onClick={() => exportCSV(filtered, stats.siteUrl)} className="surface-2 flex items-center gap-1.5 rounded-xl border border-app px-3 py-1.5 text-xs font-medium hover:border-brand-400 transition">
+              ↓ CSV
+            </button>
+            <button type="button" onClick={() => exportJSON(filtered, stats.siteUrl)} className="surface-2 flex items-center gap-1.5 rounded-xl border border-app px-3 py-1.5 text-xs font-medium hover:border-brand-400 transition">
+              ↓ JSON
+            </button>
+          </div>
+        </div>
+
+        {/* Stats cards */}
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {([
+            { label: "Total URLs",  value: stats.total,  color: "text-brand-600",   bg: "bg-brand-500/8" },
+            { label: "Pages",       value: stats.static, color: "text-sky-600",      bg: "bg-sky-500/8" },
+            { label: "Generators",  value: stats.tools,  color: "text-purple-600",   bg: "bg-purple-500/8" },
+            { label: "Blog posts",  value: stats.blog,   color: "text-emerald-600",  bg: "bg-emerald-500/8" },
+            { label: "API routes",  value: stats.api,    color: "text-amber-600",    bg: "bg-amber-500/8" },
+          ] as const).map((s) => (
+            <div key={s.label} className={`surface rounded-2xl border border-app p-4 shadow-sm ${s.bg}`}>
+              <p className={`text-3xl font-extrabold tabular-nums leading-none ${s.color}`}>{s.value}</p>
+              <p className="mt-1 text-xs text-muted font-medium">{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Build info */}
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted">
-          <span>Last built: <strong className="text-[var(--text)]">{stats.buildDate}</strong></span>
+        {/* Distribution bar */}
+        <StatsBar stats={stats} />
+        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-muted">
+          {(["static","tools","blog","api"] as const).map((s) => (
+            <span key={s} className="flex items-center gap-1">
+              <SectionDot section={s} />
+              {SECTION_META[s].label}
+            </span>
+          ))}
+        </div>
+
+        {/* Build + links */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted">
+          <span>Built: <strong className="text-[var(--text)]">{stats.buildDate}</strong></span>
           <span>·</span>
-          <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 underline">
-            XML sitemap ↗
-          </a>
+          <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 underline">XML sitemap ↗</a>
           <span>·</span>
-          <span className="font-mono">{stats.siteUrl}</span>
+          <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 underline">robots.txt ↗</a>
+          <span>·</span>
+          <span>{newCount} new this build</span>
+          <span>·</span>
+          <kbd className="rounded border border-app bg-[var(--surface-2)] px-1 font-mono text-[10px]">/</kbd>
+          <span>to search</span>
         </div>
       </div>
 
-      {/* ── Controls bar ───────────────────────────────────────────────── */}
-      <div className="surface sticky top-16 z-30 mb-6 rounded-2xl border p-3 shadow-sm">
+      {/* ── Recently visited ─────────────────────────────────────────── */}
+      {recentEntries.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-muted">🕐 Recently visited</h2>
+          <div className="flex flex-wrap gap-2">
+            {recentEntries.slice(0, 8).map((e) => (
+              <Link
+                key={e.path}
+                href={e.path}
+                onClick={() => onVisit(e.path)}
+                className="surface-2 flex items-center gap-1.5 rounded-xl border border-app px-3 py-1.5 text-xs font-medium hover:border-brand-400 hover:text-brand-600 transition"
+              >
+                <SectionDot section={e.section} />
+                {e.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Controls bar ─────────────────────────────────────────────── */}
+      <div className="surface sticky top-[52px] sm:top-[57px] z-20 mb-6 rounded-2xl border p-3 shadow-md">
         {/* Search */}
         <div className="relative mb-3">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden>🔍</span>
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden>🔍</span>
           <input
             ref={searchRef}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search pages, tools, paths, descriptions…"
+            placeholder='Search pages, paths, descriptions…  ( press / )'
             aria-label="Search sitemap"
-            className="surface-2 w-full rounded-xl border border-app py-2.5 pl-11 pr-4 text-sm outline-none"
+            className="surface-2 w-full rounded-xl border border-app py-2.5 pl-10 pr-10 text-sm outline-none focus:border-brand-400 transition"
           />
           {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-[var(--text)] text-xs px-1"
-            >
+            <button type="button" onClick={() => setQuery("")} aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-[var(--text)] text-sm">
               ✕
             </button>
           )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Section tabs */}
+          {/* Section filters */}
           {(Object.keys(SECTION_META) as Section[]).map((s) => {
-            const meta = SECTION_META[s];
+            const meta  = SECTION_META[s];
             const count = s === "all" ? entries.length : entries.filter((e) => e.section === s).length;
             const active = section === s;
             return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSection(s)}
-                aria-pressed={active ? "true" : "false"}
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                  active ? meta.color + " border-transparent" : "surface-2 border-app text-muted hover:text-[var(--text)]"
+              <button key={s} type="button" onClick={() => setSection(s)}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  active ? `${meta.accent} border-transparent shadow-sm` : "surface-2 border-app text-muted hover:text-[var(--text)]"
                 }`}
               >
                 <span>{meta.icon}</span>
-                <span>{meta.label}</span>
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${active ? "bg-white/25" : "bg-[var(--surface)] text-muted"}`}>
-                  {count}
-                </span>
+                <span className="hidden sm:inline">{meta.label}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${active ? "bg-white/25" : "bg-[var(--surface)] text-muted"}`}>{count}</span>
               </button>
             );
           })}
 
-          {/* View mode + expand/collapse — pushed right */}
-          <div className="ml-auto flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={toggleAll}
-              className="surface-2 rounded-lg border border-app px-2.5 py-1.5 text-xs text-muted hover:text-[var(--text)]"
+          {/* New only toggle */}
+          <button type="button" onClick={() => setNewOnly((v) => !v)}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+              newOnly ? "border-brand-500 bg-brand-500 text-white shadow-sm" : "surface-2 border-app text-muted hover:text-[var(--text)]"
+            }`}
+          >
+            ✨ New <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${newOnly ? "bg-white/25" : "bg-[var(--surface)] text-muted"}`}>{newCount}</span>
+          </button>
+
+          {/* Right side controls */}
+          <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+            {/* Sort */}
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="surface-2 rounded-xl border border-app px-2.5 py-1.5 text-xs font-medium text-muted outline-none focus:border-brand-400 cursor-pointer"
+              aria-label="Sort order"
             >
-              {allExpanded ? "Collapse all" : "Expand all"}
-            </button>
-            {(["grid", "tree", "table"] as ViewMode[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setView(v)}
-                aria-pressed={view === v ? "true" : "false"}
-                title={v.charAt(0).toUpperCase() + v.slice(1) + " view"}
-                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
-                  view === v ? "border-brand-500 bg-brand-500 text-white" : "surface-2 border-app text-muted hover:text-[var(--text)]"
-                }`}
-              >
-                {v === "grid" ? "⊞" : v === "tree" ? "≡" : "▤"}
+              <option value="priority">↓ Priority</option>
+              <option value="alpha">A → Z</option>
+              <option value="date">↓ Date</option>
+            </select>
+
+            {/* Expand/collapse */}
+            {view !== "table" && (
+              <button type="button" onClick={toggleAll}
+                className="surface-2 rounded-xl border border-app px-2.5 py-1.5 text-xs text-muted hover:text-[var(--text)] transition">
+                {allExpanded ? "Collapse" : "Expand"}
               </button>
-            ))}
+            )}
+
+            {/* View toggle */}
+            <div className="flex rounded-xl border border-app overflow-hidden surface-2">
+              {(["grid", "tree", "table"] as ViewMode[]).map((v, i) => (
+                <button key={v} type="button" onClick={() => setView(v)}
+                  title={v.charAt(0).toUpperCase() + v.slice(1) + " view"}
+                  className={`px-2.5 py-1.5 text-xs font-medium transition ${
+                    view === v ? "bg-brand-500 text-white" : "text-muted hover:text-[var(--text)]"
+                  } ${i > 0 ? "border-l border-app" : ""}`}
+                >
+                  {v === "grid" ? "⊞" : v === "tree" ? "≡" : "▤"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Result count ───────────────────────────────────────────────── */}
-      <p className="mb-4 text-sm text-muted" aria-live="polite">
-        {filtered.length === 0
-          ? "No pages match your search."
-          : `${filtered.length} of ${entries.length} pages`}
-      </p>
+      {/* ── Result count ─────────────────────────────────────────────── */}
+      <div className="mb-4 flex items-center justify-between" aria-live="polite">
+        <p className="text-sm text-muted">
+          {filtered.length === 0
+            ? "No results found."
+            : <><strong className="text-[var(--text)]">{filtered.length}</strong> of {entries.length} pages</>}
+        </p>
+        {query && (
+          <button type="button" onClick={() => setQuery("")} className="text-xs text-brand-600 hover:underline">Clear search</button>
+        )}
+      </div>
 
-      {/* ── Table view (flat) ───────────────────────────────────────────── */}
-      {view === "table" && <TableView entries={filtered} siteUrl={stats.siteUrl} />}
+      {/* ── Table view ───────────────────────────────────────────────── */}
+      {view === "table" && <TableView entries={filtered} siteUrl={stats.siteUrl} onVisit={onVisit} />}
 
-      {/* ── Grid / Tree views (grouped by category) ─────────────────────── */}
+      {/* ── Grid / Tree (grouped) ────────────────────────────────────── */}
       {view !== "table" && (
-        <div className="space-y-8">
-          {[...grouped.entries()].map(([key, items]) => {
-            const label = view === "tree" ? key.split("::")[1] : key;
-            const sectionId = view === "tree" ? (key.split("::")[0] as Section) : items[0].section;
-            const meta = SECTION_META[sectionId];
-            const isExpanded = expandedCats.has(key) || expandedCats.has("all");
+        <div className="space-y-6">
+          {filtered.length === 0 ? null : [...grouped.entries()].map(([key, items]) => {
+            const label     = view === "tree" ? key.split("::")[1] : key;
+            const secId     = view === "tree" ? (key.split("::")[0] as Section) : items[0].section;
+            const meta      = SECTION_META[secId];
+            const isOpen    = expandedCats.has("__all__") || expandedCats.has(key);
             return (
-              <section key={key}>
-                {/* Category header */}
-                <button
-                  type="button"
-                  onClick={() => toggleCat(key)}
-                  className="mb-3 flex w-full items-center gap-3 text-left group"
+              <section key={key} aria-label={label}>
+                <button type="button" onClick={() => toggleCat(key)}
+                  className="group mb-3 flex w-full items-center gap-2.5 text-left"
                 >
                   <span className={`inline-block h-3 w-3 rounded-full ${meta.dot}`} />
-                  <h2 className="font-bold text-sm uppercase tracking-wide group-hover:text-brand-600 transition">
-                    {label}
-                  </h2>
-                  <span className="surface rounded border border-app px-1.5 py-0.5 text-[10px] font-semibold text-muted tabular-nums">
-                    {items.length}
-                  </span>
-                  <span className="ml-auto text-muted text-xs">{isExpanded ? "▲" : "▼"}</span>
+                  <h2 className="text-sm font-bold uppercase tracking-widest group-hover:text-brand-600 transition">{label}</h2>
+                  <span className="surface rounded-lg border border-app px-1.5 py-0.5 text-[10px] font-bold text-muted tabular-nums">{items.length}</span>
+                  <svg className={`ml-auto h-4 w-4 text-muted transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
 
-                {isExpanded && (
+                {isOpen && (
                   view === "grid" ? (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      {items.map((e, i) => <GridEntry key={i} entry={e} siteUrl={stats.siteUrl} />)}
+                      {items.map((e, i) => <GridEntry key={i} entry={e} siteUrl={stats.siteUrl} onVisit={onVisit} />)}
                     </div>
                   ) : (
-                    <div className="surface rounded-xl border border-app overflow-hidden">
-                      {items.map((e, i) => <TreeEntry key={i} entry={e} siteUrl={stats.siteUrl} />)}
+                    <div className="surface overflow-hidden rounded-2xl border">
+                      {items.map((e, i) => <TreeEntry key={i} entry={e} siteUrl={stats.siteUrl} onVisit={onVisit} />)}
                     </div>
                   )
                 )}
@@ -393,22 +523,27 @@ export function SitemapUI({ entries, stats }: { entries: SitemapEntry[]; stats: 
         </div>
       )}
 
-      {/* ── Empty state ─────────────────────────────────────────────────── */}
+      {/* ── Empty state ──────────────────────────────────────────────── */}
       {filtered.length === 0 && (
-        <div className="surface flex flex-col items-center gap-3 rounded-2xl border border-dashed border-app py-16 text-center">
-          <span className="text-4xl">🗺</span>
-          <p className="text-muted">No pages match &quot;{query}&quot;</p>
-          <button type="button" onClick={() => setQuery("")} className="text-sm text-brand-600 underline">
-            Clear search
-          </button>
+        <div className="surface flex flex-col items-center gap-4 rounded-2xl border border-dashed border-app py-20 text-center">
+          <span className="text-5xl">🗺</span>
+          <div>
+            <p className="font-semibold">No pages found</p>
+            <p className="mt-1 text-sm text-muted">Try a different search term or filter.</p>
+          </div>
+          <div className="flex gap-2">
+            {query && <button type="button" onClick={() => setQuery("")} className="rounded-xl border border-app px-4 py-2 text-sm hover:bg-[var(--surface-2)] transition">Clear search</button>}
+            {section !== "all" && <button type="button" onClick={() => setSection("all")} className="rounded-xl border border-app px-4 py-2 text-sm hover:bg-[var(--surface-2)] transition">Show all sections</button>}
+            {newOnly && <button type="button" onClick={() => setNewOnly(false)} className="rounded-xl border border-app px-4 py-2 text-sm hover:bg-[var(--surface-2)] transition">Remove "new only" filter</button>}
+          </div>
         </div>
       )}
 
-      {/* ── Footer note ─────────────────────────────────────────────────── */}
+      {/* ── Footer ───────────────────────────────────────────────────── */}
       <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-1 border-t border-app pt-6 text-xs text-muted">
-        <span>Machine-readable: <a href="/sitemap.xml" className="hover:text-brand-600 underline" target="_blank" rel="noopener noreferrer">/sitemap.xml</a></span>
-        <span>Robots: <a href="/robots.txt" className="hover:text-brand-600 underline" target="_blank" rel="noopener noreferrer">/robots.txt</a></span>
-        <span className="ml-auto">{stats.total} total URLs indexed</span>
+        <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 underline">XML sitemap</a>
+        <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="hover:text-brand-600 underline">robots.txt</a>
+        <span className="ml-auto tabular-nums">{stats.total} total URLs indexed</span>
       </div>
     </div>
   );

@@ -3,22 +3,22 @@ import { NextResponse } from "next/server";
 const CG = "https://api.coingecko.com/api/v3";
 const FNG = "https://api.alternative.me/fng/?limit=7&format=json";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const [trendingRes, globalRes, fngRes] = await Promise.allSettled([
       fetch(`${CG}/search/trending`, {
         headers: { Accept: "application/json" },
-        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(8000),
       }),
       fetch(`${CG}/global`, {
         headers: { Accept: "application/json" },
-        next: { revalidate: 120 },
+        signal: AbortSignal.timeout(8000),
       }),
       fetch(FNG, {
         headers: { Accept: "application/json" },
-        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(8000),
       }),
     ]);
 
@@ -41,7 +41,7 @@ export async function GET() {
       { trending, global, fng },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+          "Cache-Control": "public, max-age=120, stale-while-revalidate=300",
         },
       }
     );

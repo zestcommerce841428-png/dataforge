@@ -16,3 +16,4 @@ tsconfig.tsbuildinfo
 smoke-out.txt
 
 .vercel
+.env*
