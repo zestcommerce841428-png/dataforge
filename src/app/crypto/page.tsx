@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { CryptoDashboard } from "@/components/crypto/dashboard";
+import { TickerTape } from "@/components/crypto/ticker-tape";
 
 export const metadata: Metadata = {
   title: "Crypto Tracker — Live Prices, Binance Exchange & Market Data",
   description:
-    "Live cryptocurrency prices from CoinGecko, real-time Binance exchange data with order book, trade feed, candlestick charts and WebSocket ticker streams. Free, no sign-up.",
-  keywords: ["crypto", "bitcoin", "ethereum", "binance", "live price", "order book", "candlestick"],
+    "Advanced crypto tracker with live prices, Binance exchange, portfolio tracker, watchlist, market heatmap, DeFi TVL, technical indicators (RSI, VWAP, MA), DCA calculator, and more. Free, no sign-up.",
+  keywords: ["crypto", "bitcoin", "ethereum", "binance", "live price", "order book", "candlestick", "portfolio", "DeFi", "RSI", "VWAP", "heatmap", "watchlist"],
   alternates: { canonical: "/crypto" },
   openGraph: {
     title: "DataForge Crypto — Live Prices & Binance Exchange",
@@ -24,17 +25,10 @@ export default function CryptoPage() {
           </span>
         </h1>
         <p className="mt-2 text-muted">
-          Live market data via{" "}
-          <a href="https://www.coingecko.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
-            CoinGecko
-          </a>{" "}
-          · Real-time order book, trades &amp; candlestick charts via{" "}
-          <a href="https://www.binance.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
-            Binance
-          </a>{" "}
-          public APIs · WebSocket live feed · No API key required.
+          Live prices · Binance exchange · Watchlist · Portfolio · Heatmap · DeFi TVL · RSI/VWAP/MA · DCA &amp; ROI calculators · No API key required.
         </p>
       </div>
+      <TickerTape />
       <CryptoDashboard />
     </div>
   );

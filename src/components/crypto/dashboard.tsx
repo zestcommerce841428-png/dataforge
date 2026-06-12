@@ -4,8 +4,12 @@ import { useState } from "react";
 import { MarketsTab } from "./markets-tab";
 import { ExchangeTab } from "./exchange-tab";
 import { TrendingTab } from "./trending-tab";
+import { WatchlistTab } from "./watchlist-tab";
+import { PortfolioTab } from "./portfolio-tab";
+import { AnalyticsTab } from "./analytics-tab";
+import { ToolsTab } from "./tools-tab";
 
-type Tab = "markets" | "exchange" | "trending";
+type Tab = "markets" | "exchange" | "trending" | "watchlist" | "portfolio" | "analytics" | "tools";
 
 export const SUPPORTED_CURRENCIES = [
   { code: "usd", label: "USD $", symbol: "$" },
@@ -25,10 +29,16 @@ export const SUPPORTED_CURRENCIES = [
 export type Currency = (typeof SUPPORTED_CURRENCIES)[number];
 
 const TABS: Array<{ id: Tab; label: string }> = [
-  { id: "markets",  label: "📈 Markets" },
-  { id: "exchange", label: "⚡ Exchange" },
-  { id: "trending", label: "🔥 Trending" },
+  { id: "markets",   label: "📈 Markets" },
+  { id: "exchange",  label: "⚡ Exchange" },
+  { id: "trending",  label: "🔥 Trending" },
+  { id: "watchlist", label: "⭐ Watchlist" },
+  { id: "portfolio", label: "💼 Portfolio" },
+  { id: "analytics", label: "🗺 Analytics" },
+  { id: "tools",     label: "🔧 Tools" },
 ];
+
+const CURRENCY_TABS: Tab[] = ["markets", "trending", "watchlist", "portfolio"];
 
 export function CryptoDashboard() {
   const [tab, setTab] = useState<Tab>("markets");
@@ -36,21 +46,22 @@ export function CryptoDashboard() {
 
   return (
     <div>
-      {/* Tab bar + currency selector */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      {/* Tab bar */}
+      <div className="mb-4 overflow-x-auto pb-1">
         <div
           role="tablist"
           aria-label="Crypto dashboard sections"
-          className="surface flex gap-1 rounded-2xl border p-1.5"
+          className="surface inline-flex min-w-max gap-1 rounded-2xl border p-1.5"
         >
           {TABS.map(({ id, label }) => (
             <button
               key={id}
+              type="button"
               role="tab"
               aria-selected={tab === id}
               aria-controls={`panel-${id}`}
               onClick={() => setTab(id)}
-              className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
                 tab === id
                   ? "bg-brand-600 text-white shadow"
                   : "text-muted hover:text-[var(--text)]"
@@ -60,9 +71,11 @@ export function CryptoDashboard() {
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Currency selector — only relevant for Markets/Trending */}
-        <div className="flex items-center gap-2 ml-auto">
+      {/* Currency selector — only for tabs that use it */}
+      {CURRENCY_TABS.includes(tab) && (
+        <div className="mb-5 flex items-center gap-2">
           <label htmlFor="currency-select" className="text-xs text-muted whitespace-nowrap">
             Display currency:
           </label>
@@ -77,40 +90,39 @@ export function CryptoDashboard() {
             aria-label="Display currency"
           >
             {SUPPORTED_CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.label}
-              </option>
+              <option key={c.code} value={c.code}>{c.label}</option>
             ))}
           </select>
         </div>
-      </div>
+      )}
 
-      {/* Panels */}
-      <div
-        id="panel-markets"
-        role="tabpanel"
-        aria-labelledby="tab-markets"
-        hidden={tab !== "markets"}
-      >
+      {/* Panels — lazy-mounted on first visit */}
+      <div id="panel-markets" role="tabpanel" aria-labelledby="tab-markets" hidden={tab !== "markets"}>
         {tab === "markets" && <MarketsTab currency={currency} />}
       </div>
 
-      <div
-        id="panel-exchange"
-        role="tabpanel"
-        aria-labelledby="tab-exchange"
-        hidden={tab !== "exchange"}
-      >
+      <div id="panel-exchange" role="tabpanel" aria-labelledby="tab-exchange" hidden={tab !== "exchange"}>
         {tab === "exchange" && <ExchangeTab currency={currency} />}
       </div>
 
-      <div
-        id="panel-trending"
-        role="tabpanel"
-        aria-labelledby="tab-trending"
-        hidden={tab !== "trending"}
-      >
+      <div id="panel-trending" role="tabpanel" aria-labelledby="tab-trending" hidden={tab !== "trending"}>
         {tab === "trending" && <TrendingTab currency={currency} />}
+      </div>
+
+      <div id="panel-watchlist" role="tabpanel" aria-labelledby="tab-watchlist" hidden={tab !== "watchlist"}>
+        {tab === "watchlist" && <WatchlistTab currency={currency} />}
+      </div>
+
+      <div id="panel-portfolio" role="tabpanel" aria-labelledby="tab-portfolio" hidden={tab !== "portfolio"}>
+        {tab === "portfolio" && <PortfolioTab currency={currency} />}
+      </div>
+
+      <div id="panel-analytics" role="tabpanel" aria-labelledby="tab-analytics" hidden={tab !== "analytics"}>
+        {tab === "analytics" && <AnalyticsTab />}
+      </div>
+
+      <div id="panel-tools" role="tabpanel" aria-labelledby="tab-tools" hidden={tab !== "tools"}>
+        {tab === "tools" && <ToolsTab />}
       </div>
     </div>
   );
