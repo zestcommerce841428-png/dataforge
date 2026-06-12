@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 
 const LLAMA = "https://api.llama.fi";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const [chainsRes, protocolsRes] = await Promise.allSettled([
-      fetch(`${LLAMA}/v2/chains`, { next: { revalidate: 300 } }),
-      fetch(`${LLAMA}/protocols`, { next: { revalidate: 300 } }),
+      fetch(`${LLAMA}/v2/chains`, { signal: AbortSignal.timeout(8000) }),
+      fetch(`${LLAMA}/protocols`, { signal: AbortSignal.timeout(8000) }),
     ]);
 
     const chains =
@@ -35,7 +35,7 @@ export async function GET() {
 
     return NextResponse.json(
       { chains, protocols },
-      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } }
+      { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=600" } }
     );
   } catch (err) {
     return NextResponse.json(
