@@ -269,7 +269,7 @@ function CandleChart({
         <g>
           {showMA20 && <><rect x={pad.l + 4} y={pad.t + 4} width={18} height={3} fill="#f59e0b" rx={1.5} /><text x={pad.l + 26} y={pad.t + 10} fontSize={9} fill="currentColor" opacity={0.65}>MA20</text></>}
           {showMA50 && <><rect x={pad.l + 62} y={pad.t + 4} width={18} height={3} fill="#6366f1" rx={1.5} /><text x={pad.l + 84} y={pad.t + 10} fontSize={9} fill="currentColor" opacity={0.65}>MA50</text></>}
-          {showVWAP && <><rect x={pad.l + 120} y={pad.t + 4} width={18} height={3} fill="#a855f7" rx={1.5} rx={1.5} /><text x={pad.l + 142} y={pad.t + 10} fontSize={9} fill="currentColor" opacity={0.65}>VWAP</text></>}
+          {showVWAP && <><rect x={pad.l + 120} y={pad.t + 4} width={18} height={3} fill="#a855f7" rx={1.5} /><text x={pad.l + 142} y={pad.t + 10} fontSize={9} fill="currentColor" opacity={0.65}>VWAP</text></>}
         </g>
       )}
     </svg>

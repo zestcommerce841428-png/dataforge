@@ -85,6 +85,7 @@ export interface Field {
   max?: number;
   options?: { value: string; label: string }[];
   help?: string;
+  placeholder?: string;
 }
 
 export type GenOptions = Record<string, string | number | boolean>;
@@ -4132,7 +4133,7 @@ export const GENERATORS: Generator[] = [
     keywords: ["semver", "semantic version", "version bump", "npm", "release", "git tag"],
     fields: [
       { key: "version", label: "Current Version", type: "text",   placeholder: "1.4.2",  default: "1.4.2" },
-      { key: "bump",    label: "Bump Type",       type: "select", options: ["patch", "minor", "major"], default: "patch" },
+      { key: "bump",    label: "Bump Type",       type: "select", options: [{ value: "patch", label: "patch" }, { value: "minor", label: "minor" }, { value: "major", label: "major" }], default: "patch" },
       { key: "prerelease", label: "Pre-release tag (optional)", type: "text", placeholder: "beta.1", default: "" },
     ],
     generate: (opts) => {

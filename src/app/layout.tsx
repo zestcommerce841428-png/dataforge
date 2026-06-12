@@ -1,22 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import dynamic from "next/dynamic";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PwaInit } from "@/components/pwa-init";
+import { ClientShell } from "@/components/client-shell";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
-
-// Lazy-load non-critical UI — deferred until after hydration so they don't
-// block the initial paint or increase the critical JS bundle.
-const GoogleAnalytics    = dynamic(() => import("@/components/analytics").then((m) => ({ default: m.GoogleAnalytics })),    { ssr: false });
-const AccessibilityPanel = dynamic(() => import("@/components/accessibility-panel").then((m) => ({ default: m.AccessibilityPanel })), { ssr: false });
-const CookieConsent      = dynamic(() => import("@/components/cookie-consent").then((m) => ({ default: m.CookieConsent })),      { ssr: false });
-const Recaptcha          = dynamic(() => import("@/components/recaptcha").then((m) => ({ default: m.Recaptcha })),          { ssr: false });
-const WhatsAppButton     = dynamic(() => import("@/components/whatsapp-button").then((m) => ({ default: m.WhatsAppButton })),     { ssr: false });
-const ScrollButtons      = dynamic(() => import("@/components/scroll-buttons").then((m) => ({ default: m.ScrollButtons })),      { ssr: false });
-const WelcomeBanner      = dynamic(() => import("@/components/welcome-banner").then((m) => ({ default: m.WelcomeBanner })),      { ssr: false });
-const OnboardingOverlay  = dynamic(() => import("@/components/onboarding-overlay").then((m) => ({ default: m.OnboardingOverlay })), { ssr: false });
-const OfflineIndicator   = dynamic(() => import("@/components/offline-indicator").then((m) => ({ default: m.OfflineIndicator })),   { ssr: false });
 
 const SITE_DESC =
   "DataForge is a free suite of privacy-first online tools — 200+ developer utilities, 170+ data generators, an Excel-style spreadsheet with 360+ formulas, a live crypto tracker, file converter and OCR. Everything runs locally in your browser.";
@@ -165,20 +153,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <PwaInit />
-        <OnboardingOverlay />
-        <WelcomeBanner />
         <SiteHeader />
         <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6">
           {children}
         </main>
         <SiteFooter />
-        <AccessibilityPanel />
-        <ScrollButtons />
-        <WhatsAppButton />
-        <CookieConsent />
-        <Recaptcha />
-        <OfflineIndicator />
-        <GoogleAnalytics />
+        <ClientShell />
       </body>
     </html>
   );

@@ -45,7 +45,7 @@ const FIAT = [
 
 function CryptoConverter({ currency }: { currency: Currency }) {
   const [fromCoin, setFromCoin] = useState("bitcoin");
-  const [toFiat, setToFiat] = useState(currency.code);
+  const [toFiat, setToFiat] = useState<string>(currency.code);
   const [amount, setAmount] = useState("1");
   const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(false);
