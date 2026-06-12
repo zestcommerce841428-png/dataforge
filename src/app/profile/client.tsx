@@ -59,11 +59,10 @@ export default function ProfileClient({ user, profile }: Props) {
 
     setUploading(true);
     try {
-      if (!HOSTINGER_UPLOAD_URL) throw new Error("Upload URL not configured. Set NEXT_PUBLIC_HOSTINGER_UPLOAD_URL.");
       const form = new FormData();
       form.append("file", file);
       form.append("uid", user.id);
-      const res = await fetch(HOSTINGER_UPLOAD_URL, { method: "POST", body: form });
+      const res = await fetch("/api/upload-avatar", { method: "POST", body: form });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       const url: string = data.url;
@@ -203,7 +202,7 @@ export default function ProfileClient({ user, profile }: Props) {
               Remove
             </button>
           )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} aria-label="Upload profile photo" />
         </div>
       </div>
 

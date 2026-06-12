@@ -12,7 +12,7 @@
 define('ALLOWED_ORIGIN', 'https://dataforge-omega.vercel.app');
 define('UPLOAD_DIR', __DIR__ . '/avatars/');
 define('MAX_SIZE',   5 * 1024 * 1024); // 5 MB
-define('SECRET_KEY', 'CHANGE_THIS_TO_A_RANDOM_SECRET'); // Must match HOSTINGER_UPLOAD_SECRET env var
+define('SECRET_KEY', getenv('UPLOAD_SECRET') ?: 'CHANGE_THIS_IN_HOSTINGER_ENV'); // Set UPLOAD_SECRET in Hostinger environment
 
 header('Access-Control-Allow-Origin: ' . ALLOWED_ORIGIN);
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -30,13 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Optional secret key check for security
-// $secret = $_SERVER['HTTP_X_UPLOAD_SECRET'] ?? '';
-// if ($secret !== SECRET_KEY) {
-//     http_response_code(403);
-//     echo json_encode(['error' => 'Forbidden']);
-//     exit;
-// }
+// Secret key check — blocks unauthorized uploads
+$secret = $_SERVER['HTTP_X_UPLOAD_SECRET'] ?? '';
+if ($secret !== SECRET_KEY) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Forbidden']);
+    exit;
+}
 
 if (!isset($_FILES['file'])) {
     http_response_code(400);
