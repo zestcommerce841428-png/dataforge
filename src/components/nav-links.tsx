@@ -36,6 +36,8 @@ const NAV: {
   { href: "/api-docs",        label: "{ } API",          show: "xl" },
   { href: "/sitemap-page",    label: "🗺 Site Map",      show: "xl" },
   { href: "/about",           label: "About",            show: "xl" },
+  { href: "/auth/login",      label: "🔐 Sign In",        show: "xl" },
+  { href: "/profile",         label: "👤 Profile",         show: "xl" },
 ];
 
 /* Pinned quick-links always shown in the mobile panel top row */

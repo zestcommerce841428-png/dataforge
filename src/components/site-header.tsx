@@ -4,6 +4,7 @@ import { ThemeSwitcher } from "./theme-switcher";
 import { RegionSwitcher } from "./region-switcher";
 import { NavLinks } from "./nav-links";
 import { CollectionsPanel } from "./collections-panel";
+import { AuthButton } from "./auth-button";
 
 export function SiteHeader() {
   /* Controls rendered both in desktop header AND inside the mobile panel */
@@ -13,6 +14,7 @@ export function SiteHeader() {
       <ThemeSwitcher />
       <RegionSwitcher />
       <ThemeControls />
+      <AuthButton />
     </>
   );
 

@@ -69,6 +69,12 @@ import { ZodiacSign, ChineseZodiac, MoonPhase, DaysAlive, BirthdayCountdown, Hol
 import { CONV, PAIRS, UnitConverter as DataUnitConverter } from "./tools/more4-converters";
 // Batch 5 — advanced tools
 import { SerpPreview, SchemaGenerator, KeywordDensity, HreflangGenerator, TextSummarizer, VowelPangramCounter, LeetspeakConverter, BrailleTranslator, PercentageChange, ModuloCalculator, PrimeChecker, FactorialCalc, BinaryCalculator, CssClampGenerator, GoldenRatioCalc, ColorMixer, ColorBlindSim, RandomDateGenerator, RandomGpsGenerator, RandomTeamGenerator, InitialsAvatar, SignaturePad, DockerfileGenerator, RedirectGenerator, SqlInBuilder, CronBuilder, ApiTester, NearestColorName, ReadingTime, AspectRatioResize } from "./tools/more5-tools";
+// Batch 6 — password & new developer tools (gitopentools merge)
+import { EnhancedPasswordGenerator, PassphraseGenerator as PassGen2, HaveIBeenPwned, SecurityHeadersAnalyzer, ApiKeyGenerator, JwtBuilder as JwtBuilderNew, RecoveryCodesGenerator, BcryptSimulator } from "./tools/more6-password";
+import { UuidGeneratorEnhanced, UrlValidatorEnhanced, JsonSchemaValidator, FakeDataGenerator, HttpStatusReference, WebhookTester as WebhookTesterNew, NginxConfigGenerator, DockerComposeGenerator } from "./tools/more6-developer";
+// Batch 7 — finance & creative
+import { BreakEvenCalculator, StockProfitLoss, DcaCalculator, FireCalculator, InvoiceGenerator, SalaryConverter as SalaryConv2, BudgetTracker } from "./tools/more7-finance";
+import { AsciiArtGenerator, EmojiSearch, DomainNameGenerator, BusinessNameGenerator, MeetingCostCalculator, RandomQuoteGenerator, HabitTracker, ColorPaletteGenerator } from "./tools/more7-creative";
 
 type ToolEntry = {
   id: string;
@@ -475,6 +481,45 @@ const TOOLS: ToolEntry[] = [
   { id:"sql-in-builder", name:"SQL IN() Builder", icon:"SQL", category:"developer", short:"Build a SQL IN() clause from a list", component:SqlInBuilder },
   { id:"cron-builder", name:"Cron Expression Builder", icon:"⏰", category:"developer", short:"Visually build cron expressions with presets", component:CronBuilder },
   { id:"api-tester", name:"API Request Tester", icon:"→", category:"network", short:"Send a GET request and see status, timing and body", component:ApiTester },
+
+  // ── Batch 6: Password & Security (gitopentools merge + new) ───────
+  { id:"enhanced-password-gen", name:"Password Generator Pro", icon:"🔑", category:"security", short:"Generate passwords with presets, entropy score and advanced options", component:EnhancedPasswordGenerator },
+  { id:"passphrase-gen2", name:"Passphrase Generator", icon:"💬", category:"security", short:"Word-based memorable passphrases with separator & number options", component:PassGen2 },
+  { id:"hibp-checker", name:"Have I Been Pwned Checker", icon:"🚨", category:"security", short:"Check if a password appeared in data breaches (k-anonymity, private)", component:HaveIBeenPwned },
+  { id:"security-headers", name:"Security Headers Analyzer", icon:"🛡", category:"security", short:"Analyze HTTP security headers for any URL", component:SecurityHeadersAnalyzer },
+  { id:"api-key-gen", name:"API Key Generator", icon:"🗝", category:"security", short:"Generate secure API keys in hex, alphanumeric or UUID formats", component:ApiKeyGenerator },
+  { id:"jwt-builder-new", name:"JWT Token Builder", icon:"JWT", category:"security", short:"Build and inspect JWT tokens with custom payload", component:JwtBuilderNew },
+  { id:"recovery-codes", name:"Recovery Codes Generator", icon:"🔐", category:"security", short:"Generate 10 one-time 2FA backup recovery codes", component:RecoveryCodesGenerator },
+  { id:"bcrypt-sim", name:"Bcrypt Hash Simulator", icon:"#", category:"security", short:"Simulate bcrypt-style iterated hashing in the browser", component:BcryptSimulator },
+
+  // ── Batch 6: Developer (gitopentools merge + new) ──────────────
+  { id:"uuid-enhanced", name:"UUID Generator Pro", icon:"🆔", category:"developer", short:"Generate UUID v1, v4 or v7 with format options and batch export", component:UuidGeneratorEnhanced },
+  { id:"url-validator-enhanced", name:"URL Validator & Checker", icon:"🔗", category:"network", short:"Validate URL format, check accessibility and analyze components", component:UrlValidatorEnhanced },
+  { id:"json-schema-validator", name:"JSON Schema Validator", icon:"✓", category:"developer", short:"Validate JSON data against a JSON Schema (type, required, min/max)", component:JsonSchemaValidator },
+  { id:"fake-data-gen", name:"Fake Data Generator", icon:"🎭", category:"developer", short:"Generate realistic fake names, emails, phones, addresses and more", component:FakeDataGenerator },
+  { id:"http-status-ref", name:"HTTP Status Code Reference", icon:"HTTP", category:"developer", short:"Browse all HTTP status codes with descriptions", component:HttpStatusReference },
+  { id:"webhook-tester-new", name:"Webhook / HTTP Tester", icon:"📡", category:"network", short:"Send HTTP requests with custom method, headers and body", component:WebhookTesterNew },
+  { id:"nginx-config-gen", name:"Nginx Config Generator", icon:"⚙", category:"developer", short:"Generate production-ready Nginx server blocks with SSL", component:NginxConfigGenerator },
+  { id:"docker-compose-gen", name:"Docker Compose Generator", icon:"🐳", category:"developer", short:"Build docker-compose.yml files visually with multiple services", component:DockerComposeGenerator },
+
+  // ── Batch 7: Finance ───────────────────────────────────────────
+  { id:"break-even", name:"Break-Even Calculator", icon:"⚖", category:"finance", short:"Find break-even units and revenue from fixed/variable costs", component:BreakEvenCalculator },
+  { id:"stock-pnl", name:"Stock Profit/Loss Calculator", icon:"📈", category:"finance", short:"Calculate realized P&L and brokerage on stock trades", component:StockProfitLoss },
+  { id:"dca-calculator", name:"DCA (Dollar Cost Averaging) Calculator", icon:"💰", category:"finance", short:"Model regular investments over time with appreciation rate", component:DcaCalculator },
+  { id:"fire-calculator", name:"FIRE Calculator", icon:"🔥", category:"finance", short:"Calculate your Financial Independence Retire Early number and timeline", component:FireCalculator },
+  { id:"invoice-generator", name:"Invoice Generator", icon:"🧾", category:"finance", short:"Create printable invoices with line items, tax and notes", component:InvoiceGenerator },
+  { id:"salary-converter2", name:"Salary to Hourly Converter", icon:"💼", category:"finance", short:"Convert annual salary to hourly, daily, weekly and monthly rates", component:SalaryConv2 },
+  { id:"budget-tracker", name:"Budget Tracker", icon:"📊", category:"finance", short:"Track monthly budgeted vs actual expenses with surplus/deficit", component:BudgetTracker },
+
+  // ── Batch 7: Creative & Productivity ──────────────────────────
+  { id:"ascii-art-gen", name:"ASCII Art Generator", icon:"█", category:"fun", short:"Convert text into block-style ASCII art", component:AsciiArtGenerator },
+  { id:"emoji-search", name:"Emoji Search & Copy", icon:"😀", category:"fun", short:"Search and copy emojis by name or category", component:EmojiSearch },
+  { id:"domain-name-gen", name:"Domain Name Idea Generator", icon:"🌐", category:"network", short:"Generate domain name ideas from a keyword with TLD options", component:DomainNameGenerator },
+  { id:"business-name-gen", name:"Business Name Generator", icon:"🏢", category:"fun", short:"Generate professional business name ideas by industry", component:BusinessNameGenerator },
+  { id:"meeting-cost", name:"Meeting Cost Calculator", icon:"⏱", category:"productivity", short:"Real-time timer showing the cost of a meeting in salary dollars", component:MeetingCostCalculator },
+  { id:"random-quote-gen", name:"Random Quote Generator", icon:"💬", category:"fun", short:"Inspiring and programming quotes you can copy and share", component:RandomQuoteGenerator },
+  { id:"habit-tracker", name:"Habit Tracker", icon:"🎯", category:"productivity", short:"Track daily habits with streaks, stored in localStorage", component:HabitTracker },
+  { id:"color-palette-gen", name:"Color Palette Generator", icon:"🎨", category:"css", short:"Generate analogous, complementary, triadic or shade palettes", component:ColorPaletteGenerator },
 
   ...CONVERTER_TOOLS,
 ];
