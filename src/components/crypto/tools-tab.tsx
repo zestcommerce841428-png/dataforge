@@ -7,7 +7,7 @@ import type { Currency } from "./dashboard";
 const fm = (n: number, digits = 2) =>
   n.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
-const fmtUSD = (n: number) => `$${fm(n)}`;
+const fmtC = (n: number, sym: string) => `${sym}${fm(n)}`;
 
 /* ── Crypto Converter ─────────────────────────────────────────────────────── */
 const CONVERTER_COINS = [
@@ -45,12 +45,15 @@ const FIAT = [
 
 function CryptoConverter({ currency }: { currency: Currency }) {
   const [fromCoin, setFromCoin] = useState("bitcoin");
-  const [toFiat, setToFiat] = useState("usd");
+  const [toFiat, setToFiat] = useState(currency.code);
   const [amount, setAmount] = useState("1");
   const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(false);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Sync toFiat when global currency changes
+  useEffect(() => { setToFiat(currency.code); }, [currency.code]);
 
   const fetchPrices = async () => {
     setLoading(true);
@@ -184,7 +187,7 @@ function CryptoConverter({ currency }: { currency: Currency }) {
 }
 
 /* ── DCA Calculator ───────────────────────────────────────────────────────── */
-function DCACalculator() {
+function DCACalculator({ currency }: { currency: Currency }) {
   const [investment, setInvestment] = useState("100");
   const [startPrice, setStartPrice] = useState("30000");
   const [currentPrice, setCurrentPrice] = useState("65000");
@@ -218,9 +221,9 @@ function DCACalculator() {
         <h3 className="mb-4 text-sm font-bold">📅 DCA (Dollar Cost Averaging) Calculator</h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { label: `${freq === "weekly" ? "Weekly" : "Monthly"} investment ($)`, value: investment, set: setInvestment, type: "number" },
-            { label: "Starting price ($)", value: startPrice, set: setStartPrice, type: "number" },
-            { label: "Current/exit price ($)", value: currentPrice, set: setCurrentPrice, type: "number" },
+            { label: `${freq === "weekly" ? "Weekly" : "Monthly"} investment (${currency.symbol})`, value: investment, set: setInvestment, type: "number" },
+            { label: `Starting price (${currency.symbol})`, value: startPrice, set: setStartPrice, type: "number" },
+            { label: `Current/exit price (${currency.symbol})`, value: currentPrice, set: setCurrentPrice, type: "number" },
             { label: "Number of months", value: months, set: setMonths, type: "number" },
           ].map(({ label, value, set }) => (
             <div key={label}>
@@ -251,11 +254,11 @@ function DCACalculator() {
         {/* Results */}
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { label: "Total Invested", value: fmtUSD(totalInvested), color: "" },
+            { label: "Total Invested", value: fmtC(totalInvested, currency.symbol), color: "" },
             { label: "Total Coins Bought", value: `${totalQty.toFixed(6)}`, color: "" },
-            { label: "Avg Buy Price", value: fmtUSD(avgCost), color: "" },
-            { label: "Current Value", value: fmtUSD(currentValue), color: "" },
-            { label: "Profit / Loss", value: `${pnl >= 0 ? "+" : ""}${fmtUSD(pnl)}`, color: pnl >= 0 ? "text-green-500" : "text-red-500" },
+            { label: "Avg Buy Price", value: fmtC(avgCost, currency.symbol), color: "" },
+            { label: "Current Value", value: fmtC(currentValue, currency.symbol), color: "" },
+            { label: "Profit / Loss", value: `${pnl >= 0 ? "+" : ""}${fmtC(pnl, currency.symbol)}`, color: pnl >= 0 ? "text-green-500" : "text-red-500" },
             { label: "ROI", value: `${roi >= 0 ? "+" : ""}${roi.toFixed(2)}%`, color: roi >= 0 ? "text-green-500" : "text-red-500" },
           ].map(({ label, value, color }) => (
             <div key={label} className="surface-2 rounded-xl border border-app p-4">
@@ -287,12 +290,12 @@ function DCACalculator() {
                   return (
                     <tr key={r.period} className="border-b border-app/40">
                       <td className="px-3 py-1.5 text-muted">#{r.period}</td>
-                      <td className="px-3 py-1.5">${fm(r.price, r.price < 1 ? 4 : 2)}</td>
+                      <td className="px-3 py-1.5">{currency.symbol}{fm(r.price, r.price < 1 ? 4 : 2)}</td>
                       <td className="px-3 py-1.5">{r.qty.toFixed(6)}</td>
-                      <td className="px-3 py-1.5">${fm(cumInvested)}</td>
+                      <td className="px-3 py-1.5">{currency.symbol}{fm(cumInvested)}</td>
                       <td className="px-3 py-1.5">{cumQty.toFixed(6)}</td>
                       <td className={`px-3 py-1.5 font-semibold ${val >= cumInvested ? "text-green-500" : "text-red-500"}`}>
-                        ${fm(val)}
+                        {currency.symbol}{fm(val)}
                       </td>
                     </tr>
                   );
@@ -307,7 +310,7 @@ function DCACalculator() {
 }
 
 /* ── ROI Calculator ───────────────────────────────────────────────────────── */
-function ROICalculator() {
+function ROICalculator({ currency }: { currency: Currency }) {
   const [entry, setEntry] = useState("30000");
   const [exit, setExit] = useState("65000");
   const [invest, setInvest] = useState("1000");
@@ -334,9 +337,9 @@ function ROICalculator() {
       <h3 className="mb-4 text-sm font-bold">📈 ROI Calculator</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         {[
-          { label: "Entry price ($)", value: entry, set: setEntry },
-          { label: "Exit price ($)", value: exit, set: setExit },
-          { label: "Investment amount ($)", value: invest, set: setInvest },
+          { label: `Entry price (${currency.symbol})`, value: entry, set: setEntry },
+          { label: `Exit price (${currency.symbol})`, value: exit, set: setExit },
+          { label: `Investment amount (${currency.symbol})`, value: invest, set: setInvest },
           { label: "Trading fee (%)", value: fee, set: setFee },
         ].map(({ label, value, set }) => (
           <div key={label}>
@@ -358,9 +361,9 @@ function ROICalculator() {
           { label: "Coins Bought", value: qty.toFixed(8), color: "" },
           { label: "Price Change", value: `${priceChange >= 0 ? "+" : ""}${priceChange.toFixed(2)}%`, color: priceChange >= 0 ? "text-green-500" : "text-red-500" },
           { label: "Multiplier", value: `${multiplier.toFixed(2)}×`, color: "" },
-          { label: "Gross Revenue", value: fmtUSD(grossRevenue), color: "" },
-          { label: "Total Fees", value: fmtUSD(totalFees), color: "text-red-400" },
-          { label: "Net P&L", value: `${netPnl >= 0 ? "+" : ""}${fmtUSD(netPnl)}`, color: netPnl >= 0 ? "text-green-500" : "text-red-500" },
+          { label: "Gross Revenue", value: fmtC(grossRevenue, currency.symbol), color: "" },
+          { label: "Total Fees", value: fmtC(totalFees, currency.symbol), color: "text-red-400" },
+          { label: "Net P&L", value: `${netPnl >= 0 ? "+" : ""}${fmtC(netPnl, currency.symbol)}`, color: netPnl >= 0 ? "text-green-500" : "text-red-500" },
           { label: "Net ROI", value: `${roi >= 0 ? "+" : ""}${roi.toFixed(2)}%`, color: roi >= 0 ? "text-green-500" : "text-red-500" },
         ].map(({ label, value, color }) => (
           <div key={label} className="surface-2 rounded-xl border border-app p-4">
@@ -374,7 +377,7 @@ function ROICalculator() {
 }
 
 /* ── Position Size Calculator ─────────────────────────────────────────────── */
-function PositionSizeCalc() {
+function PositionSizeCalc({ currency }: { currency: Currency }) {
   const [account, setAccount] = useState("10000");
   const [riskPct, setRiskPct] = useState("2");
   const [entryPrice, setEntryPrice] = useState("65000");
@@ -400,10 +403,10 @@ function PositionSizeCalc() {
       <h3 className="mb-4 text-sm font-bold">⚖️ Position Size Calculator</h3>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { label: "Account size ($)", value: account, set: setAccount },
+          { label: `Account size (${currency.symbol})`, value: account, set: setAccount },
           { label: "Risk per trade (%)", value: riskPct, set: setRiskPct },
-          { label: "Entry price ($)", value: entryPrice, set: setEntryPrice },
-          { label: "Stop loss price ($)", value: stopLoss, set: setStopLoss },
+          { label: `Entry price (${currency.symbol})`, value: entryPrice, set: setEntryPrice },
+          { label: `Stop loss price (${currency.symbol})`, value: stopLoss, set: setStopLoss },
           { label: "Leverage (×)", value: leverage, set: setLeverage },
         ].map(({ label, value, set }) => (
           <div key={label}>
@@ -422,11 +425,11 @@ function PositionSizeCalc() {
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { label: "Risk Amount ($)", value: fmtUSD(riskAmount), color: "text-red-400" },
-          { label: "Stop Distance", value: `${stopDistPct.toFixed(2)}% ($${fm(stopDist, 2)})`, color: "" },
-          { label: "Position Size (USD)", value: fmtUSD(positionValueUSD), color: "" },
+          { label: `Risk Amount (${currency.symbol})`, value: fmtC(riskAmount, currency.symbol), color: "text-red-400" },
+          { label: "Stop Distance", value: `${stopDistPct.toFixed(2)}% (${currency.symbol}${fm(stopDist, 2)})`, color: "" },
+          { label: `Position Size (${currency.symbol})`, value: fmtC(positionValueUSD, currency.symbol), color: "" },
           { label: "Position Size (coins)", value: positionQty.toFixed(8), color: "" },
-          { label: "Margin Required", value: fmtUSD(marginRequired), color: "" },
+          { label: "Margin Required", value: fmtC(marginRequired, currency.symbol), color: "" },
         ].map(({ label, value, color }) => (
           <div key={label} className="surface-2 rounded-xl border border-app p-4">
             <p className="text-xs text-muted">{label}</p>
@@ -436,15 +439,15 @@ function PositionSizeCalc() {
       </div>
 
       <p className="mt-3 text-xs text-muted">
-        💡 With {riskPct}% risk on a ${fm(acc)} account, your max loss is ${fm(riskAmount)} per trade.
-        Set your position size to {positionQty.toFixed(6)} coins so a move to your stop loss costs exactly ${fm(riskAmount)}.
+        💡 With {riskPct}% risk on a {currency.symbol}{fm(acc)} account, your max loss is {currency.symbol}{fm(riskAmount)} per trade.
+        Set your position size to {positionQty.toFixed(6)} coins so a move to your stop loss costs exactly {currency.symbol}{fm(riskAmount)}.
       </p>
     </div>
   );
 }
 
 /* ── Break-even Calculator ────────────────────────────────────────────────── */
-function BreakEvenCalc() {
+function BreakEvenCalc({ currency }: { currency: Currency }) {
   const [buyPrice, setBuyPrice] = useState("50000");
   const [fee, setFee] = useState("0.1");
   const [target, setTarget] = useState("10");
@@ -462,7 +465,7 @@ function BreakEvenCalc() {
       <h3 className="mb-4 text-sm font-bold">🎯 Break-even & Target Calculator</h3>
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { label: "Buy price ($)", value: buyPrice, set: setBuyPrice },
+          { label: `Buy price (${currency.symbol})`, value: buyPrice, set: setBuyPrice },
           { label: "Trading fee (%)", value: fee, set: setFee },
           { label: "Target profit (%)", value: target, set: setTarget },
         ].map(({ label, value, set }) => (
@@ -481,9 +484,9 @@ function BreakEvenCalc() {
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
-          { label: "Break-even Price", value: `$${fm(breakEven)}`, sub: `+${((breakEven - bp) / (bp || 1) * 100).toFixed(2)}% above buy`, color: "" },
-          { label: `Target Price (${target}% profit)`, value: `$${fm(targetPrice)}`, sub: `ROI incl. fees: ${targetRoi.toFixed(2)}%`, color: "text-green-500" },
-          { label: "Fees Impact", value: `$${fm(breakEven - bp)}`, sub: "per coin in fees to break even", color: "text-red-400" },
+          { label: "Break-even Price", value: `${currency.symbol}${fm(breakEven)}`, sub: `+${((breakEven - bp) / (bp || 1) * 100).toFixed(2)}% above buy`, color: "" },
+          { label: `Target Price (${target}% profit)`, value: `${currency.symbol}${fm(targetPrice)}`, sub: `ROI incl. fees: ${targetRoi.toFixed(2)}%`, color: "text-green-500" },
+          { label: "Fees Impact", value: `${currency.symbol}${fm(breakEven - bp)}`, sub: "per coin in fees to break even", color: "text-red-400" },
         ].map(({ label, value, sub, color }) => (
           <div key={label} className="surface-2 rounded-xl border border-app p-4">
             <p className="text-xs text-muted">{label}</p>
@@ -527,10 +530,10 @@ export function ToolsTab({ currency }: { currency: Currency }) {
       </div>
 
       {tool === "converter" && <CryptoConverter currency={currency} />}
-      {tool === "dca" && <DCACalculator />}
-      {tool === "roi" && <ROICalculator />}
-      {tool === "position" && <PositionSizeCalc />}
-      {tool === "breakeven" && <BreakEvenCalc />}
+      {tool === "dca" && <DCACalculator currency={currency} />}
+      {tool === "roi" && <ROICalculator currency={currency} />}
+      {tool === "position" && <PositionSizeCalc currency={currency} />}
+      {tool === "breakeven" && <BreakEvenCalc currency={currency} />}
     </div>
   );
 }

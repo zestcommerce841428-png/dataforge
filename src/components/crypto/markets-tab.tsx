@@ -583,7 +583,7 @@ export function MarketsTab({ currency }: { currency: Currency }) {
         </div>
       )}
 
-      {selectedCoin && <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} />}
+      {selectedCoin && <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} currency={currency} />}
     </div>
   );
 }

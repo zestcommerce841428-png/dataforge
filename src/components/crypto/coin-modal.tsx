@@ -2,26 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { Sparkline } from "./sparkline";
+import type { Currency } from "./dashboard";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 interface MarketData {
-  current_price: { usd: number };
-  market_cap: { usd: number };
-  total_volume: { usd: number };
+  current_price: Record<string, number>;
+  market_cap: Record<string, number>;
+  total_volume: Record<string, number>;
   price_change_percentage_24h: number;
   price_change_percentage_7d: number;
   price_change_percentage_30d: number;
   price_change_percentage_1y: number;
-  ath: { usd: number };
-  ath_change_percentage: { usd: number };
-  ath_date: { usd: string };
-  atl: { usd: number };
-  atl_change_percentage: { usd: number };
-  atl_date: { usd: string };
+  ath: Record<string, number>;
+  ath_change_percentage: Record<string, number>;
+  ath_date: Record<string, string>;
+  atl: Record<string, number>;
+  atl_change_percentage: Record<string, number>;
+  atl_date: Record<string, string>;
   circulating_supply: number;
   total_supply: number | null;
   max_supply: number | null;
-  fully_diluted_valuation: { usd: number | null };
+  fully_diluted_valuation: Record<string, number | null>;
   sparkline_7d: { price: number[] };
   market_cap_rank: number;
 }
@@ -69,20 +70,20 @@ interface CoinDetail {
 interface HistoryPoint { timestamp: number; price: number; }
 
 /* ── Formatters ──────────────────────────────────────────────────────────── */
-const fp = (p: number) => {
+const fp = (p: number, s = "$") => {
   if (!p && p !== 0) return "—";
-  if (p >= 1000) return `$${p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (p >= 1) return `$${p.toFixed(4)}`;
-  if (p >= 0.0001) return `$${p.toFixed(6)}`;
-  return `$${p.toFixed(10)}`;
+  if (p >= 1000) return `${s}${p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (p >= 1) return `${s}${p.toFixed(4)}`;
+  if (p >= 0.0001) return `${s}${p.toFixed(6)}`;
+  return `${s}${p.toFixed(10)}`;
 };
 
-const fl = (n: number | null | undefined) => {
+const fl = (n: number | null | undefined, s = "$") => {
   if (!n) return "—";
-  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e12) return `${s}${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `${s}${(n / 1e9).toFixed(2)}B`;
   if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  return `$${n.toLocaleString("en-US")}`;
+  return `${s}${n.toLocaleString("en-US")}`;
 };
 
 const pct = (n: number | null | undefined) => {
@@ -113,7 +114,9 @@ const RANGE_OPTIONS = [
   { label: "Max", days: "max" },
 ] as const;
 
-function PriceHistoryChart({ coinId }: { coinId: string }) {
+function PriceHistoryChart({ coinId, currency }: { coinId: string; currency?: Currency }) {
+  const cc = currency?.code ?? "usd";
+  const sym = currency?.symbol ?? "$";
   const [range, setRange] = useState<string>("30");
   const [points, setPoints] = useState<HistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +125,7 @@ function PriceHistoryChart({ coinId }: { coinId: string }) {
   useEffect(() => {
     setLoading(true);
     setError("");
-    fetch(`/api/crypto/history/${encodeURIComponent(coinId)}?days=${range}`)
+    fetch(`/api/crypto/history/${encodeURIComponent(coinId)}?days=${range}&vs_currency=${cc}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -194,7 +197,7 @@ function PriceHistoryChart({ coinId }: { coinId: string }) {
       ) : points.length > 1 ? (
         <div>
           <div className="mb-2 flex items-baseline gap-3">
-            <span className="font-mono text-xl font-bold">{fp(currentPrice)}</span>
+            <span className="font-mono text-xl font-bold">{fp(currentPrice, sym)}</span>
             <span className={`text-sm font-semibold ${changePct >= 0 ? "text-green-500" : "text-red-500"}`}>
               {changePct >= 0 ? "+" : ""}{changePct.toFixed(2)}% ({RANGE_OPTIONS.find((r) => r.days === range)?.label})
             </span>
@@ -307,10 +310,14 @@ function DevStats({ data }: { data: DeveloperData }) {
 export function CoinModal({
   coinId,
   onClose,
+  currency,
 }: {
   coinId: string;
   onClose: () => void;
+  currency?: Currency;
 }) {
+  const cc = currency?.code ?? "usd";
+  const sym = currency?.symbol ?? "$";
   const [coin, setCoin] = useState<CoinDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -423,7 +430,7 @@ export function CoinModal({
               {/* Price + sparkline */}
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className="text-3xl font-extrabold tabular-nums">{fp(md.current_price.usd)}</div>
+                  <div className="text-3xl font-extrabold tabular-nums">{fp(md.current_price[cc] ?? md.current_price["usd"] ?? 0, sym)}</div>
                   <div className="mt-2 flex flex-wrap gap-3">
                     {[
                       { label: "24h", val: md.price_change_percentage_24h },
@@ -466,9 +473,9 @@ export function CoinModal({
 
               {/* Market stats */}
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <StatCard label="Market Cap" value={fl(md.market_cap.usd)} />
-                <StatCard label="Volume 24h" value={fl(md.total_volume.usd)} />
-                <StatCard label="Fully Diluted Val." value={fl(md.fully_diluted_valuation?.usd ?? null)} />
+                <StatCard label="Market Cap" value={fl(md.market_cap[cc] ?? md.market_cap["usd"] ?? null, sym)} />
+                <StatCard label="Volume 24h" value={fl(md.total_volume[cc] ?? md.total_volume["usd"] ?? null, sym)} />
+                <StatCard label="Fully Diluted Val." value={fl(md.fully_diluted_valuation?.[cc] ?? md.fully_diluted_valuation?.["usd"] ?? null, sym)} />
                 <StatCard
                   label="Circulating Supply"
                   value={md.circulating_supply ? `${(md.circulating_supply / 1e6).toFixed(2)}M ${coin.symbol.toUpperCase()}` : "—"}
@@ -481,15 +488,15 @@ export function CoinModal({
               <div className="grid grid-cols-2 gap-2">
                 <div className="surface-2 rounded-xl border border-app p-3">
                   <div className="text-xs font-semibold text-green-500">All-Time High</div>
-                  <div className="mt-1 font-bold">{fp(md.ath.usd)}</div>
-                  <div className={`text-xs font-semibold ${pc(md.ath_change_percentage.usd)}`}>{pct(md.ath_change_percentage.usd)} from ATH</div>
-                  <div className="mt-0.5 text-xs text-muted">{new Date(md.ath_date.usd).toLocaleDateString()}</div>
+                  <div className="mt-1 font-bold">{fp(md.ath[cc] ?? md.ath["usd"] ?? 0, sym)}</div>
+                  <div className={`text-xs font-semibold ${pc(md.ath_change_percentage[cc] ?? md.ath_change_percentage["usd"])}`}>{pct(md.ath_change_percentage[cc] ?? md.ath_change_percentage["usd"])} from ATH</div>
+                  <div className="mt-0.5 text-xs text-muted">{new Date(md.ath_date[cc] ?? md.ath_date["usd"]).toLocaleDateString()}</div>
                 </div>
                 <div className="surface-2 rounded-xl border border-app p-3">
                   <div className="text-xs font-semibold text-red-500">All-Time Low</div>
-                  <div className="mt-1 font-bold">{fp(md.atl.usd)}</div>
-                  <div className={`text-xs font-semibold ${pc(md.atl_change_percentage.usd)}`}>{pct(md.atl_change_percentage.usd)} from ATL</div>
-                  <div className="mt-0.5 text-xs text-muted">{new Date(md.atl_date.usd).toLocaleDateString()}</div>
+                  <div className="mt-1 font-bold">{fp(md.atl[cc] ?? md.atl["usd"] ?? 0, sym)}</div>
+                  <div className={`text-xs font-semibold ${pc(md.atl_change_percentage[cc] ?? md.atl_change_percentage["usd"])}`}>{pct(md.atl_change_percentage[cc] ?? md.atl_change_percentage["usd"])} from ATL</div>
+                  <div className="mt-0.5 text-xs text-muted">{new Date(md.atl_date[cc] ?? md.atl_date["usd"]).toLocaleDateString()}</div>
                 </div>
               </div>
 
@@ -585,7 +592,7 @@ export function CoinModal({
           )}
 
           {coin && tab === "history" && (
-            <PriceHistoryChart coinId={coinId} />
+            <PriceHistoryChart coinId={coinId} currency={currency} />
           )}
 
           {coin && tab === "developer" && (

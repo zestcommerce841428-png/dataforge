@@ -83,9 +83,11 @@ interface SearchCoin { id: string; name: string; symbol: string; thumb: string; 
 function AddHoldingModal({
   onAdd,
   onClose,
+  currency,
 }: {
   onAdd: (h: Holding) => void;
   onClose: () => void;
+  currency: import("./dashboard").Currency;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchCoin[]>([]);
@@ -193,7 +195,7 @@ function AddHoldingModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted">Avg buy price (USD)</label>
+              <label className="mb-1 block text-xs font-medium text-muted">Avg buy price ({currency.symbol})</label>
               <input
                 type="number"
                 min="0"
@@ -333,7 +335,7 @@ export function PortfolioTab({ currency }: { currency: Currency }) {
             <div className="flex flex-wrap gap-x-6 gap-y-2">
               {enriched.map((h, i) => (
                 <div key={h.id + i} className="flex items-center gap-2 text-sm">
-                  <span className="block h-3 w-3 rounded-full" style={{ background: PALETTE[i % PALETTE.length] }} />
+                  <svg width={12} height={12} aria-hidden="true"><circle cx={6} cy={6} r={6} fill={PALETTE[i % PALETTE.length]} /></svg>
                   <span className="font-semibold">{h.symbol.toUpperCase()}</span>
                   <span className="text-muted">
                     {totalValue > 0 ? ((h.currentValue / totalValue) * 100).toFixed(1) : "0"}%
@@ -398,7 +400,7 @@ export function PortfolioTab({ currency }: { currency: Currency }) {
                 <th className="px-4 py-3 text-right text-xs font-semibold text-muted">P&L</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-muted">ROI</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-muted">24h %</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3" scope="col"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -406,24 +408,22 @@ export function PortfolioTab({ currency }: { currency: Currency }) {
                 const liveData = live.get(h.id);
                 const ch = liveData?.price_change_percentage_24h ?? null;
                 return (
-                  <tr
-                    key={h.id + h.addedAt}
-                    className="cursor-pointer border-b border-app/40 transition hover:bg-[var(--surface-2)]"
-                    onClick={() => setSelectedCoin(h.id)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && setSelectedCoin(h.id)}
-                  >
+                  <tr key={h.id + h.addedAt} className="border-b border-app/40 transition hover:bg-[var(--surface-2)]">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="block h-3 w-3 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCoin(h.id)}
+                        className="flex items-center gap-2 text-left"
+                        aria-label={`View ${h.name} details`}
+                      >
+                        <svg width={12} height={12} aria-hidden="true"><circle cx={6} cy={6} r={6} fill={PALETTE[i % PALETTE.length]} /></svg>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={h.image} alt={h.name} width={28} height={28} className="rounded-full" loading="lazy" />
                         <div>
                           <div className="font-semibold">{h.name}</div>
                           <div className="text-xs uppercase text-muted">{h.symbol}</div>
                         </div>
-                      </div>
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right font-mono">{h.quantity.toLocaleString("en-US", { maximumSignificantDigits: 8 })}</td>
                     <td className="px-4 py-3 text-right font-mono text-muted">{fmtPrice(h.buyPrice)}</td>
@@ -462,8 +462,8 @@ export function PortfolioTab({ currency }: { currency: Currency }) {
         </div>
       )}
 
-      {showAdd && <AddHoldingModal onAdd={addHolding} onClose={() => setShowAdd(false)} />}
-      {selectedCoin && <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} />}
+      {showAdd && <AddHoldingModal onAdd={addHolding} onClose={() => setShowAdd(false)} currency={currency} />}
+      {selectedCoin && <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} currency={currency} />}
     </div>
   );
 }

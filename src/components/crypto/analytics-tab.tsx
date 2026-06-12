@@ -32,11 +32,11 @@ interface Protocol {
 interface Chain { name: string; tvl: number; tokenSymbol?: string; }
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
-const fl = (n: number) => {
-  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  return `$${n.toLocaleString("en-US")}`;
+const fl = (n: number, sym = "$") => {
+  if (n >= 1e12) return `${sym}${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `${sym}${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `${sym}${(n / 1e6).toFixed(2)}M`;
+  return `${sym}${n.toLocaleString("en-US")}`;
 };
 
 /* ── Market Heatmap (treemap) ─────────────────────────────────────────────── */
@@ -151,7 +151,8 @@ function Heatmap({ coins, onSelect }: { coins: CoinMarket[]; onSelect: (id: stri
     <div className="overflow-auto rounded-2xl border border-app">
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        style={{ width: "100%", minWidth: 320, display: "block" }}
+        width="100%"
+        className="block"
         aria-label="Market cap heatmap"
       >
         {cells.map((cell) => {
@@ -162,7 +163,7 @@ function Heatmap({ coins, onSelect }: { coins: CoinMarket[]; onSelect: (id: stri
           return (
             <g
               key={cell.id}
-              style={{ cursor: "pointer" }}
+              cursor="pointer"
               onClick={() => onSelect(cell.id)}
               onMouseEnter={() => setHovered(cell.id)}
               onMouseLeave={() => setHovered(null)}
@@ -187,7 +188,7 @@ function Heatmap({ coins, onSelect }: { coins: CoinMarket[]; onSelect: (id: stri
                     fontSize={Math.min(14, Math.max(8, cell.w / 8))}
                     fontWeight={700}
                     fill="white"
-                    style={{ pointerEvents: "none", userSelect: "none" }}
+                    className="pointer-events-none select-none"
                   >
                     {cell.symbol.toUpperCase()}
                   </text>
@@ -199,7 +200,7 @@ function Heatmap({ coins, onSelect }: { coins: CoinMarket[]; onSelect: (id: stri
                       dominantBaseline="middle"
                       fontSize={Math.min(11, Math.max(7, cell.w / 10))}
                       fill="rgba(255,255,255,0.85)"
-                      style={{ pointerEvents: "none", userSelect: "none" }}
+                      className="pointer-events-none select-none"
                     >
                       {pct(ch)}
                     </text>
@@ -222,7 +223,7 @@ function Heatmap({ coins, onSelect }: { coins: CoinMarket[]; onSelect: (id: stri
           { label: "≥+10%", color: "#15803d" },
         ].map(({ label, color }) => (
           <span key={label} className="flex items-center gap-1">
-            <span className="block h-3 w-4 rounded-sm" style={{ background: color }} />
+            <svg width={16} height={12} aria-hidden="true"><rect width={16} height={12} rx={2} fill={color} /></svg>
             {label}
           </span>
         ))}
@@ -315,12 +316,10 @@ function VolumeLeaders({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={c.image} alt={c.name} width={22} height={22} className="rounded-full" loading="lazy" />
             <span className="w-28 text-left font-semibold truncate">{c.name}</span>
-            <div className="flex-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
-              <div
-                className="h-2 rounded-full bg-brand-500 transition-all"
-                style={{ width: `${(c.total_volume / maxVol) * 100}%` }}
-              />
-            </div>
+            <svg width="100%" height="8" className="flex-1 overflow-visible" aria-hidden="true">
+              <rect width="100%" height="8" rx="4" fill="var(--surface-2)" />
+              <rect width={`${(c.total_volume / maxVol) * 100}%`} height="8" rx="4" fill="var(--brand-500,#6366f1)" />
+            </svg>
             <span className="w-24 text-right font-mono text-xs text-muted">
               {fmtLarge(c.total_volume, currency.symbol)}
             </span>
@@ -387,9 +386,10 @@ function DefiPanel() {
             return (
               <div key={c.name} className="flex items-center gap-3 text-sm">
                 <span className="w-24 truncate font-semibold">{c.name}</span>
-                <div className="flex-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
-                  <div className="h-2 rounded-full bg-brand-500" style={{ width: `${pct_}%` }} />
-                </div>
+                <svg width="100%" height="8" className="flex-1 overflow-visible" aria-hidden="true">
+                  <rect width="100%" height="8" rx="4" fill="var(--surface-2)" />
+                  <rect width={`${pct_}%`} height="8" rx="4" fill="var(--brand-500,#6366f1)" />
+                </svg>
                 <span className="w-20 text-right font-mono text-xs font-semibold">{fl(c.tvl)}</span>
                 <span className="w-10 text-right text-xs text-muted">{pct_.toFixed(1)}%</span>
               </div>
@@ -425,7 +425,7 @@ function DefiPanel() {
 }
 
 /* ── Sector Breakdown ─────────────────────────────────────────────────────── */
-function SectorBreakdown({ coins }: { coins: CoinMarket[] }) {
+function SectorBreakdown({ coins, currency }: { coins: CoinMarket[]; currency: Currency }) {
   // Approximate sector grouping by symbol patterns
   const sectors: Record<string, string[]> = {
     "Layer 1": ["BTC","ETH","SOL","ADA","AVAX","DOT","ATOM","NEAR","ALGO","FTM","ONE","EGLD","HBAR","XTZ"],
@@ -473,14 +473,16 @@ function SectorBreakdown({ coins }: { coins: CoinMarket[] }) {
       <div className="space-y-2">
         {rows.map(([sector, value], i) => {
           const pct_ = totalTVL > 0 ? (value / totalTVL) * 100 : 0;
+          const color = COLORS[i % COLORS.length];
           return (
             <div key={sector} className="flex items-center gap-3 text-sm">
-              <span className="block h-3 w-3 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+              <svg width={12} height={12} className="shrink-0" aria-hidden="true"><circle cx={6} cy={6} r={6} fill={color} /></svg>
               <span className="w-28 font-semibold truncate">{sector}</span>
-              <div className="flex-1 overflow-hidden rounded-full bg-[var(--surface-2)]">
-                <div className="h-2 rounded-full" style={{ width: `${pct_}%`, background: COLORS[i % COLORS.length] }} />
-              </div>
-              <span className="w-16 text-right font-mono text-xs font-semibold">{fl(value)}</span>
+              <svg width="100%" height="8" className="flex-1 overflow-visible" aria-hidden="true">
+                <rect width="100%" height="8" rx="4" fill="var(--surface-2)" />
+                <rect width={`${pct_}%`} height="8" rx="4" fill={color} />
+              </svg>
+              <span className="w-16 text-right font-mono text-xs font-semibold">{fl(value, currency.symbol)}</span>
               <span className="w-10 text-right text-xs text-muted">{pct_.toFixed(1)}%</span>
             </div>
           );
@@ -563,7 +565,7 @@ export function AnalyticsTab({ currency }: { currency: Currency }) {
             <div className="space-y-4">
               <p className="text-xs text-muted">Top 80 coins by market cap · sized by market cap · colored by 24h change · click to view details</p>
               <Heatmap coins={coins} onSelect={setSelectedCoin} />
-              <SectorBreakdown coins={coins} />
+              <SectorBreakdown coins={coins} currency={currency} />
             </div>
           )}
           {view === "gainers" && <GainersLosers coins={coins} onSelect={setSelectedCoin} currency={currency} />}
@@ -572,7 +574,7 @@ export function AnalyticsTab({ currency }: { currency: Currency }) {
         </>
       )}
 
-      {selectedCoin && <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} />}
+      {selectedCoin && <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} currency={currency} />}
     </div>
   );
 }

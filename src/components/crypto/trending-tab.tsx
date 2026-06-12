@@ -496,7 +496,7 @@ export function TrendingTab({ currency }: { currency: Currency }) {
       )}
 
       {selectedCoin && (
-        <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} />
+        <CoinModal coinId={selectedCoin} onClose={() => setSelectedCoin(null)} currency={currency} />
       )}
     </div>
   );
