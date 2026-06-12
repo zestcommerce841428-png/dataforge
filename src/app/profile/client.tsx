@@ -140,11 +140,16 @@ export default function ProfileClient({ user, profile }: Props) {
 
   async function handleDeleteAccount(e: React.FormEvent) {
     e.preventDefault();
-    if (deleteConfirm !== "DELETE") { flash("err", 'Type DELETE to confirm.'); return; }
+    if (deleteConfirm !== "DELETE") { flash("err", "Type DELETE to confirm."); return; }
     setDeleting(true);
-    // Delete profile row first then sign out (actual account deletion requires admin API)
-    await supabase.from("profiles").delete().eq("id", user.id);
-    await supabase.auth.signOut();
+    try {
+      const res = await fetch("/api/auth/delete-account", { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+    } catch {
+      flash("err", "Could not delete account. Please try again.");
+      setDeleting(false);
+      return;
+    }
     router.push("/?account=deleted");
   }
 
@@ -164,7 +169,7 @@ export default function ProfileClient({ user, profile }: Props) {
           <h1 className="text-2xl font-bold">My Account</h1>
           <p className="text-sm text-muted">{user.email}</p>
         </div>
-        <button onClick={handleSignOut}
+        <button type="button" onClick={handleSignOut}
           className="rounded-xl border border-app px-4 py-2 text-sm font-medium text-muted hover:bg-[var(--surface-2)] hover:text-[var(--text)]">
           Sign out
         </button>
@@ -188,12 +193,12 @@ export default function ProfileClient({ user, profile }: Props) {
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => fileRef.current?.click()} disabled={uploading}
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
             className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
             {uploading ? "Uploading…" : "Change photo"}
           </button>
           {avatarUrl && (
-            <button onClick={handleRemovePhoto} disabled={uploading}
+            <button type="button" onClick={handleRemovePhoto} disabled={uploading}
               className="rounded-xl border border-app px-4 py-2 text-sm font-medium text-muted hover:bg-[var(--surface-2)] hover:text-red-600 disabled:opacity-60">
               Remove
             </button>
@@ -224,27 +229,27 @@ export default function ProfileClient({ user, profile }: Props) {
         <form onSubmit={handleSaveProfile} className="surface rounded-2xl border border-app p-6 space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Full name</label>
-              <input value={fullName} onChange={(e) => setFullName(e.target.value)}
+              <label htmlFor="full-name" className="mb-1.5 block text-sm font-medium">Full name</label>
+              <input id="full-name" value={fullName} onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                 placeholder="Jane Doe" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Username</label>
-              <input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+              <label htmlFor="username" className="mb-1.5 block text-sm font-medium">Username</label>
+              <input id="username" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                 className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                 placeholder="jane_doe" />
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Bio</label>
-            <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3}
+            <label htmlFor="bio" className="mb-1.5 block text-sm font-medium">Bio</label>
+            <textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3}
               className="w-full resize-none rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               placeholder="Tell us about yourself…" />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Website</label>
-            <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
+            <label htmlFor="website" className="mb-1.5 block text-sm font-medium">Website</label>
+            <input id="website" type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
               className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               placeholder="https://yoursite.com" />
           </div>
@@ -266,9 +271,9 @@ export default function ProfileClient({ user, profile }: Props) {
             <h2 className="mb-4 text-base font-semibold">Change password</h2>
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium">Current password</label>
+                <label htmlFor="cur-pw" className="mb-1.5 block text-sm font-medium">Current password</label>
                 <div className="relative">
-                  <input type={showPw ? "text" : "password"} required value={curPw} onChange={(e) => setCurPw(e.target.value)}
+                  <input id="cur-pw" type={showPw ? "text" : "password"} required value={curPw} onChange={(e) => setCurPw(e.target.value)}
                     className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 pr-12 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                   <button type="button" onClick={() => setShowPw((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" aria-label="Toggle visibility">
@@ -277,14 +282,14 @@ export default function ProfileClient({ user, profile }: Props) {
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium">New password</label>
-                <input type={showPw ? "text" : "password"} required value={newPw} onChange={(e) => setNewPw(e.target.value)}
+                <label htmlFor="new-pw" className="mb-1.5 block text-sm font-medium">New password</label>
+                <input id="new-pw" type={showPw ? "text" : "password"} required value={newPw} onChange={(e) => setNewPw(e.target.value)}
                   className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   placeholder="min 8 characters" />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium">Confirm new password</label>
-                <input type={showPw ? "text" : "password"} required value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
+                <label htmlFor="confirm-pw" className="mb-1.5 block text-sm font-medium">Confirm new password</label>
+                <input id="confirm-pw" type={showPw ? "text" : "password"} required value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
                   className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
               </div>
               <button type="submit" disabled={changingPw}
@@ -301,6 +306,7 @@ export default function ProfileClient({ user, profile }: Props) {
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="flex gap-3">
                 <input type="email" required value={otpEmail} onChange={(e) => setOtpEmail(e.target.value)}
+                  placeholder="your@email.com" aria-label="Email address for OTP"
                   className="flex-1 rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                 <button type="submit" disabled={otpLoading}
                   className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
@@ -312,6 +318,7 @@ export default function ProfileClient({ user, profile }: Props) {
                 <p className="text-sm text-muted">Enter the 6-digit code sent to <strong>{otpEmail}</strong></p>
                 <div className="flex gap-3">
                   <input type="text" required maxLength={6} pattern="[0-9]{6}"
+                    aria-label="6-digit OTP code" placeholder="000000"
                     value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                     className="w-40 rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-center font-mono text-lg tracking-[0.4em] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                   <button type="submit" disabled={otpLoading || otpCode.length !== 6}
