@@ -55,6 +55,7 @@ const csp = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  generateBuildId: () => `build-${BUILD_TIME.replace(/[:.]/g, "-")}`,
   env: {
     NEXT_PUBLIC_BUILD_SHA:     BUILD_SHA,
     NEXT_PUBLIC_BUILD_TIME:    BUILD_TIME,
