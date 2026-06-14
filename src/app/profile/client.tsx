@@ -98,6 +98,15 @@ export default function ProfileClient({ user, profile }: Props) {
   // Danger tab
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [dangerOtpSent, setDangerOtpSent] = useState(false);
+  const [dangerOtpCode, setDangerOtpCode] = useState("");
+  const [dangerOtpLoading, setDangerOtpLoading] = useState(false);
+  const [dangerOtpVerified, setDangerOtpVerified] = useState(false);
+
+  // Photo remove OTP
+  const [removePhotoOtpSent, setRemovePhotoOtpSent] = useState(false);
+  const [removePhotoOtpCode, setRemovePhotoOtpCode] = useState("");
+  const [removePhotoOtpLoading, setRemovePhotoOtpLoading] = useState(false);
 
   function flash(type: "ok" | "err", text: string) {
     setMsg({ type, text });
@@ -132,11 +141,25 @@ export default function ProfileClient({ user, profile }: Props) {
     }
   }
 
-  async function handleRemovePhoto() {
-    setUploading(true);
+  async function handleSendRemovePhotoOtp() {
+    setRemovePhotoOtpLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({ email: user.email!, options: { shouldCreateUser: false } });
+    setRemovePhotoOtpLoading(false);
+    if (error) { flash("err", error.message); return; }
+    setRemovePhotoOtpSent(true);
+    flash("ok", "OTP sent to " + user.email + ". Enter it to confirm photo removal.");
+  }
+
+  async function handleVerifyAndRemovePhoto(e: React.FormEvent) {
+    e.preventDefault();
+    setRemovePhotoOtpLoading(true);
+    const { error } = await supabase.auth.verifyOtp({ email: user.email!, token: removePhotoOtpCode, type: "email" });
+    if (error) { flash("err", "Invalid or expired OTP."); setRemovePhotoOtpLoading(false); return; }
     await supabase.from("profiles").upsert({ id: user.id, avatar_url: null, updated_at: new Date().toISOString() });
     setAvatarUrl("");
-    setUploading(false);
+    setRemovePhotoOtpSent(false);
+    setRemovePhotoOtpCode("");
+    setRemovePhotoOtpLoading(false);
     flash("ok", "Photo removed.");
   }
 
@@ -210,8 +233,29 @@ export default function ProfileClient({ user, profile }: Props) {
     setOtpSent(false); setOtpCode("");
   }
 
+  async function handleSendDangerOtp() {
+    setDangerOtpLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({ email: user.email!, options: { shouldCreateUser: false } });
+    setDangerOtpLoading(false);
+    if (error) { flash("err", error.message); return; }
+    setDangerOtpSent(true);
+    flash("ok", "OTP sent to " + user.email);
+  }
+
+  async function handleVerifyDangerOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setDangerOtpLoading(true);
+    const { error } = await supabase.auth.verifyOtp({ email: user.email!, token: dangerOtpCode, type: "email" });
+    setDangerOtpLoading(false);
+    if (error) { flash("err", "Invalid or expired OTP. Please try again."); return; }
+    setDangerOtpVerified(true);
+    setDangerOtpSent(false);
+    flash("ok", "Identity verified. You can now delete your account.");
+  }
+
   async function handleDeleteAccount(e: React.FormEvent) {
     e.preventDefault();
+    if (!dangerOtpVerified) { flash("err", "Please verify your identity with OTP first."); return; }
     if (deleteConfirm !== "DELETE") { flash("err", "Type DELETE to confirm."); return; }
     setDeleting(true);
     try {
@@ -271,11 +315,25 @@ export default function ProfileClient({ user, profile }: Props) {
               className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
               {uploading ? "Uploading…" : "Change photo"}
             </button>
-            {avatarUrl && (
-              <button type="button" onClick={handleRemovePhoto} disabled={uploading}
+            {avatarUrl && !removePhotoOtpSent && (
+              <button type="button" onClick={handleSendRemovePhotoOtp} disabled={uploading || removePhotoOtpLoading}
                 className="rounded-xl border border-app px-4 py-2 text-sm font-medium text-muted hover:bg-[var(--surface-2)] hover:text-red-600 disabled:opacity-60">
-                Remove
+                {removePhotoOtpLoading ? "Sending OTP…" : "Remove"}
               </button>
+            )}
+            {avatarUrl && removePhotoOtpSent && (
+              <form onSubmit={handleVerifyAndRemovePhoto} className="flex items-center gap-2">
+                <input type="text" required maxLength={6} pattern="[0-9]{6}" placeholder="OTP code"
+                  value={removePhotoOtpCode} onChange={(e) => setRemovePhotoOtpCode(e.target.value.replace(/\D/g, ""))}
+                  className="w-28 rounded-xl border border-app bg-[var(--surface-2)] px-3 py-2 text-center font-mono text-sm tracking-widest outline-none focus:border-brand-500"
+                  aria-label="OTP code to confirm photo removal" />
+                <button type="submit" disabled={removePhotoOtpLoading || removePhotoOtpCode.length !== 6}
+                  className="rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60">
+                  {removePhotoOtpLoading ? "…" : "Confirm"}
+                </button>
+                <button type="button" onClick={() => { setRemovePhotoOtpSent(false); setRemovePhotoOtpCode(""); }}
+                  className="text-xs text-muted hover:text-[var(--text)]">Cancel</button>
+              </form>
             )}
           </div>
           {meta.occupation && <p className="mt-1 text-xs text-muted">{meta.occupation}{meta.company ? ` @ ${meta.company}` : ""}</p>}
@@ -572,23 +630,64 @@ export default function ProfileClient({ user, profile }: Props) {
 
       {/* ── Danger Zone ── */}
       {tab === "danger" && (
-        <div className="surface rounded-2xl border border-red-200 p-6 dark:border-red-900/40">
-          <h2 className="mb-1 text-base font-semibold text-red-600">Delete account</h2>
-          <p className="mb-4 text-sm text-muted">
-            This action is permanent. All your data, profile, and saved work will be deleted and cannot be recovered.
-          </p>
-          <form onSubmit={handleDeleteAccount} className="space-y-4">
-            <div>
-              <label className={LABEL_CLS}>Type <strong>DELETE</strong> to confirm</label>
-              <input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)}
-                className="w-full rounded-xl border border-red-200 bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-red-900/40"
-                placeholder="DELETE" />
-            </div>
-            <button type="submit" disabled={deleting || deleteConfirm !== "DELETE"}
-              className="rounded-xl bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-40">
-              {deleting ? "Deleting…" : "Permanently delete account"}
-            </button>
-          </form>
+        <div className="space-y-5">
+          <div className="surface rounded-2xl border border-red-200 p-6 dark:border-red-900/40">
+            <h2 className="mb-1 text-base font-semibold text-red-600">Delete account</h2>
+            <p className="mb-4 text-sm text-muted">
+              This action is permanent. All your data, profile, and saved work will be deleted and cannot be recovered.
+            </p>
+
+            {/* Step 1: OTP gate */}
+            {!dangerOtpVerified && (
+              <div className="rounded-xl border border-app bg-[var(--surface-2)] p-4">
+                <p className="mb-3 text-sm font-medium">Step 1 — Verify your identity</p>
+                <p className="mb-3 text-sm text-muted">We will send a one-time code to <strong>{user.email}</strong> to confirm it&apos;s you.</p>
+                {!dangerOtpSent ? (
+                  <button type="button" onClick={handleSendDangerOtp} disabled={dangerOtpLoading}
+                    className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
+                    {dangerOtpLoading ? "Sending…" : "Send verification OTP"}
+                  </button>
+                ) : (
+                  <form onSubmit={handleVerifyDangerOtp} className="space-y-3">
+                    <p className="text-sm text-muted">Enter the 6-digit code sent to your email</p>
+                    <div className="flex gap-3">
+                      <input type="text" required maxLength={6} pattern="[0-9]{6}" placeholder="000000"
+                        value={dangerOtpCode} onChange={(e) => setDangerOtpCode(e.target.value.replace(/\D/g, ""))}
+                        className="w-40 rounded-xl border border-app bg-[var(--surface)] px-4 py-2.5 text-center font-mono text-lg tracking-[0.4em] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                        aria-label="6-digit OTP code" />
+                      <button type="submit" disabled={dangerOtpLoading || dangerOtpCode.length !== 6}
+                        className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60">
+                        {dangerOtpLoading ? "…" : "Verify"}
+                      </button>
+                      <button type="button" onClick={() => { setDangerOtpSent(false); setDangerOtpCode(""); }}
+                        className="rounded-xl border border-app px-4 py-2.5 text-sm text-muted hover:bg-[var(--surface-2)]">
+                        Resend
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Delete form (only after OTP verified) */}
+            {dangerOtpVerified && (
+              <div className="rounded-xl border border-red-200 bg-red-50/40 p-4 dark:border-red-900/40 dark:bg-red-950/10">
+                <p className="mb-3 text-sm font-medium text-red-600">✓ Identity verified — Step 2: Confirm deletion</p>
+                <form onSubmit={handleDeleteAccount} className="space-y-4">
+                  <div>
+                    <label className={LABEL_CLS}>Type <strong>DELETE</strong> to confirm</label>
+                    <input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)}
+                      className="w-full rounded-xl border border-red-200 bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-red-900/40"
+                      placeholder="DELETE" />
+                  </div>
+                  <button type="submit" disabled={deleting || deleteConfirm !== "DELETE"}
+                    className="rounded-xl bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-40">
+                    {deleting ? "Deleting…" : "Permanently delete account"}
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
