@@ -11,8 +11,40 @@ const BLOCKED_PATHS = [
   "/admin.php", "/xmlrpc.php", "/.git", "/config.php",
 ];
 
-// Routes that require an authenticated session
-const PROTECTED_ROUTES = ["/profile"];
+// All tool routes require authentication
+const PROTECTED_ROUTES = [
+  "/profile",
+  "/api-docs",
+  "/base-converter",
+  "/code-formatter",
+  "/color-toolkit",
+  "/compare",
+  "/cron-builder",
+  "/crypto",
+  "/dev-tools",
+  "/diff",
+  "/file-converter",
+  "/format-converter",
+  "/formula-manager",
+  "/handwriting",
+  "/image-tools",
+  "/json-path",
+  "/json-formatter",
+  "/jwt",
+  "/ocr",
+  "/pdf-tools",
+  "/regex",
+  "/shortcuts",
+  "/sql-formatter",
+  "/text-escape",
+  "/tools",
+  "/typing",
+  "/url-checker",
+  "/uuid-generator",
+  "/workbook",
+  "/bulk-template",
+];
+
 // Routes only for unauthenticated users
 const AUTH_ROUTES = ["/auth/login", "/auth/signup", "/auth/forgot-password"];
 
@@ -35,7 +67,6 @@ export async function middleware(req: NextRequest) {
     });
   }
 
-  // Only run Supabase session refresh when env vars exist
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -44,9 +75,7 @@ export async function middleware(req: NextRequest) {
   if (supabaseUrl && supabaseKey) {
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
+        getAll() { return req.cookies.getAll(); },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           res = NextResponse.next({ request: req });
@@ -59,7 +88,6 @@ export async function middleware(req: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Redirect unauthenticated users away from protected routes
     if (!user && PROTECTED_ROUTES.some((r) => pathname.startsWith(r))) {
       const loginUrl = req.nextUrl.clone();
       loginUrl.pathname = "/auth/login";
@@ -67,7 +95,6 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Redirect authenticated users away from auth pages
     if (user && AUTH_ROUTES.some((r) => pathname.startsWith(r))) {
       const homeUrl = req.nextUrl.clone();
       homeUrl.pathname = "/profile";
