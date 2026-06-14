@@ -41,14 +41,17 @@ const ENV_DOT: Record<string, string> = {
 
 export function BuildInfo({ sha, version, timeIso, branch, env, region, author, message, nodeVersion, nextVersion }: Props) {
   const built     = new Date(timeIso);
-  const [ago, setAgo] = useState(() => timeAgo(built));
+  // Start empty so server and client render the same HTML; relative time is
+  // computed only after mount to avoid a hydration mismatch (React #418).
+  const [ago, setAgo] = useState("");
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const id = setInterval(() => setAgo(timeAgo(built)), 30_000);
+    setAgo(timeAgo(new Date(timeIso)));
+    const id = setInterval(() => setAgo(timeAgo(new Date(timeIso))), 30_000);
     return () => clearInterval(id);
-  });
+  }, [timeIso]);
 
   useEffect(() => {
     if (!open) return;
@@ -116,7 +119,7 @@ export function BuildInfo({ sha, version, timeIso, branch, env, region, author, 
         <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden className="shrink-0 opacity-60">
           <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z"/>
         </svg>
-        {ago}
+        <span suppressHydrationWarning>{ago || buildDate}</span>
         <svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden className={`shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}>
           <path d="M2 5l6 6 6-6"/>
         </svg>
@@ -185,7 +188,7 @@ export function BuildInfo({ sha, version, timeIso, branch, env, region, author, 
             </Row>
 
             <Row label="Age">
-              <span className="tabular-nums text-[var(--text)]">{ago}</span>
+              <span className="tabular-nums text-[var(--text)]" suppressHydrationWarning>{ago || "—"}</span>
             </Row>
 
             {region && (
