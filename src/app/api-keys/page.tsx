@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { appUrl } from "@/lib/site";
 
 interface ApiKey {
   id: string;
@@ -135,7 +136,7 @@ export default function ApiKeysPage() {
         <p className="mb-2 text-sm font-semibold">Usage</p>
         <pre className="overflow-x-auto rounded-xl bg-[var(--surface-2)] p-4 text-xs font-mono">
 {`# URL shortener example
-curl -X POST https://dataforge.vercel.app/api/shorten \\
+curl -X POST ${appUrl("/api/shorten")} \\
   -H "X-API-Key: df_live_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"url":"https://example.com"}'`}

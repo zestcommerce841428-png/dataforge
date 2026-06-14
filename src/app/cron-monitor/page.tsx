@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { appUrl } from "@/lib/site";
 
 interface Monitor {
   id: string; name: string; schedule: string;
@@ -86,7 +87,7 @@ export default function CronMonitorPage() {
   }
 
   function copyPingUrl(m: Monitor) {
-    const url = `${window.location.origin}/api/cron-ping/${m.id}`;
+    const url = appUrl(`/api/cron-ping/${m.id}`);
     navigator.clipboard.writeText(url);
     setCopied(m.id); setTimeout(() => setCopied(null), 2000);
   }
@@ -131,7 +132,7 @@ export default function CronMonitorPage() {
         </ol>
         <pre className="mt-3 overflow-x-auto rounded-xl bg-[var(--surface-2)] p-3 text-xs font-mono">
 {`# Add to your crontab (runs every 5 minutes)
-*/5 * * * * /path/to/script.sh && curl -s https://dataforge.vercel.app/api/cron-ping/YOUR_ID`}
+*/5 * * * * /path/to/script.sh && curl -s ${appUrl("/api/cron-ping/YOUR_ID")}`}
         </pre>
       </div>
 
@@ -225,7 +226,7 @@ export default function CronMonitorPage() {
                 <p className="mb-1.5 text-xs font-medium">Ping URL — add to end of your cron script:</p>
                 <div className="flex gap-2">
                   <code className="flex-1 overflow-x-auto rounded-lg bg-[var(--surface)] px-3 py-2 text-[11px] font-mono">
-                    {`${typeof window !== "undefined" ? window.location.origin : "https://dataforge.vercel.app"}/api/cron-ping/${m.id}`}
+                    {appUrl(`/api/cron-ping/${m.id}`)}
                   </code>
                   <button type="button" onClick={() => copyPingUrl(m)}
                     className="shrink-0 rounded-lg border border-app px-3 py-2 text-xs hover:bg-[var(--surface)]">

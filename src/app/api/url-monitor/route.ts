@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createHash } from "crypto";
 import nodemailer from "nodemailer";
 import { assertSafeUrl } from "@/lib/ssrf";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ async function sendChangeAlert(email: string, url: string, name: string) {
         <p style="color:#555">The monitored page <strong>${name}</strong> has changed.</p>
         <p><a href="${url}" style="color:#7c3aed">${url}</a></p>
         <p style="color:#888;font-size:12px;margin-top:20px">
-          Manage your monitors at <a href="https://dataforge.vercel.app/url-monitor">DataForge URL Monitor</a>.
+          Manage your monitors at <a href="${SITE_URL}/url-monitor">DataForge URL Monitor</a>.
         </p>
       </div>
     `,

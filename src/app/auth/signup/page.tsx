@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { appUrl } from "@/lib/site";
 
 const STEPS = ["Account", "Personal", "Professional", "Profile"];
 
@@ -156,7 +157,7 @@ export default function SignupPage() {
     setOauthLoading(provider);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: appUrl("/auth/callback") },
     });
     if (error) { setError(error.message); setOauthLoading(null); }
   }

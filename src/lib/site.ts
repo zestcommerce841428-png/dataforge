@@ -30,3 +30,23 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 export const SITE_NAME = "DataForge";
+
+/**
+ * Canonical origin to use for outward-facing links (OAuth/email redirects,
+ * copyable webhook/share URLs). Always the production domain — except on a
+ * real localhost dev server, where the live origin is used so local auth works.
+ */
+export function appOrigin(): string {
+  if (typeof window !== "undefined") {
+    const h = window.location.hostname;
+    if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0") {
+      return window.location.origin;
+    }
+  }
+  return SITE_URL;
+}
+
+/** Join the canonical origin with a path (path should start with "/"). */
+export function appUrl(path = ""): string {
+  return `${appOrigin()}${path}`;
+}

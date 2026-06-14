@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { appUrl } from "@/lib/site";
 
 interface Endpoint { id: string; name: string; created_at: string; }
 interface WRequest {
@@ -92,12 +93,12 @@ export default function WebhookInspectorPage() {
   }
 
   function copyUrl(ep: Endpoint) {
-    const url = `${window.location.origin}/api/webhook/${ep.id}`;
+    const url = appUrl(`/api/webhook/${ep.id}`);
     navigator.clipboard.writeText(url);
     setCopied(true); setTimeout(() => setCopied(false), 2000);
   }
 
-  const webhookUrl = activeEp ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/webhook/${activeEp.id}` : "";
+  const webhookUrl = activeEp ? appUrl(`/api/webhook/${activeEp.id}`) : "";
 
   if (!user) {
     return (

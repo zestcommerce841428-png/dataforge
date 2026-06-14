@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getGenerator, type GenOptions } from "@/lib/generators";
+import { appOrigin } from "@/lib/site";
 import { HistoryPanel } from "@/components/history-panel";
 
 const HISTORY_LIMIT = 50;
@@ -301,7 +302,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
     for (const f of gen.fields) {
       if (opts[f.key] !== f.default) params.set(f.key, String(opts[f.key]));
     }
-    const url = `${window.location.origin}${window.location.pathname}${params.toString() ? "?" + params : ""}`;
+    const url = `${appOrigin()}${window.location.pathname}${params.toString() ? "?" + params : ""}`;
     await navigator.clipboard.writeText(url);
     setShareMsg("Link copied!");
     setTimeout(() => setShareMsg(""), 2000);
@@ -316,7 +317,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
     for (const f of gen.fields) {
       if (opts[f.key] !== f.default) params.set(f.key, String(opts[f.key]));
     }
-    const url = `${window.location.origin}${window.location.pathname}?${params}`;
+    const url = `${appOrigin()}${window.location.pathname}?${params}`;
     await navigator.clipboard.writeText(url);
     setShareMsg("Result link copied!");
     setTimeout(() => setShareMsg(""), 2000);
@@ -341,7 +342,7 @@ export function GeneratorClient({ slug }: { slug: string }) {
   const isVisualGen  = gen.slug === "qr-code" || gen.slug === "barcode";
   const hasTextResults = results.some(r => !r.startsWith("data:image/") && !r.trimStart().startsWith("<svg"));
   const isBulk       = results.length > 1;
-  const origin       = typeof window !== "undefined" ? window.location.origin : "https://dataforge-omega.vercel.app";
+  const origin       = appOrigin();
 
   // Build live API URL with current field values
   const fieldParams = gen.fields

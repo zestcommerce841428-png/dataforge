@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { appOrigin } from "@/lib/site";
 
 const STORE_KEY = "df-collections";
 
@@ -27,7 +28,7 @@ function uid() {
 // Encode collections as a shareable URL hash
 function encodeShare(col: Collection): string {
   const params = new URLSearchParams({ name: col.name, tools: col.tools.join(",") });
-  return `${window.location.origin}/?collection=${encodeURIComponent(params.toString())}`;
+  return `${appOrigin()}/?collection=${encodeURIComponent(params.toString())}`;
 }
 
 export function CollectionsPanel() {

@@ -1,0 +1,15 @@
+fix: use canonical production URL for all outward-facing links
+
+Stop using window.location.origin (which can be a preview deployment or
+localhost) for links that leave the app. Add appOrigin()/appUrl() helpers in
+lib/site.ts that return the canonical SITE_URL everywhere except a real
+localhost dev server.
+
+- Auth: OAuth + password-recovery redirects now point at the canonical domain.
+- Copyable endpoints: webhook-inspector and cron-monitor ping URLs.
+- Share links: collections panel and generator share/API URLs.
+- Replace stale hardcoded "dataforge.vercel.app" with the canonical URL in the
+  url-monitor and cron-ping alert emails and the api-keys / cron-monitor curl
+  examples.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>

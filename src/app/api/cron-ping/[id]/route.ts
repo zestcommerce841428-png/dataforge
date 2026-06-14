@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdmin } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ async function sendMissedAlert(email: string, monitorName: string, lastPing: str
         <p style="color:#555">The monitor <strong>${monitorName}</strong> did not ping within its expected schedule.</p>
         <p style="color:#888;font-size:13px">${lastStr}</p>
         <p style="color:#888;font-size:12px;margin-top:20px">
-          Manage your monitors at <a href="https://dataforge.vercel.app/cron-monitor">DataForge Cron Monitor</a>.
+          Manage your monitors at <a href="${SITE_URL}/cron-monitor">DataForge Cron Monitor</a>.
         </p>
       </div>
     `,
