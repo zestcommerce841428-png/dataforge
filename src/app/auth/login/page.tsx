@@ -31,6 +31,9 @@ export default function LoginPage() {
     if (params.get("verified") === "1") {
       setNotice("Your email is verified. Sign in to continue.");
     }
+    if (params.get("reset") === "1") {
+      setNotice("Password updated. Sign in with your new password.");
+    }
   }, [params]);
 
   async function handlePasswordLogin(e: React.FormEvent) {
@@ -48,13 +51,20 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
-    setLoading(false);
-    if (error) { setError(error.message); return; }
-    setOtpSent(true);
+    try {
+      const res = await fetch("/api/auth/login-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setLoading(false);
+      if (!res.ok) { setError(data.error ?? "Could not send the code."); return; }
+      setOtpSent(true);
+    } catch {
+      setLoading(false);
+      setError("Network error. Please try again.");
+    }
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {

@@ -127,27 +127,58 @@ function detailsBox(ctx: RequestContext): string {
     </div>`;
 }
 
-/** Professional signup verification email with one-time code + device/location. */
-export async function sendSignupOtp(to: string, code: string, name: string, ctx: RequestContext) {
+export type OtpPurpose = "signup" | "login" | "reset";
+
+const COPY: Record<OtpPurpose, { title: string; subject: string; intro: (n: string) => string; note: string }> = {
+  signup: {
+    title: "Verify your email",
+    subject: "is your verification code",
+    intro: (n) => `Hi${n ? ` ${n}` : ""}, welcome to ${SITE_NAME}! Use the one-time code below to verify your email address and activate your account.`,
+    note: `If you didn't create a ${SITE_NAME} account, you can safely ignore this email — no account will be created.`,
+  },
+  login: {
+    title: "Your sign-in code",
+    subject: "is your sign-in code",
+    intro: (n) => `Hi${n ? ` ${n}` : ""}, use the one-time code below to sign in to your ${SITE_NAME} account.`,
+    note: `If you didn't try to sign in, someone may have your email address — we recommend changing your password.`,
+  },
+  reset: {
+    title: "Reset your password",
+    subject: "is your password reset code",
+    intro: (n) => `Hi${n ? ` ${n}` : ""}, use the one-time code below to reset your ${SITE_NAME} password.`,
+    note: `If you didn't request a password reset, you can safely ignore this email — your password will stay the same.`,
+  },
+};
+
+/** Professional one-time-code email with device/location details. */
+export async function sendOtpEmail(
+  purpose: OtpPurpose,
+  to: string,
+  code: string,
+  name: string,
+  ctx: RequestContext
+) {
+  const c = COPY[purpose];
   const inner = `
-    <p style="margin:0 0 18px;color:#555;font-size:14px;line-height:1.6">
-      Hi${name ? ` ${escapeHtml(name)}` : ""}, welcome to ${SITE_NAME}! Use the one-time code below to verify
-      your email address and activate your account.
-    </p>
+    <p style="margin:0 0 18px;color:#555;font-size:14px;line-height:1.6">${c.intro(escapeHtml(name))}</p>
     <div style="font-size:38px;font-weight:900;letter-spacing:12px;padding:20px;background:#f4f4f5;border-radius:12px;text-align:center;color:#111">
       ${code}
     </div>
     <p style="margin:14px 0 0;color:#888;font-size:12px">
-      This code expires in <strong>10 minutes</strong>. If you didn't create a ${SITE_NAME} account,
-      you can safely ignore this email — no account will be created.
+      This code expires in <strong>10 minutes</strong>. ${c.note}
     </p>
     ${detailsBox(ctx)}`;
   await makeTransport().sendMail({
     from: `"${SITE_NAME}" <${process.env.SMTP_FROM ?? process.env.SMTP_USER}>`,
     to,
-    subject: `${code} is your ${SITE_NAME} verification code`,
-    html: shell("Verify your email", inner),
+    subject: `${code} ${c.subject} · ${SITE_NAME}`,
+    html: shell(c.title, inner),
   });
+}
+
+/** Back-compat wrapper used by the signup route. */
+export async function sendSignupOtp(to: string, code: string, name: string, ctx: RequestContext) {
+  return sendOtpEmail("signup", to, code, name, ctx);
 }
 
 function escapeHtml(s: string) {
