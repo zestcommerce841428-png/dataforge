@@ -46,29 +46,50 @@ const MORE_GROUPS: { heading: string; links: { href: string; label: string; icon
   {
     heading: "Productivity",
     links: [
-      { href: "/formula-manager", icon: "ƒ",  label: "Formula Manager" },
-      { href: "/typing",          icon: "⌨",  label: "Typing Test" },
-      { href: "/shortcuts",       icon: "⚡", label: "Keyboard Shortcuts" },
-      { href: "/cron-builder",    icon: "⏱", label: "Cron Builder" },
-      { href: "/bulk-template",   icon: "⚡", label: "Bulk Generator" },
+      { href: "/formula-manager",   icon: "ƒ",  label: "Formula Manager" },
+      { href: "/typing",            icon: "⌨",  label: "Typing Test" },
+      { href: "/shortcuts",         icon: "⚡", label: "Keyboard Shortcuts" },
+      { href: "/cron-builder",      icon: "⏱", label: "Cron Builder" },
+      { href: "/bulk-template",     icon: "⚡", label: "Bulk Generator" },
+      { href: "/qr-generator",      icon: "⬛", label: "QR Generator" },
+      { href: "/resume",            icon: "📄", label: "Resume Generator" },
+    ],
+  },
+  {
+    heading: "Developer Tools",
+    links: [
+      { href: "/http-tester",       icon: "🌐", label: "HTTP Tester" },
+      { href: "/ssl-checker",       icon: "🔒", label: "SSL Checker" },
+      { href: "/webhook-inspector", icon: "🪝", label: "Webhook Inspector" },
+      { href: "/cron-monitor",      icon: "⏱️", label: "Cron Monitor" },
+      { href: "/url-monitor",       icon: "🔔", label: "URL Monitor" },
+      { href: "/api-keys",          icon: "🔑", label: "API Keys" },
+    ],
+  },
+  {
+    heading: "Personal",
+    links: [
+      { href: "/dashboard",         icon: "📊", label: "Dashboard" },
+      { href: "/snippets",          icon: "📋", label: "My Snippets" },
+      { href: "/notes",             icon: "📝", label: "My Notes" },
     ],
   },
   {
     heading: "Info & Docs",
     links: [
-      { href: "/api-docs",        icon: "{ }", label: "API Docs" },
-      { href: "/changelog",       icon: "📋",  label: "Changelog" },
-      { href: "/sitemap-page",    icon: "🗺",  label: "Site Map" },
-      { href: "/about",           icon: "ℹ️",  label: "About" },
-      { href: "/blog",            icon: "📝",  label: "Blog" },
+      { href: "/api-docs",          icon: "{ }", label: "API Docs" },
+      { href: "/changelog",         icon: "📋",  label: "Changelog" },
+      { href: "/sitemap-page",      icon: "🗺",  label: "Site Map" },
+      { href: "/about",             icon: "ℹ️",  label: "About" },
+      { href: "/blog",              icon: "📝",  label: "Blog" },
     ],
   },
   {
     heading: "Account",
     links: [
-      { href: "/profile",         icon: "👤", label: "My Profile" },
-      { href: "/auth/login",      icon: "🔐", label: "Sign In" },
-      { href: "/auth/signup",     icon: "✨", label: "Create Account" },
+      { href: "/profile",           icon: "👤", label: "My Profile" },
+      { href: "/auth/login",        icon: "🔐", label: "Sign In" },
+      { href: "/auth/signup",       icon: "✨", label: "Create Account" },
     ],
   },
 ];
