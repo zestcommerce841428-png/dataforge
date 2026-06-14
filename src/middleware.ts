@@ -15,34 +15,56 @@ const BLOCKED_PATHS = [
 const PROTECTED_ROUTES = [
   "/profile",
   "/api-docs",
+  "/api-keys",
   "/base-converter",
+  "/bulk-template",
   "/code-formatter",
   "/color-toolkit",
   "/compare",
   "/cron-builder",
+  "/cron-monitor",
   "/crypto",
+  "/dashboard",
   "/dev-tools",
   "/diff",
   "/file-converter",
   "/format-converter",
   "/formula-manager",
   "/handwriting",
+  "/http-tester",
   "/image-tools",
   "/json-path",
   "/json-formatter",
   "/jwt",
+  "/notes",
   "/ocr",
   "/pdf-tools",
+  "/qr-generator",
   "/regex",
+  "/resume",
   "/shortcuts",
+  "/snippets",
   "/sql-formatter",
+  "/ssl-checker",
   "/text-escape",
   "/tools",
   "/typing",
   "/url-checker",
+  "/url-monitor",
   "/uuid-generator",
+  "/webhook-inspector",
   "/workbook",
-  "/bulk-template",
+];
+
+// API endpoints that must stay public: the contact form, network info used on
+// public pages, the signup avatar upload, and the inbound webhook/cron
+// ingestion endpoints (called by third parties, not by signed-in users).
+const PUBLIC_API_ROUTES = [
+  "/api/contact",
+  "/api/my-ip",
+  "/api/upload-public-avatar",
+  "/api/webhook/",   // inbound webhook ingestion: /api/webhook/[id]
+  "/api/cron-ping/", // inbound cron ping: /api/cron-ping/[id]
 ];
 
 // Routes only for unauthenticated users
@@ -87,6 +109,19 @@ export async function middleware(req: NextRequest) {
     });
 
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Gate tool API backends: everything under /api except the explicit
+    // public allowlist requires a signed-in user.
+    if (
+      !user &&
+      pathname.startsWith("/api/") &&
+      !PUBLIC_API_ROUTES.some((r) => pathname === r.replace(/\/$/, "") || pathname.startsWith(r))
+    ) {
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     if (!user && PROTECTED_ROUTES.some((r) => pathname.startsWith(r))) {
       const loginUrl = req.nextUrl.clone();

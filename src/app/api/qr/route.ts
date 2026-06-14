@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import QRCode from "qrcode";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { searchParams } = req.nextUrl;
   const text = searchParams.get("text") ?? "";
   const size = Math.min(Math.max(Number(searchParams.get("size") ?? 300), 64), 1024);

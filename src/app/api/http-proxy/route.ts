@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertSafeUrl } from "@/lib/ssrf";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 const MAX_BODY_SIZE = 1024 * 1024; // 1 MB response cap
 
 export async function POST(req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = await req.json().catch(() => ({}));
   const { url, method = "GET", headers: reqHeaders = {}, body: reqBody, followRedirects = true } = body as {
     url: string;

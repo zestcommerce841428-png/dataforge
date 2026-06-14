@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import tls from "tls";
 import { assertSafeHost, resolveSafeIp } from "@/lib/ssrf";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,10 @@ function parseDomain(input: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const domain = parseDomain(req.nextUrl.searchParams.get("domain") ?? "");
   if (!domain) return NextResponse.json({ error: "domain is required" }, { status: 400 });
 
