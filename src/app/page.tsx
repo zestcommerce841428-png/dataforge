@@ -12,12 +12,12 @@ const features = [
   {
     icon: "🔒",
     title: "Private & secure",
-    text: "Everything runs locally in your browser. No data is ever sent to a server.",
+    text: "Tools run locally in your browser. Your data never leaves your device.",
   },
   {
     icon: "⚡",
     title: "Instant & fast",
-    text: "Statically rendered, no-login, zero wait. Results appear in milliseconds.",
+    text: "Sign in once, then zero friction. Results appear in milliseconds with no page reloads.",
   },
   {
     icon: "🎲",
@@ -41,13 +41,17 @@ const highlights = [
 ];
 
 const featured = [
-  { href: "/dev-tools",       icon: "🛠",  title: "397+ Developer Tools",        desc: "JSON, regex, hashing, converters, finance, health & more" },
-  { href: "/handwriting",     icon: "✍️",  title: "Text to Handwriting",         desc: "30 fonts, inks & papers, unlimited pages, PNG/PDF export" },
-  { href: "/image-tools",     icon: "🖼️",  title: "Image Resizer & Compressor",  desc: "Resize, crop, compress to target KB, convert formats" },
+  { href: "/dev-tools",       icon: "🛠",  title: "420+ Developer Tools",        desc: "JSON, regex, hashing, converters, finance, health & more" },
+  { href: "/json-formatter",  icon: "{ }", title: "JSON Formatter",              desc: "Format, validate, minify and highlight JSON with one click" },
+  { href: "/sql-formatter",   icon: "🗄",  title: "SQL Formatter",               desc: "Beautify SQL for MySQL, PostgreSQL, SQLite and standard SQL" },
+  { href: "/uuid-generator",  icon: "🔢",  title: "UUID Generator",              desc: "Bulk-generate v1, v4, v7 and Nil UUIDs in multiple formats" },
+  { href: "/image-tools",     icon: "🖼️",  title: "Image Tools",                 desc: "Resize, crop, compress to target KB, convert formats" },
   { href: "/pdf-tools",       icon: "📄",  title: "PDF Tools",                   desc: "Merge, split, compress, rotate, images ↔ PDF" },
-  { href: "/format-converter",icon: "⇄",  title: "Format Converter",            desc: "JSON / YAML / XML / CSV — convert between any formats" },
-  { href: "/code-formatter",  icon: "{}",  title: "Code Formatter",              desc: "Beautify or minify JSON, CSS, SQL, HTML, JS" },
+  { href: "/handwriting",     icon: "✍️",  title: "Text to Handwriting",         desc: "30 fonts, inks & papers, unlimited pages, PNG/PDF export" },
   { href: "/workbook",        icon: "⊞",  title: "Spreadsheet Workbook",        desc: "Excel-style grid with 360+ built-in formulas" },
+  { href: "/url-checker",     icon: "🔗",  title: "URL Checker & Encoder",       desc: "Validate, parse, bulk-check, encode and decode URLs" },
+  { href: "/text-escape",     icon: "✎",   title: "Text Escape / Unescape",      desc: "HTML, JS, JSON, Regex, CSV, Base64, SQL — escape or unescape" },
+  { href: "/format-converter",icon: "⇄",  title: "Format Converter",            desc: "JSON / YAML / XML / CSV — convert between any formats" },
   { href: "/crypto",          icon: "₿",  title: "Live Crypto Tracker",         desc: "Real-time prices, charts, order book, WebSocket data" },
 ];
 
@@ -61,7 +65,7 @@ export default function HomePage() {
           className="surface inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium text-muted transition-colors hover:border-brand-400 hover:text-brand-600"
         >
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-green-500" aria-hidden />
-          {TOTAL_GENERATORS} free generators · 100% in-browser · no sign-up
+          {TOTAL_GENERATORS}+ free tools · sign up free · no payment needed
         </Link>
 
         <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
@@ -73,9 +77,9 @@ export default function HomePage() {
         </h1>
 
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-          DataForge is a fast, secure, privacy-first toolkit for developers, testers and
-          creators. Passwords, UUIDs, JSON, IBAN, BIP39 phrases, colors, countries and
-          more — all generated locally, instantly, for free.
+          DataForge is a fast, secure toolkit for developers, testers and creators.
+          JSON formatter, SQL beautifier, UUID generator, password tools, OCR, PDF editor,
+          spreadsheet, crypto tracker and 420+ more — all free with a one-click account.
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -86,10 +90,10 @@ export default function HomePage() {
             Browse all {TOTAL_GENERATORS} tools
           </Link>
           <Link
-            href="/tools/password"
+            href="/auth/signup"
             className="surface rounded-xl border px-6 py-3 font-semibold shadow-sm transition hover:bg-[var(--surface-2)] active:scale-[0.97]"
           >
-            Try password generator →
+            Create free account →
           </Link>
         </div>
 
@@ -168,6 +172,29 @@ export default function HomePage() {
           >
             Open Tracker →
           </Link>
+        </div>
+      </section>
+
+      {/* ── Sign-up CTA banner ───────────────────────────────────────────── */}
+      <section className="surface my-6 overflow-hidden rounded-2xl border shadow-sm">
+        <div className="flex flex-col items-start justify-between gap-4 bg-gradient-to-r from-brand-600/10 via-brand-500/5 to-transparent p-6 sm:flex-row sm:items-center">
+          <div>
+            <span className="text-2xl" aria-hidden>🔐</span>
+            <h2 className="mt-1 text-lg font-bold">Free account — unlock everything</h2>
+            <p className="mt-1 text-sm text-muted">
+              Sign up in seconds with Google, GitHub, Microsoft or email. Access all 420+ tools instantly.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Link href="/auth/signup"
+              className="rounded-xl bg-brand-600 px-5 py-2.5 font-semibold text-white shadow-md transition hover:bg-brand-700 active:scale-[0.97]">
+              Sign up free →
+            </Link>
+            <Link href="/auth/login"
+              className="surface rounded-xl border px-5 py-2.5 font-semibold transition hover:bg-[var(--surface-2)] active:scale-[0.97]">
+              Sign in
+            </Link>
+          </div>
         </div>
       </section>
 
