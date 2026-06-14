@@ -17,3 +17,5 @@ smoke-out.txt
 
 .vercel
 .env*
+
+.git-commit-msg.txt
