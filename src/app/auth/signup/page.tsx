@@ -61,8 +61,14 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [signedUpEmail, setSignedUpEmail] = useState("");
+
+  // OTP verification step
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
 
   // Step 1 — Account
   const [fullName, setFullName] = useState("");
@@ -175,55 +181,146 @@ export default function SignupPage() {
       } catch { /* non-fatal: avatar upload optional */ }
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          username: username.toLowerCase(),
-          phone,
-          date_of_birth: dob,
-          gender,
-          country,
-          city,
-          language,
-          nationality,
-          occupation,
-          company,
-          industry,
-          experience_years: experience,
-          linkedin,
-          twitter: twitterHandle,
-          github_profile: githubProfile,
-          portfolio_website: portfolioWebsite,
-          bio,
-          interests,
-          avatar_url: avatarUrl,
-          newsletter,
-        },
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    });
+    const metadata = {
+      full_name: fullName,
+      username: username.toLowerCase(),
+      phone,
+      date_of_birth: dob,
+      gender,
+      country,
+      city,
+      language,
+      nationality,
+      occupation,
+      company,
+      industry,
+      experience_years: experience,
+      linkedin,
+      twitter: twitterHandle,
+      github_profile: githubProfile,
+      portfolio_website: portfolioWebsite,
+      bio,
+      interests,
+      avatar_url: avatarUrl,
+      newsletter,
+    };
 
-    setLoading(false);
-    if (error) { setError(error.message); return; }
-    setSignedUpEmail(email);
-    setSuccess(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, metadata }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setLoading(false);
+      if (!res.ok) { setError(data.error ?? "Sign up failed. Please try again."); return; }
+      setSignedUpEmail(email);
+      setOtpStep(true);
+      startResendCooldown();
+    } catch {
+      setLoading(false);
+      setError("Network error. Please try again.");
+    }
   }
 
-  if (success) {
+  function startResendCooldown() {
+    setResendIn(45);
+    const id = setInterval(() => {
+      setResendIn((s) => {
+        if (s <= 1) { clearInterval(id); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+  }
+
+  async function verifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setOtpError("");
+    if (!/^\d{6}$/.test(otp)) { setOtpError("Enter the 6-digit code."); return; }
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: signedUpEmail, code: otp }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setOtpError(data.error ?? "Verification failed."); setOtpLoading(false); return; }
+      // Email confirmed — sign the user in and send them to their profile.
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: signedUpEmail, password });
+      setOtpLoading(false);
+      if (signInErr) { router.push("/auth/login?verified=1"); return; }
+      router.push("/profile");
+    } catch {
+      setOtpLoading(false);
+      setOtpError("Network error. Please try again.");
+    }
+  }
+
+  async function resendOtp() {
+    if (resendIn > 0) return;
+    setOtpError("");
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: signedUpEmail, password, metadata: { full_name: fullName, username: username.toLowerCase() } }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setOtpError(data.error ?? "Could not resend the code."); return; }
+      startResendCooldown();
+    } catch {
+      setOtpError("Network error. Please try again.");
+    }
+  }
+
+  if (otpStep) {
     return (
-      <div className="surface w-full max-w-md rounded-2xl border border-app p-8 shadow-xl text-center">
-        <div className="mb-4 text-5xl">📧</div>
-        <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
-        <p className="text-sm text-muted">
-          We sent a verification link to <strong>{signedUpEmail}</strong>. Click it to activate your
-          account. Check spam if you don&apos;t see it within a minute.
+      <div className="surface w-full max-w-md rounded-2xl border border-app p-8 shadow-xl">
+        <div className="mb-4 text-center text-5xl">📩</div>
+        <h1 className="mb-2 text-center text-2xl font-bold">Enter your code</h1>
+        <p className="mb-6 text-center text-sm text-muted">
+          We emailed a 6-digit verification code to <strong>{signedUpEmail}</strong>. It expires in 10 minutes.
         </p>
-        <Link href="/auth/login" className="mt-6 inline-block text-sm text-brand-600 hover:underline">
-          Back to login
-        </Link>
+
+        {otpError && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
+            {otpError}
+          </div>
+        )}
+
+        <form onSubmit={verifyOtp} className="space-y-4">
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-3 text-center text-2xl font-bold tracking-[0.5em] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+            placeholder="000000"
+            aria-label="6-digit verification code"
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={otpLoading || otp.length !== 6}
+            className="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          >
+            {otpLoading ? "Verifying…" : "Verify & continue"}
+          </button>
+        </form>
+
+        <div className="mt-5 flex items-center justify-between text-sm">
+          <button type="button" onClick={() => { setOtpStep(false); setOtp(""); setOtpError(""); }}
+            className="text-muted hover:text-[var(--text)]">
+            ← Edit details
+          </button>
+          <button type="button" onClick={resendOtp} disabled={resendIn > 0}
+            className="text-brand-600 hover:underline disabled:text-muted disabled:no-underline">
+            {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+          </button>
+        </div>
       </div>
     );
   }

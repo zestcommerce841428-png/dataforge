@@ -63,6 +63,8 @@ const PUBLIC_API_ROUTES = [
   "/api/contact",
   "/api/my-ip",
   "/api/upload-public-avatar",
+  "/api/auth/signup",     // OTP signup: creates the account, sends the code
+  "/api/auth/verify-otp", // OTP signup: confirms the email
   "/api/webhook/",   // inbound webhook ingestion: /api/webhook/[id]
   "/api/cron-ping/", // inbound cron ping: /api/cron-ping/[id]
 ];

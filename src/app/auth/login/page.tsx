@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [otpMode, setOtpMode] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -25,6 +26,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (params.get("error") === "auth_callback_failed") {
       setError("Authentication link expired or invalid. Please try again.");
+    }
+    if (params.get("verified") === "1") {
+      setNotice("Your email is verified. Sign in to continue.");
     }
   }, [params]);
 
@@ -149,6 +153,12 @@ export default function LoginPage() {
           OTP / Magic Link
         </button>
       </div>
+
+      {notice && (
+        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-950/30 dark:text-green-400">
+          ✓ {notice}
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
