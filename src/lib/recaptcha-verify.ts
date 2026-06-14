@@ -4,7 +4,8 @@
  * request (so the app keeps working without reCAPTCHA set up).
  */
 export async function verifyRecaptcha(token: string | undefined, expectedAction?: string, minScore = 0.5) {
-  const secret = process.env.RECAPTCHA_SECRET;
+  const STRIP_INVIS = new RegExp("[" + String.fromCharCode(0xFEFF, 0x200B, 0x200C, 0x200D, 0x2060) + "]", "g");
+  const secret = (process.env.RECAPTCHA_SECRET ?? "").replace(STRIP_INVIS, "").trim();
   if (!secret) return { ok: true, score: null as number | null, reason: "disabled" };
   if (!token) return { ok: false, score: null, reason: "missing-token" };
 

@@ -2,7 +2,9 @@
 import { useEffect } from "react";
 import Script from "next/script";
 
-const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+// Strip any BOM / zero-width / whitespace that can sneak into pasted env vars.
+const STRIP_INVIS = new RegExp("[" + String.fromCharCode(0xFEFF, 0x200B, 0x200C, 0x200D, 0x2060) + "]", "g");
+const SITE_KEY = (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "").replace(STRIP_INVIS, "").trim() || undefined;
 
 declare global {
   interface Window {

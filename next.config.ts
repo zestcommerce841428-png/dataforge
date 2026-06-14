@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+﻿import type { NextConfig } from "next";
 import { execSync } from "child_process";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -38,11 +38,18 @@ const scriptSrc = isDev
 // Tesseract.js WASM workers run as blob: URLs and require wasm-eval in dev
 const workerSrc = "worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net";
 
-// Supabase origin (auth, REST, storage, realtime) — derived from the public env
+// Supabase origin (auth, REST, storage, realtime) â€” derived from the public env
 // var so the CSP stays correct for any project without hardcoding the host.
+// Some env vars get pasted with a leading BOM / zero-width / whitespace which
+// breaks new URL() and exact string matches. Strip those before use.
+const STRIP_INVIS = new RegExp('[' + String.fromCharCode(0xFEFF, 0x200B, 0x200C, 0x200D, 0x2060) + ']', 'g');
+function cleanEnv(v?: string): string {
+  return (v ?? '').replace(STRIP_INVIS, '').trim();
+}
+
 function supabaseOrigin(): string {
   try {
-    const u = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const u = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
     return u ? new URL(u).origin : "";
   } catch { return ""; }
 }
@@ -54,7 +61,7 @@ const supabaseImg = SUPA; // storage-hosted avatars
 // Hostinger host that serves uploaded avatars (same host as the upload URL).
 function hostingerHost(): string {
   try {
-    const u = process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL;
+    const u = cleanEnv(process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL);
     return u ? new URL(u).host : "";
   } catch { return ""; }
 }
