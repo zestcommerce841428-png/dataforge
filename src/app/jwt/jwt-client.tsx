@@ -64,6 +64,48 @@ function JsonBlock({ data }: { data: unknown }) {
   );
 }
 
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const b64 = pem
+    .replace(/-----BEGIN [^-]+-----/g, "")
+    .replace(/-----END [^-]+-----/g, "")
+    .replace(/\s+/g, "");
+  const bin = atob(b64);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf.buffer;
+}
+
+function b64urlToBytes(s: string): Uint8Array<ArrayBuffer> {
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// Verify RS256/384/512 and ES256/384/512 with a PEM (SPKI) public key.
+async function verifyAsymmetric(token: string, pem: string, alg: string): Promise<boolean> {
+  const [headerB64, payloadB64, sigB64] = token.split(".");
+  const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+  const sig = b64urlToBytes(sigB64);
+  const hash = alg.endsWith("256") ? "SHA-256" : alg.endsWith("384") ? "SHA-384" : "SHA-512";
+  const keyBuf = pemToArrayBuffer(pem);
+
+  if (alg.startsWith("RS") || alg.startsWith("PS")) {
+    const name = alg.startsWith("PS") ? "RSA-PSS" : "RSASSA-PKCS1-v1_5";
+    const key = await crypto.subtle.importKey("spki", keyBuf, { name, hash }, false, ["verify"]);
+    const params = alg.startsWith("PS")
+      ? { name, saltLength: alg.endsWith("256") ? 32 : alg.endsWith("384") ? 48 : 64 }
+      : { name };
+    return crypto.subtle.verify(params, key, sig, data);
+  }
+  if (alg.startsWith("ES")) {
+    const namedCurve = alg.endsWith("256") ? "P-256" : alg.endsWith("384") ? "P-384" : "P-521";
+    const key = await crypto.subtle.importKey("spki", keyBuf, { name: "ECDSA", namedCurve }, false, ["verify"]);
+    return crypto.subtle.verify({ name: "ECDSA", hash }, key, sig, data);
+  }
+  throw new Error(`Unsupported algorithm: ${alg}`);
+}
+
 async function verifyHmac(token: string, secret: string, alg: string): Promise<boolean> {
   try {
     const [headerB64, payloadB64, sigB64] = token.split(".");
@@ -81,8 +123,10 @@ async function verifyHmac(token: string, secret: string, alg: string): Promise<b
 export function JwtDebugger() {
   const [token, setToken] = useState(SAMPLE_JWT);
   const [secret, setSecret] = useState("");
+  const [pubKey, setPubKey] = useState("");
   const [verified, setVerified] = useState<boolean | null>(null);
   const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
 
   const parsed = useMemo(() => parseJwt(token), [token]);
 
@@ -94,6 +138,20 @@ export function JwtDebugger() {
     setVerifying(true);
     const ok = await verifyHmac(token.trim(), secret, parsed.header.alg);
     setVerified(ok);
+    setVerifying(false);
+  };
+
+  const handleVerifyAsymmetric = async () => {
+    if (!parsed || !pubKey.trim()) return;
+    setVerifying(true);
+    setVerifyError("");
+    try {
+      const ok = await verifyAsymmetric(token.trim(), pubKey.trim(), parsed.header.alg);
+      setVerified(ok);
+    } catch (e) {
+      setVerified(null);
+      setVerifyError((e as Error).message || "Could not parse the public key. Paste a PEM-encoded (SPKI) public key.");
+    }
     setVerifying(false);
   };
 
@@ -242,8 +300,39 @@ export function JwtDebugger() {
               <p className="mt-2 text-xs text-muted">Verification uses the Web Crypto API — your secret never leaves the browser.</p>
             </section>
           )}
-          {!isHmac && (
-            <p className="text-xs text-muted">Signature verification for {alg} (asymmetric) requires the public key — paste key-based verification is coming soon.</p>
+          {!isHmac && (alg.startsWith("RS") || alg.startsWith("ES") || alg.startsWith("PS")) && (
+            <section className="surface rounded-2xl border p-5 shadow-sm">
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">Verify Signature ({alg})</h2>
+              <textarea
+                value={pubKey}
+                onChange={(e) => { setPubKey(e.target.value); setVerified(null); setVerifyError(""); }}
+                rows={5}
+                spellCheck={false}
+                placeholder={"-----BEGIN PUBLIC KEY-----\n…paste the PEM public key…\n-----END PUBLIC KEY-----"}
+                className="surface-2 w-full resize-none rounded-xl border border-app p-3 font-mono text-xs outline-none"
+                aria-label="PEM public key"
+              />
+              <button
+                type="button"
+                onClick={handleVerifyAsymmetric}
+                disabled={!pubKey.trim() || verifying}
+                className="mt-3 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
+              >
+                {verifying ? "Verifying…" : "Verify"}
+              </button>
+              {verifyError && (
+                <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30">⚠ {verifyError}</p>
+              )}
+              {verified !== null && !verifyError && (
+                <p className={`mt-3 rounded-xl p-3 text-sm font-medium ${verified ? "bg-green-50 text-green-700 dark:bg-green-900/30" : "bg-red-50 text-red-700 dark:bg-red-900/30"}`}>
+                  {verified ? "✓ Signature is valid." : "✗ Signature is invalid — wrong key or token was tampered."}
+                </p>
+              )}
+              <p className="mt-2 text-xs text-muted">Verification uses the Web Crypto API — your key never leaves the browser. Paste a PEM <strong>SPKI</strong> public key (<code>BEGIN PUBLIC KEY</code>).</p>
+            </section>
+          )}
+          {!isHmac && !(alg.startsWith("RS") || alg.startsWith("ES") || alg.startsWith("PS")) && (
+            <p className="text-xs text-muted">Signature verification for {alg || "this algorithm"} is not supported in the browser.</p>
           )}
         </>
       )}

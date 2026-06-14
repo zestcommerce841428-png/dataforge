@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 
-// 28 advanced options — each maps to data-a11y-<id> on <html>, styled in globals.css.
+// Advanced options — each maps to data-a11y-<id> on <html>, styled in globals.css.
 const ADV: { id: string; label: string; icon: string }[] = [
   { id: "bold", label: "Bold all text", icon: "𝐁" },
   { id: "underline-links", label: "Underline links", icon: "_" },
@@ -10,27 +10,47 @@ const ADV: { id: string; label: string; icon: string }[] = [
   { id: "mono-font", label: "Monospace font", icon: "⌨" },
   { id: "serif-font", label: "Serif font", icon: "🆂" },
   { id: "left-align", label: "Left-align text", icon: "⬅" },
+  { id: "justify-text", label: "Justify text", icon: "▦" },
+  { id: "center-text", label: "Center text", icon: "≣" },
+  { id: "no-italic", label: "Remove italics", icon: "𝘐" },
   { id: "wide-letters", label: "Wide letter spacing", icon: "↔" },
   { id: "wide-words", label: "Wide word spacing", icon: "⎵" },
   { id: "tall-lines", label: "Taller line height", icon: "≡" },
   { id: "para-spacing", label: "Paragraph spacing", icon: "¶" },
+  { id: "max-legibility", label: "Max legibility", icon: "👓" },
   { id: "uppercase-headings", label: "Uppercase headings", icon: "AB" },
+  { id: "big-headings", label: "Bigger headings", icon: "🅷" },
   { id: "grayscale", label: "Grayscale", icon: "◐" },
   { id: "invert", label: "Invert colours", icon: "🌗" },
   { id: "sepia", label: "Sepia tone", icon: "🟤" },
   { id: "saturate", label: "Boost saturation", icon: "🌈" },
   { id: "desaturate", label: "Mute colours", icon: "🎚" },
   { id: "dim", label: "Dim brightness", icon: "🔅" },
+  { id: "warm-filter", label: "Warm / blue-light filter", icon: "🌅" },
   { id: "contrast-soft", label: "Soft contrast", icon: "◑" },
+  { id: "remove-shadows", label: "Remove shadows", icon: "▤" },
   { id: "hide-images", label: "Hide images", icon: "🚫" },
   { id: "gray-images", label: "Grayscale images", icon: "🖼" },
-  { id: "big-targets", label: "Bigger click targets", icon: "⬜" },
-  { id: "focus-ring", label: "Strong focus outline", icon: "▣" },
-  { id: "hover-highlight", label: "Highlight on hover", icon: "✨" },
-  { id: "pause-animations", label: "Pause animations", icon: "⏸" },
   { id: "hide-bg", label: "Remove backgrounds", icon: "▢" },
+  { id: "big-targets", label: "Bigger click targets", icon: "⬜" },
+  { id: "big-inputs", label: "Bigger form fields", icon: "🔲" },
+  { id: "big-checkboxes", label: "Bigger checkboxes", icon: "☑" },
+  { id: "big-icons", label: "Bigger icons", icon: "🔍" },
+  { id: "highlight-buttons", label: "Outline buttons", icon: "🔘" },
+  { id: "highlight-forms", label: "Outline form fields", icon: "📝" },
+  { id: "underline-buttons", label: "Underline buttons", icon: "‗" },
+  { id: "external-link-mark", label: "Mark external links", icon: "↗" },
+  { id: "focus-ring", label: "Strong focus outline", icon: "▣" },
+  { id: "always-focus", label: "Always show focus", icon: "🎯" },
+  { id: "hover-highlight", label: "Highlight on hover", icon: "✨" },
+  { id: "highlight-paragraph", label: "Highlight paragraph", icon: "❡" },
+  { id: "block-caret", label: "Visible text caret", icon: "▮" },
+  { id: "zebra-tables", label: "Striped tables", icon: "🦓" },
+  { id: "table-borders", label: "Table borders", icon: "▦" },
+  { id: "pause-animations", label: "Pause animations", icon: "⏸" },
   { id: "tooltip-titles", label: "Bigger buttons text", icon: "🔠" },
   { id: "letter-box", label: "Reading width", icon: "▥" },
+  { id: "narrow-column", label: "Narrow column", icon: "▮" },
 ];
 
 type Prefs = {
@@ -111,8 +131,42 @@ export function AccessibilityPanel() {
   const reset = () => {
     setPrefs(DEFAULTS);
     applyPrefs(DEFAULTS);
+    stopSpeaking();
     try { localStorage.removeItem(KEY); } catch {}
   };
+
+  // --- Text-to-speech tools ---
+  const [speaking, setSpeaking] = useState(false);
+
+  const speak = (text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      alert("Text-to-speech is not supported in this browser.");
+      return;
+    }
+    const clean = text.trim().replace(/\s+/g, " ");
+    if (!clean) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(clean.slice(0, 32000));
+    u.rate = 1; u.pitch = 1;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(u);
+    setSpeaking(true);
+  };
+
+  const readSelection = () => {
+    const sel = window.getSelection?.()?.toString() ?? "";
+    if (sel.trim()) return speak(sel);
+    const main = document.getElementById("main") ?? document.querySelector("main") ?? document.body;
+    speak(main?.innerText ?? "");
+  };
+
+  const stopSpeaking = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    setSpeaking(false);
+  };
+
+  useEffect(() => () => stopSpeaking(), []);
 
   const toggleAdv = (id: string) =>
     update({ adv: { ...prefs.adv, [id]: !prefs.adv?.[id] } });
@@ -152,7 +206,10 @@ export function AccessibilityPanel() {
             className="surface fixed bottom-20 left-4 z-50 w-[min(92vw,340px)] max-h-[78vh] overflow-auto rounded-2xl border p-4 shadow-2xl"
           >
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-bold">Accessibility</h2>
+              <div>
+                <h2 className="text-base font-bold">Accessibility</h2>
+                <p className="text-[11px] text-muted">{ADV.length + 10}+ tools to personalise your experience</p>
+              </div>
               <button onClick={reset} className="text-xs text-brand-600 hover:underline">Reset all</button>
             </div>
 
@@ -177,6 +234,29 @@ export function AccessibilityPanel() {
               <Toggle k="motion" label="Reduce motion" icon="🛑" />
               <Toggle k="cursor" label="Large cursor" icon="🖱" />
               <Toggle k="guide" label="Reading guide" icon="📏" />
+            </div>
+
+            {/* Reading tools */}
+            <div className="mt-4 border-t border-[var(--border)] pt-3">
+              <h3 className="mb-2 text-sm font-semibold">Reading tools</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={readSelection}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-app px-3 py-2.5 text-sm transition-colors hover:border-brand-400"
+                >
+                  <span aria-hidden>🔊</span> Read aloud
+                </button>
+                <button
+                  type="button"
+                  onClick={stopSpeaking}
+                  disabled={!speaking}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border border-app px-3 py-2.5 text-sm transition-colors hover:border-brand-400 disabled:opacity-40"
+                >
+                  <span aria-hidden>⏹</span> Stop
+                </button>
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted">Select text first to read just that, or read the whole page.</p>
             </div>
 
             {/* Advanced options */}
