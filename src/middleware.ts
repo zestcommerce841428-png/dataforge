@@ -68,6 +68,7 @@ const PUBLIC_API_ROUTES = [
   "/api/auth/login-otp",       // passwordless sign-in: sends the code
   "/api/auth/forgot-password", // password reset: sends the code
   "/api/auth/reset-password",  // password reset: verifies code + sets password
+  "/api/auth/recaptcha",       // bot-check used by password login
   "/api/webhook/",   // inbound webhook ingestion: /api/webhook/[id]
   "/api/cron-ping/", // inbound cron ping: /api/cron-ping/[id]
 ];

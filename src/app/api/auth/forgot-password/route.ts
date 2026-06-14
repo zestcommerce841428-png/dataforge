@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomInt } from "crypto";
 import { makeAdmin, hashCode, findUserByEmail } from "@/lib/auth-otp";
 import { buildRequestContext, sendOtpEmail } from "@/lib/email";
+import { verifyRecaptcha } from "@/lib/recaptcha-verify";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,11 @@ export async function POST(req: NextRequest) {
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+  }
+
+  const human = await verifyRecaptcha(body.recaptchaToken, "forgot_password");
+  if (!human.ok) {
+    return NextResponse.json({ error: "Failed bot verification. Please try again." }, { status: 403 });
   }
 
   const admin = makeAdmin();

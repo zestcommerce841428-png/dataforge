@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { appUrl } from "@/lib/site";
+import { executeRecaptcha } from "@/components/recaptcha";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,6 +41,15 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    const token = await executeRecaptcha("login");
+    if (token) {
+      const check = await fetch("/api/auth/recaptcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, action: "login" }),
+      });
+      if (!check.ok) { setLoading(false); setError("Failed bot verification. Please try again."); return; }
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) { setError(error.message); return; }
@@ -52,10 +62,11 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
+      const recaptchaToken = await executeRecaptcha("login_otp");
       const res = await fetch("/api/auth/login-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, recaptchaToken }),
       });
       const data = await res.json().catch(() => ({}));
       setLoading(false);

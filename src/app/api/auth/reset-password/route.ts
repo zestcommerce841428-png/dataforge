@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { makeAdmin, hashCode, findUserByEmail } from "@/lib/auth-otp";
+import { verifyRecaptcha } from "@/lib/recaptcha-verify";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,11 @@ export async function POST(req: NextRequest) {
   }
   if (!password || password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
+  }
+
+  const human = await verifyRecaptcha(body.recaptchaToken, "reset_password");
+  if (!human.ok) {
+    return NextResponse.json({ error: "Failed bot verification. Please try again." }, { status: 403 });
   }
 
   const admin = makeAdmin();

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { executeRecaptcha } from "@/components/recaptcha";
 
 const INPUT = "w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20";
 
@@ -29,10 +30,11 @@ export default function ForgotPasswordPage() {
     if (!email.includes("@")) { setError("Enter a valid email address."); return; }
     setLoading(true);
     try {
+      const recaptchaToken = await executeRecaptcha("forgot_password");
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, recaptchaToken }),
       });
       const data = await res.json().catch(() => ({}));
       setLoading(false);
@@ -53,10 +55,11 @@ export default function ForgotPasswordPage() {
     if (password !== confirm) { setError("Passwords do not match."); return; }
     setLoading(true);
     try {
+      const recaptchaToken = await executeRecaptcha("reset_password");
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code, password }),
+        body: JSON.stringify({ email, code, password, recaptchaToken }),
       });
       const data = await res.json().catch(() => ({}));
       setLoading(false);

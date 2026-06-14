@@ -51,11 +51,21 @@ const SUPA_WSS = SUPA ? SUPA.replace(/^https:/, "wss:") : "";
 const supabaseConnect = [SUPA, SUPA_WSS].filter(Boolean).join(" ");
 const supabaseImg = SUPA; // storage-hosted avatars
 
+// Hostinger host that serves uploaded avatars (same host as the upload URL).
+function hostingerHost(): string {
+  try {
+    const u = process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL;
+    return u ? new URL(u).host : "";
+  } catch { return ""; }
+}
+const HOSTINGER_HOST = hostingerHost();
+const hostingerImg = HOSTINGER_HOST ? `https://${HOSTINGER_HOST}` : "";
+
 const csp = [
   "default-src 'self'",
   scriptSrc,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  `img-src 'self' data: blob: ${supabaseImg} https://coin-images.coingecko.com https://assets.coingecko.com https://www.google-analytics.com https://*.google-analytics.com https://www.gstatic.com https://translate.googleapis.com https://www.google.com https://fonts.gstatic.com`,
+  `img-src 'self' data: blob: ${supabaseImg} ${hostingerImg} https://coin-images.coingecko.com https://assets.coingecko.com https://www.google-analytics.com https://*.google-analytics.com https://www.gstatic.com https://translate.googleapis.com https://www.google.com https://fonts.gstatic.com`,
   "font-src 'self' https://fonts.gstatic.com",
   `connect-src 'self' ${supabaseConnect} https://api.coingecko.com https://api.binance.com https://fapi.binance.com wss://stream.binance.com:9443 https://api.alternative.me https://tessdata.projectnaptha.com https://cloudflare-dns.com http://ip-api.com https://tinyurl.com https://is.gd https://v.gd https://clck.ru https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://translate.googleapis.com https://translate.google.com https://translate-pa.googleapis.com https://*.gstatic.com https://www.google.com https://www.recaptcha.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net${isDev ? " ws: http://localhost:*" : ""}`,
   workerSrc,
@@ -85,6 +95,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "coin-images.coingecko.com" },
       { protocol: "https", hostname: "assets.coingecko.com" },
+      ...(HOSTINGER_HOST ? [{ protocol: "https" as const, hostname: HOSTINGER_HOST }] : []),
+      ...(SUPA ? [{ protocol: "https" as const, hostname: new URL(SUPA).host }] : []),
     ],
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { appUrl } from "@/lib/site";
+import { executeRecaptcha } from "@/components/recaptcha";
 
 const STEPS = ["Account", "Personal", "Professional", "Profile"];
 
@@ -207,10 +208,11 @@ export default function SignupPage() {
     };
 
     try {
+      const recaptchaToken = await executeRecaptcha("signup");
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, metadata }),
+        body: JSON.stringify({ email, password, metadata, recaptchaToken }),
       });
       const data = await res.json().catch(() => ({}));
       setLoading(false);
@@ -262,10 +264,11 @@ export default function SignupPage() {
     if (resendIn > 0) return;
     setOtpError("");
     try {
+      const recaptchaToken = await executeRecaptcha("signup");
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: signedUpEmail, password, metadata: { full_name: fullName, username: username.toLowerCase() } }),
+        body: JSON.stringify({ email: signedUpEmail, password, metadata: { full_name: fullName, username: username.toLowerCase() }, recaptchaToken }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { setOtpError(data.error ?? "Could not resend the code."); return; }
