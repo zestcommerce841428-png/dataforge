@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createHash } from "crypto";
 import nodemailer from "nodemailer";
+import { assertSafeUrl } from "@/lib/ssrf";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,9 @@ export async function POST(req: NextRequest) {
   const { url, name, alert_email, check_interval_hours = 24 } = body;
   if (!url?.trim() || !name?.trim()) return NextResponse.json({ error: "url and name are required" }, { status: 400 });
 
+  const safe = await assertSafeUrl(url.trim());
+  if (!safe.ok) return NextResponse.json({ error: safe.reason }, { status: 403 });
+
   const { count } = await supabase.from("url_monitors").select("id", { count: "exact", head: true }).eq("user_id", user.id);
   if ((count ?? 0) >= 10) return NextResponse.json({ error: "Maximum 10 URL monitors per account." }, { status: 400 });
 
@@ -90,9 +94,12 @@ export async function PATCH(req: NextRequest) {
   const { data: monitor } = await supabase.from("url_monitors").select("*").eq("id", id).eq("user_id", user.id).single();
   if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
 
+  const safe = await assertSafeUrl(monitor.url);
+  if (!safe.ok) return NextResponse.json({ error: safe.reason }, { status: 403 });
+
   let html = "";
   try {
-    const res = await fetch(monitor.url, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(monitor.url, { signal: AbortSignal.timeout(10000), redirect: "manual" });
     html = await res.text();
   } catch (e) {
     return NextResponse.json({ error: `Fetch failed: ${(e as Error).message}` }, { status: 500 });

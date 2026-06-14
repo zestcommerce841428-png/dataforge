@@ -1,18 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertSafeUrl } from "@/lib/ssrf";
 
 export const dynamic = "force-dynamic";
 
-const BLOCKED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "::1", "169.254.169.254"];
 const MAX_BODY_SIZE = 1024 * 1024; // 1 MB response cap
-
-function isSafeHost(url: string): boolean {
-  try {
-    const { hostname } = new URL(url);
-    return !BLOCKED_HOSTS.some((b) => hostname === b || hostname.endsWith(".local"));
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -25,20 +16,32 @@ export async function POST(req: NextRequest) {
   };
 
   if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
-  if (!isSafeHost(url)) return NextResponse.json({ error: "Requests to localhost/internal IPs are not allowed." }, { status: 403 });
+  const safe = await assertSafeUrl(url);
+  if (!safe.ok) return NextResponse.json({ error: safe.reason }, { status: 403 });
 
   const start = Date.now();
   try {
     const fetchOpts: RequestInit = {
       method,
       headers: { ...reqHeaders },
-      redirect: followRedirects ? "follow" : "manual",
+      redirect: "manual", // we follow manually so every hop is SSRF-checked
     };
     if (reqBody && !["GET", "HEAD"].includes(method.toUpperCase())) {
       fetchOpts.body = reqBody;
     }
 
-    const resp = await fetch(url, fetchOpts);
+    // Manual redirect following with per-hop SSRF validation (max 5 hops).
+    let currentUrl = url;
+    let resp = await fetch(currentUrl, fetchOpts);
+    let hops = 0;
+    while (followRedirects && resp.status >= 300 && resp.status < 400 && resp.headers.get("location") && hops < 5) {
+      const next = new URL(resp.headers.get("location")!, currentUrl).toString();
+      const hopSafe = await assertSafeUrl(next);
+      if (!hopSafe.ok) return NextResponse.json({ error: `Redirect blocked: ${hopSafe.reason}` }, { status: 403 });
+      currentUrl = next;
+      resp = await fetch(currentUrl, fetchOpts);
+      hops++;
+    }
     const elapsed = Date.now() - start;
 
     const respHeaders: Record<string, string> = {};
@@ -69,8 +72,8 @@ export async function POST(req: NextRequest) {
       body: responseBody,
       elapsed,
       truncated,
-      redirected: resp.redirected,
-      url: resp.url,
+      redirected: hops > 0,
+      url: currentUrl,
     });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message, elapsed: Date.now() - start }, { status: 500 });

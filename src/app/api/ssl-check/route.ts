@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import tls from "tls";
+import { assertSafeHost, resolveSafeIp } from "@/lib/ssrf";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +17,17 @@ export async function GET(req: NextRequest) {
   const domain = parseDomain(req.nextUrl.searchParams.get("domain") ?? "");
   if (!domain) return NextResponse.json({ error: "domain is required" }, { status: 400 });
 
+  const safe = await assertSafeHost(domain);
+  if (!safe.ok) return NextResponse.json({ error: safe.reason }, { status: 403 });
+
+  // Connect to the validated IP directly (servername preserves SNI) so we don't
+  // re-resolve DNS on connect — closes the rebinding window.
+  const safeIp = await resolveSafeIp(domain);
+  if (!safeIp) return NextResponse.json({ error: "Host resolves to a private/internal IP." }, { status: 403 });
+
   return new Promise<NextResponse>((resolve) => {
     const socket = tls.connect(
-      { host: domain, port: 443, servername: domain, rejectUnauthorized: false, timeout: 10000 },
+      { host: safeIp, port: 443, servername: domain, rejectUnauthorized: false, timeout: 10000 },
       () => {
         const cert = socket.getPeerCertificate(true);
         socket.end();
