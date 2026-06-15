@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@/lib/supabase/types";
@@ -495,8 +496,7 @@ export default function ProfileClient({ user, profile }: Props) {
       <div className="mb-8 flex flex-wrap items-start gap-5">
         <div className="relative shrink-0">
           {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="Avatar" width={80} height={80}
+            <Image src={avatarUrl} alt="Avatar" width={80} height={80} unoptimized
               className="h-20 w-20 rounded-2xl object-cover border border-app" />
           ) : (
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-2xl font-black text-white">
