@@ -23,6 +23,13 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
 
+  // MFA step — shown after password login when user has TOTP enrolled
+  const [mfaStep, setMfaStep] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState("");
+  const [mfaChallengeId, setMfaChallengeId] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaLoading, setMfaLoading] = useState(false);
+
   const redirect = params.get("redirect") ?? "/profile";
 
   useEffect(() => {
@@ -41,6 +48,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     const token = await executeRecaptcha("login");
     if (token) {
       const check = await fetch("/api/auth/recaptcha", {
@@ -48,11 +56,60 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, action: "login" }),
       });
-      if (!check.ok) { setLoading(false); setError("Failed bot verification. Please try again."); return; }
+      if (!check.ok) {
+        setLoading(false);
+        setError("Failed bot verification. Please try again.");
+        return;
+      }
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      setLoading(false);
+      setError(signInError.message);
+      return;
+    }
+
+    // Check if MFA (TOTP) is required
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel) {
+      // User has TOTP enrolled — require second factor
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const totp = factors?.totp?.find((f) => f.status === "verified");
+      if (totp) {
+        const { data: challenge, error: cErr } = await supabase.auth.mfa.challenge({ factorId: totp.id });
+        if (cErr || !challenge) {
+          setLoading(false);
+          setError("Could not start MFA challenge. Please try again.");
+          return;
+        }
+        setMfaFactorId(totp.id);
+        setMfaChallengeId(challenge.id);
+        setMfaStep(true);
+        setLoading(false);
+        return;
+      }
+    }
+
     setLoading(false);
-    if (error) { setError(error.message); return; }
+    router.push(redirect);
+    router.refresh();
+  }
+
+  async function handleMfaVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setMfaLoading(true);
+    const { error } = await supabase.auth.mfa.verify({
+      factorId: mfaFactorId,
+      challengeId: mfaChallengeId,
+      code: mfaCode,
+    });
+    setMfaLoading(false);
+    if (error) {
+      setError("Invalid authenticator code. Please try again.");
+      return;
+    }
     router.push(redirect);
     router.refresh();
   }
@@ -102,6 +159,59 @@ export default function LoginPage() {
     if (error) { setError(error.message); setOauthLoading(null); }
   }
 
+  // ── MFA screen ─────────────────────────────────────────────────────────────
+  if (mfaStep) {
+    return (
+      <div className="surface w-full max-w-md rounded-2xl border border-app p-8 shadow-xl">
+        <div className="mb-6 text-center">
+          <div className="mb-3 text-4xl">🔐</div>
+          <h1 className="mb-1 text-2xl font-bold">Two-factor authentication</h1>
+          <p className="text-sm text-muted">Enter the 6-digit code from your authenticator app to continue.</p>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleMfaVerify} className="space-y-4">
+          <div>
+            <label htmlFor="mfa-code" className="mb-1.5 block text-sm font-medium">Authenticator code</label>
+            <input
+              id="mfa-code"
+              type="text"
+              required
+              maxLength={6}
+              pattern="[0-9]{6}"
+              autoComplete="one-time-code"
+              autoFocus
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+              className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-3 text-center font-mono text-2xl tracking-[0.5em] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              placeholder="000000"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={mfaLoading || mfaCode.length !== 6}
+            className="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          >
+            {mfaLoading ? "Verifying…" : "Verify & sign in"}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMfaStep(false); setMfaCode(""); setError(""); supabase.auth.signOut(); }}
+            className="w-full text-sm text-muted hover:text-[var(--text)]"
+          >
+            ← Back to login
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  // ── Main login form ─────────────────────────────────────────────────────────
   return (
     <div className="surface w-full max-w-md rounded-2xl border border-app p-8 shadow-xl">
       <h1 className="mb-1 text-2xl font-bold">Welcome back</h1>
@@ -228,6 +338,9 @@ export default function LoginPage() {
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
+          <p className="text-center text-xs text-muted">
+            If you have 2FA enabled, you&apos;ll be prompted for your authenticator code after signing in.
+          </p>
         </form>
       ) : !otpSent ? (
         <form onSubmit={handleSendOtp} className="space-y-4">
@@ -258,6 +371,7 @@ export default function LoginPage() {
             <input
               id="otp-code"
               type="text" required maxLength={6} pattern="[0-9]{6}"
+              autoComplete="one-time-code"
               value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
               className="w-full rounded-xl border border-app bg-[var(--surface-2)] px-4 py-2.5 text-center text-2xl font-mono tracking-[0.5em] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               placeholder="000000"
