@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     ipCounts.set(ip, { count: 1, reset: now + 60_000 });
   }
 
-  const uploadUrl = process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL;
+  const uploadUrl = process.env.HOSTINGER_UPLOAD_URL ?? process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL;
   const secret = process.env.HOSTINGER_UPLOAD_SECRET;
   if (!uploadUrl) {
     return NextResponse.json({ error: "Upload not configured" }, { status: 500 });

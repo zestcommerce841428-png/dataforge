@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const uploadUrl = process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL;
+  const uploadUrl = process.env.HOSTINGER_UPLOAD_URL ?? process.env.NEXT_PUBLIC_HOSTINGER_UPLOAD_URL;
   const secret = process.env.HOSTINGER_UPLOAD_SECRET;
   if (!uploadUrl) return NextResponse.json({ error: "Upload not configured" }, { status: 500 });
 
